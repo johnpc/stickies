@@ -11,7 +11,7 @@ vi.mock('../../lib/dataClient', () => ({
   unwrap: (r: { data: unknown }) => r.data,
 }));
 
-import { heartbeat, clearPresence } from './presenceApi';
+import { heartbeat, clearPresence, reapPresence } from './presenceApi';
 
 beforeEach(() => [get, create, update, del].forEach((m) => m.mockReset()));
 
@@ -42,5 +42,13 @@ describe('clearPresence', () => {
     del.mockResolvedValue({ data: {} });
     await clearPresence('sess1');
     expect(del).toHaveBeenCalledWith({ id: 'sess1' });
+  });
+});
+
+describe('reapPresence', () => {
+  it('deletes a dead session row by id', async () => {
+    del.mockResolvedValue({ data: {} });
+    await reapPresence('ghost');
+    expect(del).toHaveBeenCalledWith({ id: 'ghost' });
   });
 });

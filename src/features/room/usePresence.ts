@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { dataClient, type PresenceRecord } from '../../lib/dataClient';
 import { getSessionId } from './sessionId';
-import { heartbeat, clearPresence } from './presenceApi';
-import { countLivePresence } from './presence';
+import { heartbeat, clearPresence, reapPresence } from './presenceApi';
+import { countLivePresence, reapableIds } from './presence';
 
 const HEARTBEAT_MS = 10_000;
 const RECOUNT_MS = 5_000;
@@ -35,6 +35,9 @@ export function usePresence(room: string): number {
       next: ({ items }) => {
         rowsRef.current = items;
         recount();
+        // Opportunistically delete long-dead rows (crashed tabs that never
+        // cleaned up) so presence rows can't grow unbounded. Best-effort.
+        for (const id of reapableIds(items, Date.now())) reapPresence(id).catch(() => {});
       },
     });
     const beatTimer = setInterval(beat, HEARTBEAT_MS);

@@ -19,3 +19,9 @@ export async function heartbeat(sessionId: string, room: string, now: string): P
 export async function clearPresence(sessionId: string): Promise<void> {
   unwrap(await dataClient.models.Presence.delete({ id: sessionId }));
 }
+
+/** Reap a long-dead row (a crashed tab's session that never cleaned up). Same
+ * delete as clearPresence but named for intent — any live viewer may reap. */
+export async function reapPresence(id: string): Promise<void> {
+  unwrap(await dataClient.models.Presence.delete({ id }));
+}

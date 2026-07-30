@@ -1,28 +1,33 @@
 import { renderHook, act } from '@testing-library/react';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 
-const { observeQuery, subscribe, unsubscribe, heartbeat, clearPresence } = vi.hoisted(() => {
-  const unsubscribe = vi.fn();
-  const subscribe = vi.fn(() => ({ unsubscribe }));
-  return {
-    observeQuery: vi.fn(() => ({ subscribe })),
-    subscribe,
-    unsubscribe,
-    heartbeat: vi.fn().mockResolvedValue(undefined),
-    clearPresence: vi.fn().mockResolvedValue(undefined),
-  };
-});
+const { observeQuery, subscribe, unsubscribe, heartbeat, clearPresence, reapPresence } = vi.hoisted(
+  () => {
+    const unsubscribe = vi.fn();
+    const subscribe = vi.fn(() => ({ unsubscribe }));
+    return {
+      observeQuery: vi.fn(() => ({ subscribe })),
+      subscribe,
+      unsubscribe,
+      heartbeat: vi.fn().mockResolvedValue(undefined),
+      clearPresence: vi.fn().mockResolvedValue(undefined),
+      reapPresence: vi.fn().mockResolvedValue(undefined),
+    };
+  },
+);
 vi.mock('../../lib/dataClient', () => ({
   dataClient: { models: { Presence: { observeQuery } } },
 }));
-vi.mock('./presenceApi', () => ({ heartbeat, clearPresence }));
+vi.mock('./presenceApi', () => ({ heartbeat, clearPresence, reapPresence }));
 vi.mock('./sessionId', () => ({ getSessionId: () => 'sess-test' }));
 
 import { usePresence } from './usePresence';
 
 beforeEach(() => {
   vi.useFakeTimers();
-  [observeQuery, subscribe, unsubscribe, heartbeat, clearPresence].forEach((m) => m.mockClear());
+  [observeQuery, subscribe, unsubscribe, heartbeat, clearPresence, reapPresence].forEach((m) =>
+    m.mockClear(),
+  );
 });
 afterEach(() => {
   vi.useRealTimers();
@@ -56,5 +61,22 @@ describe('usePresence', () => {
     renderHook(() => usePresence(''));
     expect(observeQuery).not.toHaveBeenCalled();
     expect(heartbeat).not.toHaveBeenCalled();
+  });
+
+  it('reaps long-dead rows from a snapshot but leaves fresh ones', () => {
+    renderHook(() => usePresence('room'));
+    const fresh = new Date().toISOString();
+    const dead = new Date(Date.now() - 10 * 60_000).toISOString(); // 10 min old
+    const call = subscribe.mock.calls[0] as unknown as [{ next: (arg: unknown) => void }];
+    act(() =>
+      call[0].next({
+        items: [
+          { id: 'live', room: 'room', heartbeatAt: fresh },
+          { id: 'ghost', room: 'room', heartbeatAt: dead },
+        ],
+      }),
+    );
+    expect(reapPresence).toHaveBeenCalledWith('ghost');
+    expect(reapPresence).not.toHaveBeenCalledWith('live');
   });
 });

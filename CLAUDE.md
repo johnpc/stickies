@@ -90,7 +90,10 @@ computeReorder`) so one move = one row, no reindex; an insertion LINE renders in
   tab-session id); each tab heartbeats every 10s, an observeQuery streams the room's rows, and
   `countLivePresence` counts those fresh within a 30s TTL (so a closed tab drops out even if its
   `pagehide` delete didn't flush). Count is seeded/floored at 1 (YOU are here) so the badge shows
-  instantly without waiting for the round-trip. All best-effort — presence never breaks the pad.
+  instantly without waiting for the round-trip. **Rows can't grow unbounded:** a crashed/killed tab
+  never runs cleanup, so any live viewer OPPORTUNISTICALLY reaps rows older than 2× TTL
+  (`reapableIds` → `reapPresence`) from each observeQuery snapshot — self-healing, no scheduled Lambda.
+  All best-effort — presence never breaks the pad.
 
 ### Guest-first (no account, ever)
 
