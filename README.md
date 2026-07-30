@@ -35,14 +35,14 @@ browser if the app isn't installed. Same link, works everywhere.
 
 ## Sticky types
 
-| Type      | Status | Notes                                                         |
-| --------- | ------ | ------------------------------------------------------------- |
-| Text      | ✅     | Plain note; multi-line.                                       |
-| Link      | ✅     | Auto-detected from a pasted URL; rendered as a **safe** link. |
-| Code      | ⬜     | Planned — syntax highlighting + line numbers.                 |
-| Image     | ⬜     | Planned — inline preview.                                     |
-| PDF/Video | ⬜     | Planned — in-browser preview/player.                          |
-| File      | ⬜     | Planned — generic download card for opaque files (zip, etc.). |
+| Type      | Status | Notes                                                                     |
+| --------- | ------ | ------------------------------------------------------------------------- |
+| Text      | ✅     | Plain note; multi-line.                                                   |
+| Link      | ✅     | Auto-detected from a pasted URL; rendered as a **safe** link.             |
+| Code      | ✅     | Wrap in a ` ``` ` fence (` ```ts `) — syntax highlighting + line numbers. |
+| Image     | ⬜     | Planned — inline preview.                                                 |
+| PDF/Video | ⬜     | Planned — in-browser preview/player.                                      |
+| File      | ⬜     | Planned — generic download card for opaque files (zip, etc.).             |
 
 ## Where the data lives
 

@@ -21,6 +21,24 @@ Then('the room URL is copied to their clipboard', async ({ page }) => {
   expect(clip).toBe(page.url());
 });
 
+When('they add a fenced code snippet', async ({ page }) => {
+  const code = "```js\nconst greeting = 'hi';\nconsole.log(greeting);\n```";
+  await page.getByTestId('sticky-add').click();
+  await page.getByTestId('sticky-input').fill(code);
+  await page.getByTestId('sticky-input').press('Enter');
+  await expect(page.getByTestId('code-sticky')).toBeVisible({ timeout: 15_000 });
+});
+
+Then('a code sticky is shown with line numbers', async ({ page }) => {
+  const code = page.getByTestId('code-sticky');
+  await expect(code).toBeVisible();
+  // The 2-line snippet renders a numbered gutter (1, 2) and a language tag.
+  const gutter = code.locator('.code-sticky__gutter');
+  await expect(gutter).toContainText('1');
+  await expect(gutter).toContainText('2');
+  await expect(page.getByTestId('code-lang')).toHaveText('js');
+});
+
 When('they add a sticky that says {string}', async ({ page }, content: string) => {
   await page.getByTestId('sticky-add').click();
   await page.getByTestId('sticky-input').fill(content);

@@ -1,0 +1,54 @@
+/* CODE sticky body — line-numbered, horizontally scrollable, monospace. The
+   hljs github theme colors the tokens; we only own layout + the gutter. */
+
+.code-sticky {
+  position: relative;
+  width: 100%;
+}
+
+.code-sticky__lang {
+  position: absolute;
+  top: -2px;
+  right: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sk-text-muted);
+  opacity: 0.7;
+}
+
+.code-sticky__scroll {
+  overflow-x: auto;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.code-sticky__pre {
+  display: flex;
+  margin: 0;
+  padding: 8px 6px;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  tab-size: 2;
+}
+
+.code-sticky__gutter {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  padding-right: 8px;
+  margin-right: 8px;
+  border-right: 1px solid rgba(34, 32, 26, 0.15);
+  text-align: right;
+  color: rgba(34, 32, 26, 0.4);
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.code-sticky__code {
+  background: transparent;
+  padding: 0;
+  white-space: pre;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+}

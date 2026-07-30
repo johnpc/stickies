@@ -8,7 +8,7 @@ import { dataClient, unwrap, type StickyRecord } from '../../lib/dataClient';
 import { touchRoom } from './touchRoom';
 import { colorForIndex } from './stickyPalette';
 
-export type StickyKind = 'TEXT' | 'LINK';
+export type StickyKind = 'TEXT' | 'LINK' | 'CODE';
 
 /** All stickies in a room, oldest-created first (the pad's natural order). */
 export async function listStickiesByRoom(room: string): Promise<StickyRecord[]> {
@@ -22,6 +22,7 @@ export async function createSticky(input: {
   room: string;
   kind: StickyKind;
   content: string;
+  language?: string;
   existingCount: number;
 }): Promise<StickyRecord> {
   const created = unwrap(
@@ -29,6 +30,7 @@ export async function createSticky(input: {
       room: input.room,
       kind: input.kind,
       content: input.content,
+      language: input.language,
       color: colorForIndex(input.existingCount),
     }),
   );

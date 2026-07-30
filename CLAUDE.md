@@ -168,6 +168,9 @@ npx ampx sandbox       # personal cloud backend sandbox
   is forbidden via the ASC API (403 FORBIDDEN_ERROR — GET/UPDATE only), so the app record must be made
   by hand in ASC → My Apps → **+** (the bundle id appears in the dropdown once created via API).
 - **Sandbox stack:** `amplify-stickies-xss-sandbox-d7f764fcf6` (wired into `package.json` `e2e-config`).
+- **DNS:** `stickies.jpc.io` is a Cloudflare CNAME → `dkayuh63j40ch.cloudfront.net` (DNS-only, NOT
+  proxied, so CloudFront/Amplify Hosting serves its own TLS). jpc.io zone
+  `40035c6af46b0d10bafb6d7ae37de567`. Created 2026-07-30.
 - **Universal / App Links.** A shared `https://stickies.jpc.io/<room>` opens the installed app
   (iOS Associated Domains entitlement + Android `autoVerify` intent-filter) or falls back to the
   browser. The app-side `useDeepLinks` hook routes `appUrlOpen` events to the room. Domain must serve
@@ -205,6 +208,8 @@ Significant, hard-to-reverse choices — read before re-opening a settled questi
 - **Live via observeQuery → react-query cache.** The shared-pad realtime sync is an `observeQuery`
   subscription writing into the same query key the fetch seeds; mutations also invalidate that key as
   a belt-and-suspenders refresh.
-- **v1 sticky kinds: TEXT + LINK.** Rich types (code snippet with highlighting, image/PDF/video
-  previews, generic file download) are planned follow-up slices with a per-type renderer registry —
-  don't model them ahead of their UI.
+- **Sticky kinds: TEXT + LINK + CODE.** Kind is chosen by `classifyContent` (a ` ``` ` fence →
+  CODE with a language hint; else `detectKind` → LINK/TEXT). `StickyBody` routes rendering by kind
+  (CODE → highlight.js-highlighted `CodeSticky` with a line-number gutter). Remaining rich types
+  (image/PDF/video previews, generic file download) are planned follow-up slices needing S3 storage —
+  a per-type renderer over the same one model, don't model them ahead of their UI.

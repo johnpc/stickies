@@ -3,7 +3,7 @@ import { IonIcon } from '@ionic/react';
 import { closeOutline, createOutline } from 'ionicons/icons';
 import type { StickyRecord } from '../../lib/dataClient';
 import { asStickyColor } from './stickyPalette';
-import { safeHref } from './safeHref';
+import { StickyBody } from './StickyBody';
 import { StickyEditor } from './StickyEditor';
 import './sticky.css';
 
@@ -13,13 +13,12 @@ interface StickyCardProps {
   onDelete: () => void;
 }
 
-/** One note on the pad. Renders LINK stickies as a guarded <a> (safeHref blocks
- * javascript:/data: URLs — the pad is world-writable), everything else as text.
- * Tapping edit swaps in an inline editor; the color comes from a palette token. */
+/** One note on the pad. The body (text / guarded link / highlighted code) is
+ * rendered by StickyBody; this shell owns the card chrome, color, and the
+ * inline-edit swap. */
 export function StickyCard({ sticky, onEdit, onDelete }: StickyCardProps) {
   const [editing, setEditing] = useState(false);
   const color = asStickyColor(sticky.color);
-  const href = sticky.kind === 'LINK' ? safeHref(sticky.content) : null;
 
   if (editing) {
     return (
@@ -38,13 +37,7 @@ export function StickyCard({ sticky, onEdit, onDelete }: StickyCardProps) {
   return (
     <div className={`sticky sticky--${color}`} data-testid="sticky">
       <div className="sticky__body">
-        {href ? (
-          <a className="sticky__link" href={href} target="_blank" rel="noopener noreferrer">
-            {sticky.content}
-          </a>
-        ) : (
-          <span className="sticky__text">{sticky.content}</span>
-        )}
+        <StickyBody sticky={sticky} />
       </div>
       <div className="sticky__actions">
         <button aria-label="Edit sticky" data-testid="sticky-edit" onClick={() => setEditing(true)}>

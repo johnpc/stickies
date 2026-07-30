@@ -24,6 +24,7 @@ export async function seedRooms(baseTime = Date.now()): Promise<void> {
         room: room.slug,
         kind: sticky.kind,
         content: sticky.content,
+        language: sticky.language,
         color: COLORS[s % COLORS.length],
       });
     }

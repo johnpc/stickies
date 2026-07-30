@@ -28,7 +28,7 @@ export function StickyEditor({ color, initial, onSave, onCancel }: StickyEditorP
         data-testid="sticky-input"
         autoFocus
         value={value}
-        placeholder="Type a note or paste a link…"
+        placeholder="Note, link, or ```code```…"
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {

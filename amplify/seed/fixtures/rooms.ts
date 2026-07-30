@@ -6,7 +6,7 @@
  */
 export interface SeedRoom {
   slug: string;
-  stickies: { kind: 'TEXT' | 'LINK'; content: string }[];
+  stickies: { kind: 'TEXT' | 'LINK' | 'CODE'; content: string; language?: string }[];
 }
 
 export const SEED_ROOMS: SeedRoom[] = [
@@ -38,6 +38,18 @@ export const SEED_ROOMS: SeedRoom[] = [
     stickies: [
       { kind: 'TEXT', content: 'Yesterday: shipped the room pad' },
       { kind: 'TEXT', content: 'Today: snippet + image stickies' },
+    ],
+  },
+  {
+    slug: 'code-corner',
+    stickies: [
+      { kind: 'TEXT', content: 'Paste snippets here — wrap them in a ``` fence.' },
+      {
+        kind: 'CODE',
+        language: 'ts',
+        content: "const greet = (name: string) => `hi ${name}`;\nconsole.log(greet('world'));",
+      },
+      { kind: 'LINK', content: 'https://highlightjs.org' },
     ],
   },
 ];

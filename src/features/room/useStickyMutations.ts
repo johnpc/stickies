@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createSticky, updateStickyContent, deleteSticky } from './stickiesApi';
-import { detectKind } from './detectKind';
+import { classifyContent } from './classifyContent';
 import { roomStickiesKey } from './roomStickiesKey';
 
 /**
@@ -16,8 +16,10 @@ export function useStickyMutations(room: string, count: number) {
   const settle = () => queryClient.invalidateQueries({ queryKey: roomStickiesKey(room) });
 
   const add = useMutation({
-    mutationFn: (content: string) =>
-      createSticky({ room, kind: detectKind(content), content, existingCount: count }),
+    mutationFn: (raw: string) => {
+      const { kind, content, language } = classifyContent(raw);
+      return createSticky({ room, kind, content, language, existingCount: count });
+    },
     onSuccess: settle,
   });
 

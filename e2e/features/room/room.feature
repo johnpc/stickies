@@ -24,6 +24,11 @@ Feature: Room pad — share stickies at a URL
     When they add a sticky that says "example.com"
     Then the sticky links to "https://example.com/"
 
+  Scenario: A fenced snippet becomes a syntax-highlighted code sticky
+    Given a visitor opens a fresh room
+    When they add a fenced code snippet
+    Then a code sticky is shown with line numbers
+
   Scenario: A dangerous javascript: URL is never rendered as a link
     Given a visitor opens a fresh room
     When they add a sticky that says "javascript:alert(1)"

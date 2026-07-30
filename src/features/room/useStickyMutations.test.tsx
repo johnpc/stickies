@@ -31,7 +31,21 @@ describe('useStickyMutations', () => {
       room: 'room',
       kind: 'LINK',
       content: 'example.com',
+      language: undefined,
       existingCount: 2,
+    });
+  });
+
+  it('adds a fenced snippet as a CODE sticky with its language', async () => {
+    const { result } = renderHook(() => useStickyMutations('room', 0), { wrapper });
+    act(() => result.current.add.mutate('```ts\nconst a = 1;\n```'));
+    await waitFor(() => expect(createSticky).toHaveBeenCalled());
+    expect(createSticky).toHaveBeenCalledWith({
+      room: 'room',
+      kind: 'CODE',
+      content: 'const a = 1;',
+      language: 'ts',
+      existingCount: 0,
     });
   });
 
