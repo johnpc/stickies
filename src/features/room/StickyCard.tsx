@@ -6,6 +6,7 @@ import { asStickyColor, type StickyColor } from './stickyPalette';
 import { StickyBody } from './StickyBody';
 import { StickyEditor } from './StickyEditor';
 import { ColorPicker } from './ColorPicker';
+import { isEditableKind } from './isEditableKind';
 import './sticky.css';
 
 interface StickyCardProps {
@@ -63,9 +64,15 @@ export function StickyCard(props: StickyCardProps) {
           </button>
         )}
         <ColorPicker current={color} onPick={onRecolor} />
-        <button aria-label="Edit sticky" data-testid="sticky-edit" onClick={() => setEditing(true)}>
-          <IonIcon icon={createOutline} />
-        </button>
+        {isEditableKind(sticky.kind) && (
+          <button
+            aria-label="Edit sticky"
+            data-testid="sticky-edit"
+            onClick={() => setEditing(true)}
+          >
+            <IonIcon icon={createOutline} />
+          </button>
+        )}
         <button aria-label="Delete sticky" data-testid="sticky-delete" onClick={onDelete}>
           <IonIcon icon={closeOutline} />
         </button>

@@ -7,6 +7,9 @@ import type { StickyRecord } from '../../lib/dataClient';
 vi.mock('./useLinkPreview', () => ({
   useLinkPreview: () => ({ preview: undefined, isLoading: false }),
 }));
+// Media bodies pull the storage client; stub the renderer so a media StickyCard
+// test can focus on the card chrome (e.g. whether Edit is offered).
+vi.mock('./MediaSticky', () => ({ MediaSticky: () => <div data-testid="media-body" /> }));
 
 import { StickyCard } from './StickyCard';
 
@@ -101,5 +104,33 @@ describe('StickyCard', () => {
     );
     fireEvent.click(screen.getByTestId('color-blue'));
     expect(onRecolor).toHaveBeenCalledWith('blue');
+  });
+
+  it('offers Edit for a text sticky', () => {
+    render(
+      <StickyCard
+        sticky={make({ kind: 'TEXT' })}
+        index={0}
+        onEdit={vi.fn()}
+        onRecolor={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId('sticky-edit')).toBeInTheDocument();
+  });
+
+  it('hides Edit for a media sticky (its content is an S3 key, not text)', () => {
+    render(
+      <StickyCard
+        sticky={make({ kind: 'IMAGE', content: 'rooms/r/1-a.png', fileName: 'a.png' })}
+        index={0}
+        onEdit={vi.fn()}
+        onRecolor={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId('sticky-edit')).not.toBeInTheDocument();
+    // color + delete are still available on a media sticky.
+    expect(screen.getByTestId('sticky-delete')).toBeInTheDocument();
   });
 });
