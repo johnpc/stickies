@@ -20,6 +20,14 @@ Feature: Room pad — share stickies at a URL
     Then a QR code for the room is shown
     And the room URL is copied to their clipboard
 
+  Scenario: Deleting a sticky can be undone
+    Given a visitor opens a fresh room
+    When they add a sticky that says "oops delete"
+    And they delete the first sticky
+    Then the sticky "oops delete" is gone
+    When they undo the delete
+    Then the sticky "oops delete" appears on the pad
+
   Scenario: A text sticky can be copied to the clipboard
     Given a visitor opens a fresh room
     When they add a sticky that says "copy this note"

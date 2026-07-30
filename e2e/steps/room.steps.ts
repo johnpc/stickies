@@ -18,6 +18,18 @@ When('they tap the share button', async ({ page, context }) => {
   await page.getByTestId('share-copy').click();
 });
 
+When('they delete the first sticky', async ({ page }) => {
+  await page.getByTestId('sticky').first().getByTestId('sticky-delete').click();
+});
+
+Then('the sticky {string} is gone', async ({ page }, text: string) => {
+  await expect(page.getByText(text, { exact: true })).toHaveCount(0, { timeout: 10_000 });
+});
+
+When('they undo the delete', async ({ page }) => {
+  await page.getByTestId('app-toast-action').click();
+});
+
 When('they copy the sticky', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.getByTestId('text-copy').first().click();

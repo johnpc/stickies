@@ -16,12 +16,12 @@ vi.mock('../../lib/dataClient', () => ({
 vi.mock('./touchRoom', () => ({ touchRoom }));
 vi.mock('./mediaApi', () => ({ removeMedia }));
 
+import type { StickyRecord } from '../../lib/dataClient';
 import {
   createSticky,
   deleteSticky,
   listStickiesByRoom,
-  setStickyColor,
-  setStickyOrder,
+  restoreSticky,
   updateStickyContent,
 } from './stickiesApi';
 
@@ -65,44 +65,41 @@ describe('updateStickyContent', () => {
   });
 });
 
-describe('setStickyColor', () => {
-  it('updates only the color and re-touches the room', async () => {
-    update.mockResolvedValue({ data: { id: 'x' } });
-    await setStickyColor('x', 'room', 'blue', 5);
-    expect(update).toHaveBeenCalledWith({ id: 'x', color: 'blue' });
-    expect(touchRoom).toHaveBeenCalledWith('room', 5);
-  });
-});
-
-describe('setStickyOrder', () => {
-  it('updates only the ord and re-touches the room', async () => {
-    update.mockResolvedValue({ data: { id: 'x' } });
-    await setStickyOrder('x', 'room', 1.5, 5);
-    expect(update).toHaveBeenCalledWith({ id: 'x', ord: 1.5 });
-    expect(touchRoom).toHaveBeenCalledWith('room', 5);
-  });
-});
-
 describe('deleteSticky', () => {
-  it('deletes and re-touches the room with the reduced count', async () => {
+  it('deletes only the row (keeps the S3 object so delete stays undoable)', async () => {
     del.mockResolvedValue({ data: {} });
-    await deleteSticky('x', 'room', 2);
-    expect(del).toHaveBeenCalledWith({ id: 'x' });
-    expect(touchRoom).toHaveBeenCalledWith('room', 2);
-    expect(removeMedia).not.toHaveBeenCalled();
-  });
-
-  it('cleans up the S3 object when a media path is given', async () => {
-    del.mockResolvedValue({ data: {} });
-    await deleteSticky('m', 'room', 1, 'rooms/room/1-a.png');
-    expect(removeMedia).toHaveBeenCalledWith('rooms/room/1-a.png');
-  });
-
-  it('still deletes the row when S3 cleanup fails (best-effort)', async () => {
-    del.mockResolvedValue({ data: {} });
-    removeMedia.mockRejectedValue(new Error('gone'));
-    await deleteSticky('m', 'room', 1, 'rooms/room/1-a.png');
+    await deleteSticky('m', 'room', 1);
     expect(del).toHaveBeenCalledWith({ id: 'm' });
     expect(touchRoom).toHaveBeenCalledWith('room', 1);
+    expect(removeMedia).not.toHaveBeenCalled();
+  });
+});
+
+describe('restoreSticky', () => {
+  it('re-creates a deleted sticky with all its original fields', async () => {
+    create.mockResolvedValue({ data: {} });
+    const sticky = {
+      id: 'old',
+      room: 'room',
+      kind: 'IMAGE',
+      content: 'rooms/room/1-a.png',
+      color: 'pink',
+      ord: 3.5,
+      fileName: 'a.png',
+      mimeType: 'image/png',
+    } as StickyRecord;
+    await restoreSticky(sticky, 'room', 4);
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        room: 'room',
+        kind: 'IMAGE',
+        content: 'rooms/room/1-a.png',
+        color: 'pink',
+        ord: 3.5,
+        fileName: 'a.png',
+        mimeType: 'image/png',
+      }),
+    );
+    expect(touchRoom).toHaveBeenCalledWith('room', 4);
   });
 });

@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { StickyRecord } from '../../lib/dataClient';
-import { createSticky, updateStickyContent, deleteSticky } from './stickiesApi';
+import { createSticky, updateStickyContent, deleteSticky, restoreSticky } from './stickiesApi';
 import { createMediaSticky } from './createMediaSticky';
 import { classifyContent } from './classifyContent';
-import { isMediaKind } from './isMediaKind';
+import { showToast } from '../shell/toastBus';
 import { roomStickiesKey } from './roomStickiesKey';
 
 /**
@@ -41,16 +41,19 @@ export function useStickyMutations(room: string, count: number) {
     onSuccess: settle,
   });
 
-  const remove = useMutation({
-    // Take the whole sticky so media/doc deletes can clean up their S3 object.
-    mutationFn: (sticky: StickyRecord) =>
-      deleteSticky(
-        sticky.id,
-        room,
-        Math.max(0, count - 1),
-        isMediaKind(sticky.kind) ? sticky.content : undefined,
-      ),
+  const restore = useMutation({
+    mutationFn: (sticky: StickyRecord) => restoreSticky(sticky, room, count + 1),
     onSuccess: settle,
+  });
+
+  const remove = useMutation({
+    mutationFn: (sticky: StickyRecord) => deleteSticky(sticky.id, room, Math.max(0, count - 1)),
+    onSuccess: (_data, sticky) => {
+      settle();
+      // Offer a brief undo — the pad is world-writable, so an accidental delete
+      // (by anyone) should be recoverable. Re-creates the sticky as it was.
+      showToast('Sticky deleted', { label: 'Undo', run: () => restore.mutate(sticky) });
+    },
   });
 
   return { add, addMedia, edit, remove };

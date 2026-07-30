@@ -7,7 +7,6 @@
 import { dataClient, unwrap, type StickyRecord } from '../../lib/dataClient';
 import { touchRoom } from './touchRoom';
 import { colorForIndex } from './stickyPalette';
-import { removeMedia } from './mediaApi';
 import { sortStickies } from './sortStickies';
 
 export type StickyKind = 'TEXT' | 'LINK' | 'CODE' | 'IMAGE' | 'PDF' | 'VIDEO' | 'DOC' | 'FILE';
@@ -59,41 +58,38 @@ export async function updateStickyContent(
   return updated as StickyRecord;
 }
 
-/** Recolor a sticky (a metadata edit — re-touches the room, count unchanged). */
-export async function setStickyColor(
-  id: string,
-  room: string,
-  color: string,
-  count: number,
-): Promise<StickyRecord> {
-  const updated = unwrap(await dataClient.models.Sticky.update({ id, color }));
-  await touchRoom(room, count);
-  return updated as StickyRecord;
-}
-
-/** Persist a sticky's manual order position (set on drag-drop; count unchanged). */
-export async function setStickyOrder(
-  id: string,
-  room: string,
-  ord: number,
-  count: number,
-): Promise<StickyRecord> {
-  const updated = unwrap(await dataClient.models.Sticky.update({ id, ord }));
-  await touchRoom(room, count);
-  return updated as StickyRecord;
-}
-
-/** Remove a sticky (and re-touch its room with the reduced count). For media/doc
- * kinds `mediaPath` is the S3 key to clean up so deleting the sticky doesn't
- * orphan its object; S3 removal is best-effort (a failure never blocks the row
- * delete). */
+/** Remove a sticky (and re-touch its room with the reduced count). Deletes ONLY
+ * the row, not any uploaded S3 object — so a delete stays undoable (see
+ * restoreSticky) and a media sticky can be restored pointing at the retained
+ * object. (Reaping truly-orphaned objects is a separate background concern.) */
 export async function deleteSticky(
   id: string,
   room: string,
   remainingCount: number,
-  mediaPath?: string | null,
 ): Promise<void> {
   unwrap(await dataClient.models.Sticky.delete({ id }));
-  if (mediaPath) await removeMedia(mediaPath).catch(() => {});
   await touchRoom(room, remainingCount);
+}
+
+/** Re-create a just-deleted sticky with its original fields (the undo path).
+ * Restores content/kind/color/ord/media metadata so it reappears exactly where
+ * it was; `count` is the room's post-restore sticky count. */
+export async function restoreSticky(
+  sticky: StickyRecord,
+  room: string,
+  count: number,
+): Promise<void> {
+  unwrap(
+    await dataClient.models.Sticky.create({
+      room: sticky.room,
+      kind: sticky.kind,
+      content: sticky.content,
+      color: sticky.color,
+      ord: sticky.ord,
+      language: sticky.language,
+      fileName: sticky.fileName,
+      mimeType: sticky.mimeType,
+    }),
+  );
+  await touchRoom(room, count);
 }

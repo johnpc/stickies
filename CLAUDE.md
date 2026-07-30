@@ -243,5 +243,6 @@ Significant, hard-to-reverse choices — read before re-opening a settled questi
   storage client at first paint.
 - **S3 uploads use the Gen2 `path` API, NOT the legacy `key` API.** `uploadData/getUrl/remove` take
   `{ path: 'rooms/...' }`; the legacy `{ key }` form prepends `public/` and 403s against our `rooms/*`
-  guest grant. Deleting a media/doc sticky also removes its S3 object (best-effort — a failed cleanup
-  never blocks the row delete), so no orphaned uploads.
+  guest grant. Deleting a sticky removes ONLY the DynamoDB row, NOT the S3 object — so delete stays
+  **undoable** (`restoreSticky` re-creates the row pointing at the retained object) and a "Sticky
+  deleted · Undo" toast is offered. (Reaping truly-orphaned objects is a separate background concern.)

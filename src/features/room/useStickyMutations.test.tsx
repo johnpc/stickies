@@ -3,14 +3,22 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import type { StickyRecord } from '../../lib/dataClient';
+import { onToast as subscribeToast } from '../shell/toastBus';
 
-const { createSticky, updateStickyContent, deleteSticky, createMediaSticky } = vi.hoisted(() => ({
-  createSticky: vi.fn().mockResolvedValue({}),
-  updateStickyContent: vi.fn().mockResolvedValue({}),
-  deleteSticky: vi.fn().mockResolvedValue(undefined),
-  createMediaSticky: vi.fn().mockResolvedValue({}),
+const { createSticky, updateStickyContent, deleteSticky, restoreSticky, createMediaSticky } =
+  vi.hoisted(() => ({
+    createSticky: vi.fn().mockResolvedValue({}),
+    updateStickyContent: vi.fn().mockResolvedValue({}),
+    deleteSticky: vi.fn().mockResolvedValue(undefined),
+    restoreSticky: vi.fn().mockResolvedValue(undefined),
+    createMediaSticky: vi.fn().mockResolvedValue({}),
+  }));
+vi.mock('./stickiesApi', () => ({
+  createSticky,
+  updateStickyContent,
+  deleteSticky,
+  restoreSticky,
 }));
-vi.mock('./stickiesApi', () => ({ createSticky, updateStickyContent, deleteSticky }));
 vi.mock('./createMediaSticky', () => ({ createMediaSticky }));
 
 import { useStickyMutations } from './useStickyMutations';
@@ -24,7 +32,7 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 );
 
 beforeEach(() =>
-  [createSticky, updateStickyContent, deleteSticky, createMediaSticky].forEach((m) =>
+  [createSticky, updateStickyContent, deleteSticky, restoreSticky, createMediaSticky].forEach((m) =>
     m.mockClear(),
   ),
 );
@@ -77,20 +85,32 @@ describe('useStickyMutations', () => {
     await waitFor(() => expect(updateStickyContent).toHaveBeenCalledWith('x', 'room', 'new', 3));
   });
 
-  it('deletes a text sticky with the reduced count and no media path', async () => {
+  it('deletes a sticky with the reduced count and offers an Undo toast', async () => {
+    const onToast = vi.fn();
+    const off = subscribeToast(onToast);
     const { result } = renderHook(() => useStickyMutations('room', 3), { wrapper });
     act(() =>
       result.current.remove.mutate({ id: 'x', kind: 'TEXT', content: 'hi' } as StickyRecord),
     );
-    await waitFor(() => expect(deleteSticky).toHaveBeenCalledWith('x', 'room', 2, undefined));
+    await waitFor(() => expect(deleteSticky).toHaveBeenCalledWith('x', 'room', 2));
+    await waitFor(() => expect(onToast).toHaveBeenCalled());
+    const payload = onToast.mock.calls[0][0];
+    expect(payload.message).toMatch(/deleted/i);
+    expect(payload.action?.label).toBe('Undo');
+    off();
   });
 
-  it('passes the S3 path when deleting a media sticky (so it cleans up)', async () => {
+  it('restores the sticky when Undo is invoked', async () => {
+    let undo: (() => void) | undefined;
+    const off = subscribeToast((t) => {
+      undo = t.action?.run;
+    });
+    const sticky = { id: 'x', room: 'room', kind: 'TEXT', content: 'hi' } as StickyRecord;
     const { result } = renderHook(() => useStickyMutations('room', 3), { wrapper });
-    const media = { id: 'm', kind: 'IMAGE', content: 'rooms/room/1-a.png' } as StickyRecord;
-    act(() => result.current.remove.mutate(media));
-    await waitFor(() =>
-      expect(deleteSticky).toHaveBeenCalledWith('m', 'room', 2, 'rooms/room/1-a.png'),
-    );
+    act(() => result.current.remove.mutate(sticky));
+    await waitFor(() => expect(undo).toBeTypeOf('function'));
+    act(() => undo!());
+    await waitFor(() => expect(restoreSticky).toHaveBeenCalledWith(sticky, 'room', 4));
+    off();
   });
 });

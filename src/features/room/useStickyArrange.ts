@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { setStickyColor, setStickyOrder } from './stickiesApi';
+import { setStickyColor, setStickyOrder } from './stickyArrangeApi';
 import { roomStickiesKey } from './roomStickiesKey';
 
 /**

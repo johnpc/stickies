@@ -7,7 +7,7 @@ const { setStickyColor, setStickyOrder } = vi.hoisted(() => ({
   setStickyColor: vi.fn().mockResolvedValue({}),
   setStickyOrder: vi.fn().mockResolvedValue({}),
 }));
-vi.mock('./stickiesApi', () => ({ setStickyColor, setStickyOrder }));
+vi.mock('./stickyArrangeApi', () => ({ setStickyColor, setStickyOrder }));
 
 import { useStickyArrange } from './useStickyArrange';
 
