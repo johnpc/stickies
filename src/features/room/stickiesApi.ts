@@ -8,13 +8,16 @@ import { dataClient, unwrap, type StickyRecord } from '../../lib/dataClient';
 import { touchRoom } from './touchRoom';
 import { colorForIndex } from './stickyPalette';
 import { removeMedia } from './mediaApi';
+import { sortStickies } from './sortStickies';
 
 export type StickyKind = 'TEXT' | 'LINK' | 'CODE' | 'IMAGE' | 'PDF' | 'VIDEO' | 'DOC' | 'FILE';
 
-/** All stickies in a room, oldest-created first (the pad's natural order). */
+/** All stickies in a room, in pad order (by `ord`, then createdAt) — the SAME
+ * order the live subscription uses, so the initial fetch and live updates agree
+ * (a reload must not revert a drag-reorder). */
 export async function listStickiesByRoom(room: string): Promise<StickyRecord[]> {
   const rows = unwrap(await dataClient.models.Sticky.listStickyByRoom({ room }));
-  return [...rows].sort((a, b) => (a.createdAt ?? '').localeCompare(b.createdAt ?? ''));
+  return sortStickies(rows);
 }
 
 /** Add a sticky to a room and bump the room's recents row. `existingCount` is
@@ -33,6 +36,7 @@ export async function createSticky(input: {
       content: input.content,
       language: input.language,
       color: colorForIndex(input.existingCount),
+      ord: input.existingCount, // append; every sticky gets an ord so drag math is one scale
     }),
   );
   await touchRoom(input.room, input.existingCount + 1);

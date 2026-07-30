@@ -1,10 +1,12 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-// Stub CodeSticky (hljs is heavy) to focus on the expand behavior.
+// Stub CodeSticky (hljs is heavy) to focus on the expand/copy behavior.
 vi.mock('./CodeSticky', () => ({
   CodeSticky: ({ code }: { code: string }) => <pre data-testid="code">{code}</pre>,
 }));
+const { copyText } = vi.hoisted(() => ({ copyText: vi.fn().mockResolvedValue(true) }));
+vi.mock('./copyText', () => ({ copyText }));
 
 import { ExpandableCode } from './ExpandableCode';
 
@@ -23,5 +25,11 @@ describe('ExpandableCode', () => {
     expect(box).toBeInTheDocument();
     expect(box).toHaveTextContent('const a = 1;');
     expect(box).toHaveTextContent('snippet.ts');
+  });
+
+  it('copies the raw code', () => {
+    render(<ExpandableCode code="const a = 1;" language="ts" />);
+    fireEvent.click(screen.getByTestId('code-copy'));
+    expect(copyText).toHaveBeenCalledWith('const a = 1;');
   });
 });

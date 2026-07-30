@@ -18,6 +18,7 @@ describe('StickyCard', () => {
     render(
       <StickyCard
         sticky={make({ content: 'buy milk' })}
+        index={0}
         onEdit={vi.fn()}
         onRecolor={vi.fn()}
         onDelete={vi.fn()}
@@ -31,6 +32,7 @@ describe('StickyCard', () => {
     render(
       <StickyCard
         sticky={make({ kind: 'LINK', content: 'example.com' })}
+        index={0}
         onEdit={vi.fn()}
         onRecolor={vi.fn()}
         onDelete={vi.fn()}
@@ -43,6 +45,7 @@ describe('StickyCard', () => {
     render(
       <StickyCard
         sticky={make({ kind: 'LINK', content: 'javascript:alert(1)' })}
+        index={0}
         onEdit={vi.fn()}
         onRecolor={vi.fn()}
         onDelete={vi.fn()}
@@ -57,6 +60,7 @@ describe('StickyCard', () => {
     render(
       <StickyCard
         sticky={make({ content: 'old' })}
+        index={0}
         onEdit={onEdit}
         onRecolor={vi.fn()}
         onDelete={vi.fn()}
@@ -72,7 +76,13 @@ describe('StickyCard', () => {
   it('fires onDelete', () => {
     const onDelete = vi.fn();
     render(
-      <StickyCard sticky={make({})} onEdit={vi.fn()} onRecolor={vi.fn()} onDelete={onDelete} />,
+      <StickyCard
+        sticky={make({})}
+        index={0}
+        onEdit={vi.fn()}
+        onRecolor={vi.fn()}
+        onDelete={onDelete}
+      />,
     );
     fireEvent.click(screen.getByTestId('sticky-delete'));
     expect(onDelete).toHaveBeenCalledOnce();
@@ -83,6 +93,7 @@ describe('StickyCard', () => {
     render(
       <StickyCard
         sticky={make({ color: 'yellow' })}
+        index={0}
         onEdit={vi.fn()}
         onRecolor={onRecolor}
         onDelete={vi.fn()}

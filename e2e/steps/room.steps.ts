@@ -15,6 +15,16 @@ When('they tap the share button', async ({ page, context }) => {
   await page.getByTestId('room-share').click();
 });
 
+When('they copy the sticky', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.getByTestId('text-copy').first().click();
+});
+
+Then('{string} is on the clipboard', async ({ page }, text: string) => {
+  const clip = await page.evaluate(() => navigator.clipboard.readText());
+  expect(clip).toBe(text);
+});
+
 Then('the room URL is copied to their clipboard', async ({ page }) => {
   await expect(page.getByText('Room link copied')).toBeVisible({ timeout: 5_000 });
   const clip = await page.evaluate(() => navigator.clipboard.readText());
@@ -101,12 +111,18 @@ When('they add three stickies {string} {string} {string}', async ({ page }, a, b
 });
 
 When('they drag the last sticky onto the first', async ({ page }) => {
-  // Native HTML5 DnD isn't triggered by Playwright's synthetic mouse-drag, so
-  // fire the drag lifecycle events directly (the app listens to these).
+  // Reorder is pointer-based: press the last sticky's grip and drag to the left
+  // edge of the first (a REAL mouse drag — the earlier native-DnD impl didn't
+  // actually work, so exercise the true interaction here).
   const stickies = page.getByTestId('sticky');
-  await stickies.last().dispatchEvent('dragstart');
-  await stickies.first().dispatchEvent('dragover');
-  await stickies.first().dispatchEvent('drop');
+  const grip = stickies.last().getByTestId('sticky-grip');
+  const gb = await grip.boundingBox();
+  const first = await stickies.first().boundingBox();
+  if (!gb || !first) throw new Error('missing grip/first rects');
+  await page.mouse.move(gb.x + gb.width / 2, gb.y + gb.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(first.x + 3, first.y + first.height / 2, { steps: 12 });
+  await page.mouse.up();
   await page.waitForTimeout(1500);
 });
 

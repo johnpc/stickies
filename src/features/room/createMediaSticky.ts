@@ -26,6 +26,7 @@ export async function createMediaSticky(input: {
       fileName: file.name,
       mimeType: file.type,
       color: colorForIndex(existingCount),
+      ord: existingCount, // append; every sticky gets an ord so drag math is one scale
     }),
   );
   await touchRoom(room, existingCount + 1);

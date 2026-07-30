@@ -19,6 +19,12 @@ Feature: Room pad — share stickies at a URL
     When they tap the share button
     Then the room URL is copied to their clipboard
 
+  Scenario: A text sticky can be copied to the clipboard
+    Given a visitor opens a fresh room
+    When they add a sticky that says "copy this note"
+    And they copy the sticky
+    Then "copy this note" is on the clipboard
+
   Scenario: A pasted link becomes a safe, clickable sticky
     Given a visitor opens a fresh room
     When they add a sticky that says "example.com"

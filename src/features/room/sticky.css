@@ -35,13 +35,34 @@
   transform: translateY(-2px) rotate(-0.4deg);
   box-shadow: var(--sk-shadow-hover);
 }
-.sticky[draggable='true'] {
-  cursor: grab;
+/* The card being dragged dims so the insertion line reads as the action. */
+.sticky--dragging {
+  opacity: 0.4;
 }
-/* Where the dragged note will land. */
-.sticky--drop-target {
-  outline: 2px dashed var(--sk-accent);
-  outline-offset: 3px;
+/* Drag grip handle (touch + mouse). touch-action:none so a touch-drag doesn't
+   scroll the page instead of reordering. */
+.sticky__grip {
+  background: none;
+  border: none;
+  color: var(--sk-note-ink);
+  cursor: grab;
+  padding: 2px;
+  display: flex;
+  font-size: 1.15rem;
+  opacity: 0.55;
+  touch-action: none;
+}
+.sticky__grip:hover {
+  opacity: 1;
+}
+/* The insertion line shown in the gap where the dragged sticky will land. */
+.sticky-insert {
+  width: 4px;
+  align-self: stretch;
+  min-height: 130px;
+  border-radius: 999px;
+  background: var(--sk-accent);
+  box-shadow: 0 0 0 2px var(--sk-accent-soft);
 }
 
 .sticky--yellow {

@@ -6,21 +6,57 @@ export function orderKey(s: StickyRecord, index: number): number {
   return typeof s.ord === 'number' ? s.ord : index;
 }
 
-/**
- * Compute the fractional `ord` to assign a sticky dropped BEFORE `targetIndex`
- * in the current visual order. Fractional ordering means a single move writes
- * one row (no full reindex): place it midway between the target's neighbors.
- * `ords` is the current list's order values in visual order. Pure + tested.
- */
-export function ordForDropBefore(ords: number[], targetIndex: number): number {
-  const STEP = 1;
-  if (targetIndex <= 0) return (ords[0] ?? 0) - STEP; // dropped at the front
-  if (targetIndex >= ords.length) return (ords[ords.length - 1] ?? 0) + STEP; // at the end
-  return (ords[targetIndex - 1] + ords[targetIndex]) / 2; // between two neighbors
+/** Rectangle of a rendered sticky card (subset of DOMRect) + its list index. */
+export interface CardRect {
+  index: number;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
 }
 
-/** Reindex helper: assign clean integer ords 0..n-1 (used to seed ordering the
- * first time a room is dragged, so fractional gaps stay sane). Pure. */
-export function sequentialOrds(count: number): number[] {
-  return Array.from({ length: count }, (_, i) => i);
+/**
+ * Which GAP the pointer is over, as an insert index in 0..cards.length ("place
+ * before the card at this index", or at the end when === length). Picks the
+ * nearest card by center, then before/after by which horizontal half the pointer
+ * is in — robust for a wrapping grid. Pure (takes rects, no DOM) so it's tested.
+ */
+export function insertIndexFromPoint(cards: CardRect[], x: number, y: number): number {
+  if (cards.length === 0) return 0;
+  let best = cards[0];
+  let bestDist = Infinity;
+  for (const c of cards) {
+    const dist = Math.hypot(x - (c.left + c.right) / 2, y - (c.top + c.bottom) / 2);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = c;
+    }
+  }
+  return x < (best.left + best.right) / 2 ? best.index : best.index + 1;
+}
+
+/**
+ * The `{id, ord}` to persist when the dragged sticky is dropped at `insertIndex`
+ * (a gap in the current visual order), or null if it wouldn't move. Uses
+ * fractional ords so one move writes one row (no reindex). Pure + tested.
+ */
+export function computeReorder(
+  stickies: StickyRecord[],
+  fromId: string,
+  insertIndex: number,
+): { id: string; ord: number } | null {
+  const fromIndex = stickies.findIndex((s) => s.id === fromId);
+  if (fromIndex < 0) return null;
+  // Dropping into its own slot (right before or right after itself) is a no-op.
+  if (insertIndex === fromIndex || insertIndex === fromIndex + 1) return null;
+
+  const others = stickies.filter((s) => s.id !== fromId);
+  const target = insertIndex > fromIndex ? insertIndex - 1 : insertIndex;
+  const ords = others.map((s, i) => orderKey(s, i));
+  const STEP = 1;
+  let ord: number;
+  if (target <= 0) ord = (ords[0] ?? 0) - STEP;
+  else if (target >= ords.length) ord = (ords[ords.length - 1] ?? 0) + STEP;
+  else ord = (ords[target - 1] + ords[target]) / 2;
+  return { id: fromId, ord };
 }

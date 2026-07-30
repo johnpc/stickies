@@ -23,7 +23,7 @@ describe('sortStickies', () => {
     expect(out.map((s) => s.id)).toEqual(['b', 'c', 'a']);
   });
 
-  it('sorts ord-carrying notes ahead of un-ordered ones', () => {
+  it('sorts null-ord (legacy) notes last, after any ord-carrying note', () => {
     const out = sortStickies([sticky('plain', '2026-01-01Z'), sticky('moved', '2026-01-02Z', 5)]);
     expect(out.map((s) => s.id)).toEqual(['moved', 'plain']);
   });

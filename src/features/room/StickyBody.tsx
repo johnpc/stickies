@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import type { StickyRecord } from '../../lib/dataClient';
 import { LinkSticky } from './LinkSticky';
+import { TextSticky } from './TextSticky';
 import { isMediaKind } from './isMediaKind';
 
 // highlight.js is heavy; only pull it (and CodeSticky, via ExpandableCode) when a
@@ -41,5 +42,5 @@ export function StickyBody({ sticky }: { sticky: StickyRecord }) {
   if (sticky.kind === 'LINK') {
     return <LinkSticky url={sticky.content} />;
   }
-  return <span className="sticky__text">{sticky.content}</span>;
+  return <TextSticky text={sticky.content} />;
 }

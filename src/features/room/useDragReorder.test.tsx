@@ -3,45 +3,66 @@ import { describe, expect, it, vi } from 'vitest';
 import { useDragReorder } from './useDragReorder';
 import type { StickyRecord } from '../../lib/dataClient';
 
+// jsdom has no PointerEvent; the hook only reads clientX/clientY, so a plain
+// Event with those fields attached is a faithful stand-in.
+function pointer(type: string, clientX = 0, clientY = 0): Event {
+  const e = new Event(type);
+  Object.assign(e, { clientX, clientY });
+  return e;
+}
+
 const list = [
   { id: 'a', ord: 0 },
   { id: 'b', ord: 1 },
   { id: 'c', ord: 2 },
 ] as StickyRecord[];
 
-// A drag "session": start on `dragId`, hover `overIndex`, drop there. Re-reads
-// result.current after each state change (act flushes the re-render) so the drop
-// closure sees the latest draggingId/targetId.
-function runDrag(dragId: string, overIndex: number, onReorder: (id: string, ord: number) => void) {
-  const { result } = renderHook(() => useDragReorder(list, onReorder));
-  const dragIndex = list.findIndex((s) => s.id === dragId);
-  act(() => result.current.dragProps(list[dragIndex], dragIndex).onDragStart());
-  act(() =>
-    result.current.dragProps(list[overIndex], overIndex).onDragOver({
-      preventDefault: () => {},
-    } as React.DragEvent),
-  );
-  act(() => result.current.dragProps(list[overIndex], overIndex).onDrop());
+// A grid element whose cards report fixed rects (jsdom has no layout, so we stub
+// getBoundingClientRect). Three 100px-wide cards on one row.
+function stubGrid(): HTMLDivElement {
+  const grid = document.createElement('div');
+  list.forEach((_, i) => {
+    const el = document.createElement('div');
+    el.setAttribute('data-card-index', String(i));
+    el.getBoundingClientRect = () =>
+      ({ left: i * 100, right: i * 100 + 100, top: 0, bottom: 100 }) as DOMRect;
+    grid.appendChild(el);
+  });
+  document.body.appendChild(grid);
+  return grid;
 }
 
 describe('useDragReorder', () => {
-  it('moves a note forward: dropping "a" onto index 2 lands it between b and c', () => {
+  it('starts a drag, tracks the insert gap, and persists the new ord on release', () => {
     const onReorder = vi.fn();
-    runDrag('a', 2, onReorder);
-    // others=[b(1),c(2)], insertAt=2-1=1 → between 1 and 2 → 1.5
-    expect(onReorder).toHaveBeenCalledWith('a', 1.5);
+    const { result } = renderHook(() => useDragReorder(list, onReorder));
+    act(() => {
+      result.current.gridRef.current = stubGrid();
+    });
+
+    act(() => result.current.startDrag('a'));
+    expect(result.current.draggingId).toBe('a');
+
+    // Move the pointer over the right half of card 2 → gap index 3 (the end).
+    act(() => window.dispatchEvent(pointer('pointermove', 280, 50)));
+    expect(result.current.insertIndex).toBe(3);
+
+    act(() => window.dispatchEvent(pointer('pointerup')));
+    // a moved to the end: between b(1) and c(2) → after c → 3.
+    expect(onReorder).toHaveBeenCalledWith('a', 3);
+    expect(result.current.draggingId).toBeNull();
   });
 
-  it('moves a note backward: dropping "c" onto index 0 lands it before a', () => {
+  it('does not persist when released in the sticky’s own slot', () => {
     const onReorder = vi.fn();
-    runDrag('c', 0, onReorder);
-    // others=[a(0),b(1)], insertAt=0 → before first → -1
-    expect(onReorder).toHaveBeenCalledWith('c', -1);
-  });
-
-  it('does not persist when dropped in place (ord unchanged)', () => {
-    const onReorder = vi.fn();
-    runDrag('a', 0, onReorder);
+    const { result } = renderHook(() => useDragReorder(list, onReorder));
+    act(() => {
+      result.current.gridRef.current = stubGrid();
+    });
+    act(() => result.current.startDrag('b'));
+    // Right half of card 0 → gap 1, which is b's own slot → no-op.
+    act(() => window.dispatchEvent(pointer('pointermove', 80, 50)));
+    act(() => window.dispatchEvent(pointer('pointerup')));
     expect(onReorder).not.toHaveBeenCalled();
   });
 });

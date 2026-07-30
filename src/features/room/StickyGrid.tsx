@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import type { StickyRecord } from '../../lib/dataClient';
 import type { StickyColor } from './stickyPalette';
 import { StickyCard } from './StickyCard';
@@ -16,24 +17,34 @@ interface StickyGridProps {
   onDelete: (sticky: StickyRecord) => void;
 }
 
-/** The pad: a drag-reorderable grid of sticky cards followed by the composer + an
- * upload tile. Pure presentation — logic lives in the room hooks + useDragReorder. */
+/** The pad: a pointer-drag-reorderable grid of sticky cards, then the composer +
+ * upload tile. An insertion line renders in the GAP where a dragged sticky will
+ * land. Logic lives in the room hooks + useDragReorder. */
 export function StickyGrid(props: StickyGridProps) {
   const { stickies, onAdd, onUpload, onEdit, onRecolor, onReorder, onDelete } = props;
-  const { dragProps } = useDragReorder(stickies, onReorder);
+  const { gridRef, draggingId, insertIndex, startDrag } = useDragReorder(stickies, onReorder);
 
   return (
-    <div className="sticky-grid" data-testid="sticky-grid">
+    <div className="sticky-grid" data-testid="sticky-grid" ref={gridRef}>
       {stickies.map((sticky, index) => (
-        <StickyCard
-          key={sticky.id}
-          sticky={sticky}
-          onEdit={(content) => onEdit(sticky.id, content)}
-          onRecolor={(color) => onRecolor(sticky.id, color)}
-          onDelete={() => onDelete(sticky)}
-          drag={dragProps(sticky, index)}
-        />
+        <Fragment key={sticky.id}>
+          {draggingId && insertIndex === index && (
+            <div className="sticky-insert" data-testid="insert-line" aria-hidden="true" />
+          )}
+          <StickyCard
+            sticky={sticky}
+            index={index}
+            dragging={draggingId === sticky.id}
+            onDragHandle={() => startDrag(sticky.id)}
+            onEdit={(content) => onEdit(sticky.id, content)}
+            onRecolor={(color) => onRecolor(sticky.id, color)}
+            onDelete={() => onDelete(sticky)}
+          />
+        </Fragment>
       ))}
+      {draggingId && insertIndex === stickies.length && (
+        <div className="sticky-insert" data-testid="insert-line" aria-hidden="true" />
+      )}
       <StickyComposer count={stickies.length} onAdd={onAdd} />
       <MediaUploadButton onUpload={onUpload} />
     </div>

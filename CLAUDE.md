@@ -74,10 +74,15 @@ Stickies is deliberately tiny — two routes, two models:
 - **`/:room` (RoomPage)** — the shared pad: a grid of sticky cards + a composer, kept live.
 - **`Sticky`** — one note on a room's pad (`room`, `kind`, `content`, `color`, `ord`). Partitioned by
   `room`. Users can recolor a sticky (`ColorPicker` → `useStickyArrange.recolor`) and **drag to
-  reorder** it (HTML5 DnD via `useDragReorder` → a fractional `ord` computed by `reorder.ts`, so a
-  single move writes ONE row, no reindex). Sort is by `ord` then createdAt (`sortStickies`). Native
-  DnD is desktop-only (touch doesn't fire it) — an accepted limitation; Playwright can't trigger it
-  either, so the reorder e2e fires the drag lifecycle events via `dispatchEvent`.
+  reorder** it via a grip handle. Reorder is **POINTER-based** (`useDragReorder` — pointerdown on the
+  grip, pointermove hit-tests card rects → an insert GAP index, pointerup persists) so it works with
+  BOTH mouse and touch (native HTML5 DnD was the original impl and did NOT work — esp. on touch — a
+  real bug that shipped once; don't reintroduce it). A drop writes a fractional `ord` (`reorder.ts:
+computeReorder`) so one move = one row, no reindex; an insertion LINE renders in the target gap (not
+  a drop-on-card outline). **Every sticky gets an `ord` at creation** (append = existingCount) so
+  ordering is one numeric scale. **CRITICAL:** `listStickiesByRoom` (the initial fetch) AND the live
+  subscription BOTH sort via `sortStickies` (ord, then createdAt) — if the fetch sorts differently, a
+  reload silently reverts the drag (this bug shipped once).
 - **`Room`** — a lazily-upserted **recents index** row (one per room ever touched), all sharing a
   constant `listKey` partition so the home feed is one GSI query sorted by `lastEditedAt`. A room does
   NOT need a Room row to work — stickies stand alone; the row exists only to power the recents list.
