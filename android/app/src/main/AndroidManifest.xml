@@ -22,6 +22,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- App Links: a tapped https://stickies.jpc.io/<room> link opens the
+                 app when installed (autoVerify checks /.well-known/assetlinks.json),
+                 else falls through to the browser. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="stickies.jpc.io" />
+            </intent-filter>
+
         </activity>
 
         <provider

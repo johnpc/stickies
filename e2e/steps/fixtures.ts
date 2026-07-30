@@ -22,11 +22,16 @@ const RUN = Date.now().toString(36);
 let counter = 0;
 
 export const test = base.extend<StickiesFixtures>({
-  roomSlug: async (_fixtures, provide, testInfo) => {
+  // Playwright REQUIRES the first fixture arg to be an object-destructuring
+  // pattern; an empty `{}` (no upstream fixtures needed) trips eslint's
+  // no-empty-pattern, so disable that one rule here.
+  // eslint-disable-next-line no-empty-pattern
+  roomSlug: async ({}, provide, testInfo) => {
     counter += 1;
     await provide(`e2e-${RUN}-${testInfo.workerIndex}-${counter}`);
   },
-  state: async (_fixtures, provide) => {
+  // eslint-disable-next-line no-empty-pattern
+  state: async ({}, provide) => {
     await provide({ room: '' });
   },
 });

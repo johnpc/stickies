@@ -164,6 +164,16 @@ npx ampx sandbox       # personal cloud backend sandbox
 - **Repo:** `johnpc/stickies`. **Bundle id:** `com.johncorser.stickies`. Region `us-west-2`, AWS
   profile `personal`. Apple team `JW5SC3NYUV`.
 - **Sandbox stack:** `amplify-stickies-xss-sandbox-d7f764fcf6` (wired into `package.json` `e2e-config`).
+- **Universal / App Links.** A shared `https://stickies.jpc.io/<room>` opens the installed app
+  (iOS Associated Domains entitlement + Android `autoVerify` intent-filter) or falls back to the
+  browser. The app-side `useDeepLinks` hook routes `appUrlOpen` events to the room. Domain must serve
+  `/.well-known/apple-app-site-association` and `/.well-known/assetlinks.json` (shipped in `public/`).
+  **TODO before Android App Links verify:** replace `REPLACE_WITH_SIGNING_CERT_SHA256` in
+  `assetlinks.json` with the release/debug signing cert's SHA-256 (`keytool -list -v -keystore …`).
+  **Prod gotcha:** the SPA 200-rewrite regex below matches extension-less paths, so it would swallow
+  `/.well-known/apple-app-site-association` (no extension) and serve `index.html` instead of the JSON.
+  The custom-rules JSON MUST place an explicit passthrough for `/.well-known/<*>` BEFORE the catch-all
+  SPA rule, or iOS association verification fails.
 - **SPA rewrite (Amplify Hosting) — required so `/:room` deep links serve `index.html` with a 200**,
   not a 404. Every room URL is a client route; without a 200 rewrite, sharing a fresh room link
   returns a 404 to the first loader. Apply the regex rule (see spork CLAUDE.md) once the prod app is

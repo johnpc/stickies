@@ -24,7 +24,14 @@ edited.
 3. **Share the link.** Anyone with the same URL sees and edits the same pad, live.
 
 The home page (no room in the URL) explains this and lists the **~10 most-recently-edited rooms** so
-you can jump into whatever's active.
+you can jump into whatever's active. You can also just **type a room name** in the box to jump in.
+
+### Sharing & deep links
+
+Every room has a **share button** in its header that copies the room URL to your clipboard. Because
+rooms are **Universal Links (iOS) / App Links (Android)**, tapping a shared `stickies.jpc.io/<room>`
+link **opens the installed app straight to that room** — and falls back to loading normally in the
+browser if the app isn't installed. Same link, works everywhere.
 
 ## Sticky types
 

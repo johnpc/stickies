@@ -5,6 +5,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
 import { ThemeProvider } from './features/shell/useTheme';
 import { ErrorBoundary } from './features/shell/ErrorBoundary';
+import { DeepLinks } from './features/shell/DeepLinks';
 import { Toast } from './features/shell/Toast';
 import { HomePage } from './pages/HomePage';
 import { RoomPage } from './pages/RoomPage';
@@ -31,6 +32,7 @@ const App: React.FC = () => (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <IonReactRouter>
+          <DeepLinks />
           <ErrorBoundary>
             <IonRouterOutlet>
               <Route exact path="/">

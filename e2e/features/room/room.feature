@@ -14,6 +14,11 @@ Feature: Room pad — share stickies at a URL
     When they reload the room
     Then the sticky "buy oat milk" is still on the pad
 
+  Scenario: The share button copies the room link to the clipboard
+    Given a visitor opens a fresh room
+    When they tap the share button
+    Then the room URL is copied to their clipboard
+
   Scenario: A pasted link becomes a safe, clickable sticky
     Given a visitor opens a fresh room
     When they add a sticky that says "example.com"
@@ -29,3 +34,11 @@ Feature: Room pad — share stickies at a URL
     When they add a sticky that says "hello recents"
     And they go back to the home page
     Then their room is listed in the recent rooms
+
+  # Deep-linking: the SAME shared https URL opens the app if installed, else the
+  # browser. In a browser the room URL just loads normally (the graceful
+  # fallback), and the app-association file is served for the OS to verify.
+  Scenario: A shared room link opens the pad directly in the browser
+    Given a visitor opens the room "shared-link-demo" directly by URL
+    Then they land on the "shared-link-demo" room pad
+    And the app-association file is served at ".well-known/apple-app-site-association"
