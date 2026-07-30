@@ -73,4 +73,20 @@ describe('RoomPage', () => {
     renderRoom();
     expect(screen.getByTestId('load-error')).toBeInTheDocument();
   });
+
+  it('shows an invalid-room state (not the pad) for an all-punctuation slug', () => {
+    useRoomStickies.mockReturnValue({
+      stickies: [],
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+    renderRoom('/!!!'); // normalizes to an empty slug
+    expect(screen.getByTestId('invalid-room')).toBeInTheDocument();
+    // No pad chrome that would let a write into the empty-slug bucket.
+    expect(screen.queryByTestId('sticky-add')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('sticky-grid')).not.toBeInTheDocument();
+    // Offers the room-name box to open a real room.
+    expect(screen.getByTestId('room-entry-input')).toBeInTheDocument();
+  });
 });
