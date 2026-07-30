@@ -72,7 +72,12 @@ Stickies is deliberately tiny — two routes, two models:
 
 - **`/` (HomePage)** — the explainer + the "open a room" box + the recent-rooms feed.
 - **`/:room` (RoomPage)** — the shared pad: a grid of sticky cards + a composer, kept live.
-- **`Sticky`** — one note on a room's pad (`room`, `kind`, `content`, `color`). Partitioned by `room`.
+- **`Sticky`** — one note on a room's pad (`room`, `kind`, `content`, `color`, `ord`). Partitioned by
+  `room`. Users can recolor a sticky (`ColorPicker` → `useStickyArrange.recolor`) and **drag to
+  reorder** it (HTML5 DnD via `useDragReorder` → a fractional `ord` computed by `reorder.ts`, so a
+  single move writes ONE row, no reindex). Sort is by `ord` then createdAt (`sortStickies`). Native
+  DnD is desktop-only (touch doesn't fire it) — an accepted limitation; Playwright can't trigger it
+  either, so the reorder e2e fires the drag lifecycle events via `dispatchEvent`.
 - **`Room`** — a lazily-upserted **recents index** row (one per room ever touched), all sharing a
   constant `listKey` partition so the home feed is one GSI query sorted by `lastEditedAt`. A room does
   NOT need a Room row to work — stickies stand alone; the row exists only to power the recents list.

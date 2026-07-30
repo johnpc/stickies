@@ -16,7 +16,14 @@ vi.mock('../../lib/dataClient', () => ({
 vi.mock('./touchRoom', () => ({ touchRoom }));
 vi.mock('./mediaApi', () => ({ removeMedia }));
 
-import { createSticky, deleteSticky, listStickiesByRoom, updateStickyContent } from './stickiesApi';
+import {
+  createSticky,
+  deleteSticky,
+  listStickiesByRoom,
+  setStickyColor,
+  setStickyOrder,
+  updateStickyContent,
+} from './stickiesApi';
 
 beforeEach(() => {
   [listStickyByRoom, create, update, del, touchRoom, removeMedia].forEach((m) => m.mockReset());
@@ -53,6 +60,24 @@ describe('updateStickyContent', () => {
     update.mockResolvedValue({ data: { id: 'x' } });
     await updateStickyContent('x', 'room', 'edited', 5);
     expect(update).toHaveBeenCalledWith({ id: 'x', content: 'edited' });
+    expect(touchRoom).toHaveBeenCalledWith('room', 5);
+  });
+});
+
+describe('setStickyColor', () => {
+  it('updates only the color and re-touches the room', async () => {
+    update.mockResolvedValue({ data: { id: 'x' } });
+    await setStickyColor('x', 'room', 'blue', 5);
+    expect(update).toHaveBeenCalledWith({ id: 'x', color: 'blue' });
+    expect(touchRoom).toHaveBeenCalledWith('room', 5);
+  });
+});
+
+describe('setStickyOrder', () => {
+  it('updates only the ord and re-touches the room', async () => {
+    update.mockResolvedValue({ data: { id: 'x' } });
+    await setStickyOrder('x', 'room', 1.5, 5);
+    expect(update).toHaveBeenCalledWith({ id: 'x', ord: 1.5 });
     expect(touchRoom).toHaveBeenCalledWith('room', 5);
   });
 });

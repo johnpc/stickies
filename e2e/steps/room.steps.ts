@@ -82,6 +82,40 @@ Then('the sticky {string} appears on the pad', async ({ page }, content: string)
   await expect(page.getByText(content, { exact: true })).toBeVisible({ timeout: 15_000 });
 });
 
+When('they recolor the first sticky blue', async ({ page }) => {
+  await page.getByTestId('sticky').first().getByTestId('color-blue').click();
+  await page.waitForTimeout(1200); // let the recolor write settle before a reload
+});
+
+Then('the first sticky is blue', async ({ page }) => {
+  await expect(page.getByTestId('sticky').first()).toHaveClass(/sticky--blue/, { timeout: 15_000 });
+});
+
+When('they add three stickies {string} {string} {string}', async ({ page }, a, b, c) => {
+  for (const t of [a, b, c]) {
+    await page.getByTestId('sticky-add').click();
+    await page.getByTestId('sticky-input').fill(t);
+    await page.getByTestId('sticky-input').press('Enter');
+    await expect(page.getByText(t, { exact: true })).toBeVisible({ timeout: 15_000 });
+  }
+});
+
+When('they drag the last sticky onto the first', async ({ page }) => {
+  // Native HTML5 DnD isn't triggered by Playwright's synthetic mouse-drag, so
+  // fire the drag lifecycle events directly (the app listens to these).
+  const stickies = page.getByTestId('sticky');
+  await stickies.last().dispatchEvent('dragstart');
+  await stickies.first().dispatchEvent('dragover');
+  await stickies.first().dispatchEvent('drop');
+  await page.waitForTimeout(1500);
+});
+
+Then('the stickies read {string} {string} {string}', async ({ page }, a, b, c) => {
+  await expect(page.getByTestId('sticky').nth(0)).toContainText(a, { timeout: 15_000 });
+  await expect(page.getByTestId('sticky').nth(1)).toContainText(b);
+  await expect(page.getByTestId('sticky').nth(2)).toContainText(c);
+});
+
 When('they reload the room', async ({ page }) => {
   await page.reload();
   await expect(page.getByTestId('sticky-add')).toBeVisible({ timeout: 15_000 });

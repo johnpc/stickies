@@ -1,0 +1,34 @@
+/* Color swatch row shown in a sticky's action bar. Tokens for the note colors. */
+.color-picker {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin-right: auto; /* push the edit/delete buttons to the right */
+}
+.color-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(34, 32, 26, 0.25);
+  cursor: pointer;
+  padding: 0;
+}
+.color-swatch.is-active {
+  border-color: var(--sk-note-ink);
+  box-shadow: 0 0 0 1.5px var(--sk-note-ink);
+}
+.color-swatch--yellow {
+  background: var(--sk-note-yellow);
+}
+.color-swatch--pink {
+  background: var(--sk-note-pink);
+}
+.color-swatch--blue {
+  background: var(--sk-note-blue);
+}
+.color-swatch--green {
+  background: var(--sk-note-green);
+}
+.color-swatch--purple {
+  background: var(--sk-note-purple);
+}

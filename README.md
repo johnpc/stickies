@@ -21,7 +21,8 @@ edited.
 
 1. **Pick any URL.** Add a room name after the address, like `/grocery-list`.
 2. **Post stickies.** Jot a note or paste a link — it's saved instantly and shows up for everyone.
-3. **Share the link.** Anyone with the same URL sees and edits the same pad, live.
+3. **Arrange them.** Recolor a sticky from its swatch row, or **drag to reorder** the pad.
+4. **Share the link.** Anyone with the same URL sees and edits the same pad, live.
 
 The home page (no room in the URL) explains this and lists the **~10 most-recently-edited rooms** so
 you can jump into whatever's active. You can also just **type a room name** in the box to jump in.

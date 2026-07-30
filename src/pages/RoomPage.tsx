@@ -3,6 +3,7 @@ import { IonContent, IonPage } from '@ionic/react';
 import { normalizeRoomSlug } from '../features/room/roomSlug';
 import { useRoomStickies } from '../features/room/useRoomStickies';
 import { useStickyMutations } from '../features/room/useStickyMutations';
+import { useStickyArrange } from '../features/room/useStickyArrange';
 import { LoadState } from '../features/shell/LoadState';
 import { RoomHeader } from '../features/room/RoomHeader';
 import { StickyGrid } from '../features/room/StickyGrid';
@@ -16,6 +17,7 @@ export function RoomPage() {
   const room = normalizeRoomSlug(rawRoom);
   const { stickies, isLoading, isError, refetch } = useRoomStickies(room);
   const { add, addMedia, edit, remove } = useStickyMutations(room, stickies.length);
+  const { recolor, reorder } = useStickyArrange(room, stickies.length);
 
   return (
     <IonPage>
@@ -32,6 +34,8 @@ export function RoomPage() {
             onAdd={(content) => add.mutate(content)}
             onUpload={(file) => addMedia.mutate({ file, seed: Date.now() })}
             onEdit={(id, content) => edit.mutate({ id, content })}
+            onRecolor={(id, color) => recolor.mutate({ id, color })}
+            onReorder={(id, ord) => reorder.mutate({ id, ord })}
             onDelete={(sticky) => remove.mutate(sticky)}
           />
         </LoadState>

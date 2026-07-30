@@ -44,6 +44,20 @@ Feature: Room pad — share stickies at a URL
     When they add a sticky that says "https://github.com"
     Then a link preview card is shown
 
+  Scenario: A sticky can be recolored and the color persists
+    Given a visitor opens a fresh room
+    When they add a sticky that says "recolor me"
+    And they recolor the first sticky blue
+    And they reload the room
+    Then the first sticky is blue
+
+  Scenario: Stickies can be reordered by dragging and the order persists
+    Given a visitor opens a fresh room
+    When they add three stickies "one" "two" "three"
+    And they drag the last sticky onto the first
+    And they reload the room
+    Then the stickies read "three" "one" "two"
+
   Scenario: A dangerous javascript: URL is never rendered as a link
     Given a visitor opens a fresh room
     When they add a sticky that says "javascript:alert(1)"

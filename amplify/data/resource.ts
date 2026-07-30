@@ -28,6 +28,7 @@ const schema = a.schema({
       kind: a.enum(['TEXT', 'LINK', 'CODE', 'IMAGE', 'PDF', 'VIDEO', 'DOC', 'FILE']),
       content: a.string().required(), // text/URL/code, OR the S3 key for media kinds
       color: a.string(), // palette token name, e.g. "yellow" | "pink" | "blue"
+      ord: a.float(), // manual pad order (fractional so a drop between two rows needs no reindex)
       language: a.string(), // CODE: detected/selected language hint for highlighting
       fileName: a.string(), // media kinds: original filename (download label + type sniff)
       mimeType: a.string(), // media kinds: uploaded content type

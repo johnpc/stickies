@@ -51,6 +51,30 @@ export async function updateStickyContent(
   return updated as StickyRecord;
 }
 
+/** Recolor a sticky (a metadata edit — re-touches the room, count unchanged). */
+export async function setStickyColor(
+  id: string,
+  room: string,
+  color: string,
+  count: number,
+): Promise<StickyRecord> {
+  const updated = unwrap(await dataClient.models.Sticky.update({ id, color }));
+  await touchRoom(room, count);
+  return updated as StickyRecord;
+}
+
+/** Persist a sticky's manual order position (set on drag-drop; count unchanged). */
+export async function setStickyOrder(
+  id: string,
+  room: string,
+  ord: number,
+  count: number,
+): Promise<StickyRecord> {
+  const updated = unwrap(await dataClient.models.Sticky.update({ id, ord }));
+  await touchRoom(room, count);
+  return updated as StickyRecord;
+}
+
 /** Remove a sticky (and re-touch its room with the reduced count). For media/doc
  * kinds `mediaPath` is the S3 key to clean up so deleting the sticky doesn't
  * orphan its object; S3 removal is best-effort (a failure never blocks the row

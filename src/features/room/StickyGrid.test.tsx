@@ -16,6 +16,8 @@ describe('StickyGrid', () => {
         onAdd={vi.fn()}
         onUpload={vi.fn()}
         onEdit={vi.fn()}
+        onRecolor={vi.fn()}
+        onReorder={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
@@ -32,6 +34,8 @@ describe('StickyGrid', () => {
         onAdd={vi.fn()}
         onUpload={vi.fn()}
         onEdit={onEdit}
+        onRecolor={vi.fn()}
+        onReorder={vi.fn()}
         onDelete={onDelete}
       />,
     );

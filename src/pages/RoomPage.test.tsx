@@ -3,6 +3,9 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { ThemeProvider } from '../features/shell/useTheme';
 
+const { useStickyArrange } = vi.hoisted(() => ({ useStickyArrange: vi.fn() }));
+vi.mock('../features/room/useStickyArrange', () => ({ useStickyArrange }));
+
 const { useRoomStickies, useStickyMutations } = vi.hoisted(() => ({
   useRoomStickies: vi.fn(),
   useStickyMutations: vi.fn(),
@@ -31,6 +34,7 @@ const renderRoom = (path = '/grocery-list') =>
 beforeEach(() => {
   [add.mutate, addMedia.mutate, edit.mutate, remove.mutate].forEach((m) => m.mockClear());
   useStickyMutations.mockReturnValue({ add, addMedia, edit, remove });
+  useStickyArrange.mockReturnValue({ recolor: { mutate: vi.fn() }, reorder: { mutate: vi.fn() } });
 });
 
 describe('RoomPage', () => {

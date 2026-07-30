@@ -35,6 +35,14 @@
   transform: translateY(-2px) rotate(-0.4deg);
   box-shadow: var(--sk-shadow-hover);
 }
+.sticky[draggable='true'] {
+  cursor: grab;
+}
+/* Where the dragged note will land. */
+.sticky--drop-target {
+  outline: 2px dashed var(--sk-accent);
+  outline-offset: 3px;
+}
 
 .sticky--yellow {
   background: var(--sk-note-yellow);

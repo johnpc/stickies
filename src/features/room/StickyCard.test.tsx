@@ -16,7 +16,12 @@ const make = (over: Partial<StickyRecord>): StickyRecord =>
 describe('StickyCard', () => {
   it('renders text content plainly', () => {
     render(
-      <StickyCard sticky={make({ content: 'buy milk' })} onEdit={vi.fn()} onDelete={vi.fn()} />,
+      <StickyCard
+        sticky={make({ content: 'buy milk' })}
+        onEdit={vi.fn()}
+        onRecolor={vi.fn()}
+        onDelete={vi.fn()}
+      />,
     );
     expect(screen.getByText('buy milk')).toBeInTheDocument();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
@@ -27,6 +32,7 @@ describe('StickyCard', () => {
       <StickyCard
         sticky={make({ kind: 'LINK', content: 'example.com' })}
         onEdit={vi.fn()}
+        onRecolor={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
@@ -38,6 +44,7 @@ describe('StickyCard', () => {
       <StickyCard
         sticky={make({ kind: 'LINK', content: 'javascript:alert(1)' })}
         onEdit={vi.fn()}
+        onRecolor={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
@@ -47,7 +54,14 @@ describe('StickyCard', () => {
 
   it('swaps into an editor and saves an edit', () => {
     const onEdit = vi.fn();
-    render(<StickyCard sticky={make({ content: 'old' })} onEdit={onEdit} onDelete={vi.fn()} />);
+    render(
+      <StickyCard
+        sticky={make({ content: 'old' })}
+        onEdit={onEdit}
+        onRecolor={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
     fireEvent.click(screen.getByTestId('sticky-edit'));
     const input = screen.getByTestId('sticky-input');
     fireEvent.change(input, { target: { value: 'new' } });
@@ -57,8 +71,24 @@ describe('StickyCard', () => {
 
   it('fires onDelete', () => {
     const onDelete = vi.fn();
-    render(<StickyCard sticky={make({})} onEdit={vi.fn()} onDelete={onDelete} />);
+    render(
+      <StickyCard sticky={make({})} onEdit={vi.fn()} onRecolor={vi.fn()} onDelete={onDelete} />,
+    );
     fireEvent.click(screen.getByTestId('sticky-delete'));
     expect(onDelete).toHaveBeenCalledOnce();
+  });
+
+  it('recolors via the swatch row', () => {
+    const onRecolor = vi.fn();
+    render(
+      <StickyCard
+        sticky={make({ color: 'yellow' })}
+        onEdit={vi.fn()}
+        onRecolor={onRecolor}
+        onDelete={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('color-blue'));
+    expect(onRecolor).toHaveBeenCalledWith('blue');
   });
 });
