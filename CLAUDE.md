@@ -161,8 +161,12 @@ npx ampx sandbox       # personal cloud backend sandbox
 
 ## Key facts
 
-- **Repo:** `johnpc/stickies`. **Bundle id:** `com.johncorser.stickies`. Region `us-west-2`, AWS
-  profile `personal`. Apple team `JW5SC3NYUV`.
+- **Repo:** `johnpc/stickies`. **Bundle id:** `com.johncorser.stickies` (ASC bundle-id id
+  `DNWALP27JH`, created via API). Region `us-west-2`, AWS profile `personal`. Apple team `JW5SC3NYUV`.
+- **iOS App Store record — created ✅** (manually in App Store Connect on 2026-07-30; public name
+  "Stickies — a shared sticky pad at any URL", SKU `stickies`). Note for future apps: `POST /v1/apps`
+  is forbidden via the ASC API (403 FORBIDDEN_ERROR — GET/UPDATE only), so the app record must be made
+  by hand in ASC → My Apps → **+** (the bundle id appears in the dropdown once created via API).
 - **Sandbox stack:** `amplify-stickies-xss-sandbox-d7f764fcf6` (wired into `package.json` `e2e-config`).
 - **Universal / App Links.** A shared `https://stickies.jpc.io/<room>` opens the installed app
   (iOS Associated Domains entitlement + Android `autoVerify` intent-filter) or falls back to the
