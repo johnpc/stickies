@@ -22,13 +22,14 @@ describe('StickyBody', () => {
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
-  it('renders a CODE sticky with a line-number gutter and highlighting', () => {
+  it('renders a CODE sticky with a line-number gutter and highlighting', async () => {
     render(
       <StickyBody
         sticky={make({ kind: 'CODE', content: 'const a = 1;\nconst b = 2;', language: 'ts' })}
       />,
     );
-    expect(screen.getByTestId('code-sticky')).toBeInTheDocument();
+    // CodeSticky is lazy-loaded — await it resolving through Suspense.
+    expect(await screen.findByTestId('code-sticky')).toBeInTheDocument();
     expect(screen.getByTestId('code-lang')).toHaveTextContent('ts');
   });
 });

@@ -1,13 +1,22 @@
+import { lazy, Suspense } from 'react';
 import type { StickyRecord } from '../../lib/dataClient';
 import { safeHref } from './safeHref';
-import { CodeSticky } from './CodeSticky';
 
-/** Renders a sticky's body by kind: CODE → highlighted snippet, LINK → a guarded
- * anchor (safeHref blocks javascript:/data: on the world-writable pad), else plain
- * text. Pure presentation; kind routing lives here so StickyCard stays a shell. */
+// highlight.js is heavy; only pull it (and CodeSticky) when a room actually
+// renders a CODE sticky, so text/link-only pads don't pay for it at first paint.
+const CodeSticky = lazy(() => import('./CodeSticky').then((m) => ({ default: m.CodeSticky })));
+
+/** Renders a sticky's body by kind: CODE → highlighted snippet (lazy-loaded),
+ * LINK → a guarded anchor (safeHref blocks javascript:/data: on the world-writable
+ * pad), else plain text. Pure presentation; kind routing lives here so StickyCard
+ * stays a shell. */
 export function StickyBody({ sticky }: { sticky: StickyRecord }) {
   if (sticky.kind === 'CODE') {
-    return <CodeSticky code={sticky.content} language={sticky.language} />;
+    return (
+      <Suspense fallback={<span className="sticky__text">{sticky.content}</span>}>
+        <CodeSticky code={sticky.content} language={sticky.language} />
+      </Suspense>
+    );
   }
   const href = sticky.kind === 'LINK' ? safeHref(sticky.content) : null;
   if (href) {
