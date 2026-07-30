@@ -46,14 +46,24 @@ export async function createSticky(input: {
   return created as StickyRecord;
 }
 
-/** Edit a sticky's body (and re-touch its room; count unchanged). */
+/** Edit a sticky's body, RECLASSIFYING its kind (a URL becomes a LINK, a fenced
+ * block becomes CODE, etc.) — otherwise an edited note would keep its old kind
+ * (e.g. text edited into a URL would never become a tappable link). `language`
+ * is written too (set for CODE, cleared otherwise). Re-touches the room. */
 export async function updateStickyContent(
   id: string,
   room: string,
-  content: string,
+  input: { kind: StickyKind; content: string; language?: string },
   count: number,
 ): Promise<StickyRecord> {
-  const updated = unwrap(await dataClient.models.Sticky.update({ id, content }));
+  const updated = unwrap(
+    await dataClient.models.Sticky.update({
+      id,
+      kind: input.kind,
+      content: input.content,
+      language: input.language ?? null,
+    }),
+  );
   await touchRoom(room, count);
   return updated as StickyRecord;
 }
@@ -69,27 +79,4 @@ export async function deleteSticky(
 ): Promise<void> {
   unwrap(await dataClient.models.Sticky.delete({ id }));
   await touchRoom(room, remainingCount);
-}
-
-/** Re-create a just-deleted sticky with its original fields (the undo path).
- * Restores content/kind/color/ord/media metadata so it reappears exactly where
- * it was; `count` is the room's post-restore sticky count. */
-export async function restoreSticky(
-  sticky: StickyRecord,
-  room: string,
-  count: number,
-): Promise<void> {
-  unwrap(
-    await dataClient.models.Sticky.create({
-      room: sticky.room,
-      kind: sticky.kind,
-      content: sticky.content,
-      color: sticky.color,
-      ord: sticky.ord,
-      language: sticky.language,
-      fileName: sticky.fileName,
-      mimeType: sticky.mimeType,
-    }),
-  );
-  await touchRoom(room, count);
 }

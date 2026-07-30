@@ -14,6 +14,12 @@ Feature: Room pad — share stickies at a URL
     When they reload the room
     Then the sticky "buy oat milk" is still on the pad
 
+  Scenario: Editing a text sticky into a URL turns it into a link
+    Given a visitor opens a fresh room
+    When they add a sticky that says "just a note"
+    And they edit the first sticky to "example.com"
+    Then the first sticky is a clickable link
+
   Scenario: The share button opens a QR + link panel and copies the room link
     Given a visitor opens a fresh room
     When they tap the share button

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { StickyRecord } from '../../lib/dataClient';
-import { createSticky, updateStickyContent, deleteSticky, restoreSticky } from './stickiesApi';
+import { createSticky, updateStickyContent, deleteSticky } from './stickiesApi';
+import { restoreSticky } from './restoreSticky';
 import { createMediaSticky } from './createMediaSticky';
 import { classifyContent } from './classifyContent';
 import { showToast } from '../shell/toastBus';
@@ -36,8 +37,12 @@ export function useStickyMutations(room: string, count: number) {
   });
 
   const edit = useMutation({
-    mutationFn: (vars: { id: string; content: string }) =>
-      updateStickyContent(vars.id, room, vars.content, count),
+    mutationFn: (vars: { id: string; content: string }) => {
+      // Reclassify on edit so a note edited into a URL becomes a LINK, a fenced
+      // block becomes CODE, etc. — not stuck on its original kind.
+      const { kind, content, language } = classifyContent(vars.content);
+      return updateStickyContent(vars.id, room, { kind, content, language }, count);
+    },
     onSuccess: settle,
   });
 

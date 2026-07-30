@@ -13,12 +13,8 @@ const { createSticky, updateStickyContent, deleteSticky, restoreSticky, createMe
     restoreSticky: vi.fn().mockResolvedValue(undefined),
     createMediaSticky: vi.fn().mockResolvedValue({}),
   }));
-vi.mock('./stickiesApi', () => ({
-  createSticky,
-  updateStickyContent,
-  deleteSticky,
-  restoreSticky,
-}));
+vi.mock('./stickiesApi', () => ({ createSticky, updateStickyContent, deleteSticky }));
+vi.mock('./restoreSticky', () => ({ restoreSticky }));
 vi.mock('./createMediaSticky', () => ({ createMediaSticky }));
 
 import { useStickyMutations } from './useStickyMutations';
@@ -79,10 +75,30 @@ describe('useStickyMutations', () => {
     });
   });
 
-  it('edits a sticky', async () => {
+  it('edits a sticky, reclassifying plain text', async () => {
     const { result } = renderHook(() => useStickyMutations('room', 3), { wrapper });
     act(() => result.current.edit.mutate({ id: 'x', content: 'new' }));
-    await waitFor(() => expect(updateStickyContent).toHaveBeenCalledWith('x', 'room', 'new', 3));
+    await waitFor(() =>
+      expect(updateStickyContent).toHaveBeenCalledWith(
+        'x',
+        'room',
+        { kind: 'TEXT', content: 'new', language: undefined },
+        3,
+      ),
+    );
+  });
+
+  it('reclassifies an edit into a URL as a LINK', async () => {
+    const { result } = renderHook(() => useStickyMutations('room', 3), { wrapper });
+    act(() => result.current.edit.mutate({ id: 'x', content: 'example.com' }));
+    await waitFor(() =>
+      expect(updateStickyContent).toHaveBeenCalledWith(
+        'x',
+        'room',
+        { kind: 'LINK', content: 'example.com', language: undefined },
+        3,
+      ),
+    );
   });
 
   it('deletes a sticky with the reduced count and offers an Undo toast', async () => {

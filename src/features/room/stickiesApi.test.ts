@@ -16,14 +16,7 @@ vi.mock('../../lib/dataClient', () => ({
 vi.mock('./touchRoom', () => ({ touchRoom }));
 vi.mock('./mediaApi', () => ({ removeMedia }));
 
-import type { StickyRecord } from '../../lib/dataClient';
-import {
-  createSticky,
-  deleteSticky,
-  listStickiesByRoom,
-  restoreSticky,
-  updateStickyContent,
-} from './stickiesApi';
+import { createSticky, deleteSticky, listStickiesByRoom, updateStickyContent } from './stickiesApi';
 
 beforeEach(() => {
   [listStickyByRoom, create, update, del, touchRoom, removeMedia].forEach((m) => m.mockReset());
@@ -57,11 +50,22 @@ describe('createSticky', () => {
 });
 
 describe('updateStickyContent', () => {
-  it('updates content and re-touches the room with the unchanged count', async () => {
+  it('writes the reclassified kind/content/language and re-touches the room', async () => {
     update.mockResolvedValue({ data: { id: 'x' } });
-    await updateStickyContent('x', 'room', 'edited', 5);
-    expect(update).toHaveBeenCalledWith({ id: 'x', content: 'edited' });
+    await updateStickyContent('x', 'room', { kind: 'LINK', content: 'example.com' }, 5);
+    expect(update).toHaveBeenCalledWith({
+      id: 'x',
+      kind: 'LINK',
+      content: 'example.com',
+      language: null,
+    });
     expect(touchRoom).toHaveBeenCalledWith('room', 5);
+  });
+
+  it('writes the CODE language when present', async () => {
+    update.mockResolvedValue({ data: { id: 'x' } });
+    await updateStickyContent('x', 'room', { kind: 'CODE', content: 'x=1', language: 'py' }, 5);
+    expect(update).toHaveBeenCalledWith({ id: 'x', kind: 'CODE', content: 'x=1', language: 'py' });
   });
 });
 
@@ -72,34 +76,5 @@ describe('deleteSticky', () => {
     expect(del).toHaveBeenCalledWith({ id: 'm' });
     expect(touchRoom).toHaveBeenCalledWith('room', 1);
     expect(removeMedia).not.toHaveBeenCalled();
-  });
-});
-
-describe('restoreSticky', () => {
-  it('re-creates a deleted sticky with all its original fields', async () => {
-    create.mockResolvedValue({ data: {} });
-    const sticky = {
-      id: 'old',
-      room: 'room',
-      kind: 'IMAGE',
-      content: 'rooms/room/1-a.png',
-      color: 'pink',
-      ord: 3.5,
-      fileName: 'a.png',
-      mimeType: 'image/png',
-    } as StickyRecord;
-    await restoreSticky(sticky, 'room', 4);
-    expect(create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        room: 'room',
-        kind: 'IMAGE',
-        content: 'rooms/room/1-a.png',
-        color: 'pink',
-        ord: 3.5,
-        fileName: 'a.png',
-        mimeType: 'image/png',
-      }),
-    );
-    expect(touchRoom).toHaveBeenCalledWith('room', 4);
   });
 });

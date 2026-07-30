@@ -22,6 +22,19 @@ Then('the room shows at least one person present', async ({ page }) => {
   await expect(page.getByTestId('presence-badge')).toContainText('here', { timeout: 20_000 });
 });
 
+When('they edit the first sticky to {string}', async ({ page }, content: string) => {
+  await page.getByTestId('sticky').first().getByTestId('sticky-edit').click();
+  const input = page.getByTestId('sticky-input');
+  await input.fill(content);
+  await input.press('Enter');
+});
+
+Then('the first sticky is a clickable link', async ({ page }) => {
+  await expect(page.getByTestId('sticky').first().getByRole('link')).toBeVisible({
+    timeout: 15_000,
+  });
+});
+
 When('they delete the first sticky', async ({ page }) => {
   await page.getByTestId('sticky').first().getByTestId('sticky-delete').click();
 });
