@@ -20,13 +20,17 @@ export async function listStickiesByRoom(room: string): Promise<StickyRecord[]> 
   return sortStickies(rows);
 }
 
-/** Add a sticky to a room and bump the room's recents row. `existingCount` is
- * how many stickies the room had before this add (drives color + new count). */
+/** Add a sticky to a room and bump the room's recents row. `seq` is a MONOTONIC
+ * stamp (a wall-clock time from the caller) used for both `ord` (append order)
+ * and the rotating color — using it instead of a render-time count means rapid
+ * concurrent adds can't collide on the same ord/color. `existingCount` only
+ * feeds the recents row's display count. */
 export async function createSticky(input: {
   room: string;
   kind: StickyKind;
   content: string;
   language?: string;
+  seq: number;
   existingCount: number;
 }): Promise<StickyRecord> {
   const created = unwrap(
@@ -35,8 +39,8 @@ export async function createSticky(input: {
       kind: input.kind,
       content: input.content,
       language: input.language,
-      color: colorForIndex(input.existingCount),
-      ord: input.existingCount, // append; every sticky gets an ord so drag math is one scale
+      color: colorForIndex(input.seq),
+      ord: input.seq, // monotonic append; distinct per add so order is stable
     }),
   );
   await touchRoom(input.room, input.existingCount + 1);

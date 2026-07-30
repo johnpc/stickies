@@ -25,8 +25,10 @@ export async function createMediaSticky(input: {
       content: key,
       fileName: file.name,
       mimeType: file.type,
-      color: colorForIndex(existingCount),
-      ord: existingCount, // append; every sticky gets an ord so drag math is one scale
+      // seed is a monotonic stamp (also keys the S3 object) → distinct ord/color
+      // per add, collision-free under rapid uploads (mirrors createSticky's seq).
+      color: colorForIndex(seed),
+      ord: seed,
     }),
   );
   await touchRoom(room, existingCount + 1);

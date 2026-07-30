@@ -21,7 +21,9 @@ export function useStickyMutations(room: string, count: number) {
   const add = useMutation({
     mutationFn: (raw: string) => {
       const { kind, content, language } = classifyContent(raw);
-      return createSticky({ room, kind, content, language, existingCount: count });
+      // seq = a monotonic stamp so rapid adds get distinct ord/color (not the
+      // shared render-time count, which collides when adds race).
+      return createSticky({ room, kind, content, language, seq: Date.now(), existingCount: count });
     },
     onSuccess: settle,
   });

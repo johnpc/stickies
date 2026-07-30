@@ -40,6 +40,7 @@ describe('createMediaSticky', () => {
         content: 'rooms/r/7-a.png',
         fileName: 'a.png',
         mimeType: 'image/png',
+        ord: 7, // seed drives ord (collision-free append), not existingCount
       }),
     );
     expect(touchRoom).toHaveBeenCalledWith('r', 2);

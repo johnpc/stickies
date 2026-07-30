@@ -39,6 +39,7 @@ describe('useStickyMutations', () => {
       kind: 'LINK',
       content: 'example.com',
       language: undefined,
+      seq: expect.any(Number),
       existingCount: 2,
     });
   });
@@ -52,6 +53,7 @@ describe('useStickyMutations', () => {
       kind: 'CODE',
       content: 'const a = 1;',
       language: 'ts',
+      seq: expect.any(Number),
       existingCount: 0,
     });
   });

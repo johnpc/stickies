@@ -45,11 +45,12 @@ describe('listStickiesByRoom', () => {
 });
 
 describe('createSticky', () => {
-  it('creates with a rotated color and touches the room with the new count', async () => {
+  it('creates with a seq-derived color + ord and touches the room with the new count', async () => {
     create.mockResolvedValue({ data: { id: 'new' } });
-    await createSticky({ room: 'room', kind: 'TEXT', content: 'hi', existingCount: 1 });
+    // seq=1 → colorForIndex(1)='pink', ord=1 (seq drives both, not the count).
+    await createSticky({ room: 'room', kind: 'TEXT', content: 'hi', seq: 1, existingCount: 1 });
     expect(create).toHaveBeenCalledWith(
-      expect.objectContaining({ room: 'room', kind: 'TEXT', content: 'hi', color: 'pink' }),
+      expect.objectContaining({ room: 'room', kind: 'TEXT', content: 'hi', color: 'pink', ord: 1 }),
     );
     expect(touchRoom).toHaveBeenCalledWith('room', 2);
   });
