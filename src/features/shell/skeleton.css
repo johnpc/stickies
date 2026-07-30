@@ -1,0 +1,54 @@
+/* Loading skeletons — a shimmering placeholder that previews the content shape
+   before it arrives. --sk-* tokens only. */
+
+.sk-skeleton {
+  display: block;
+  background: var(--sk-skeleton-base);
+  background-image: linear-gradient(
+    90deg,
+    var(--sk-skeleton-base) 0%,
+    var(--sk-skeleton-sheen) 50%,
+    var(--sk-skeleton-base) 100%
+  );
+  background-size: 200% 100%;
+  animation: sk-skeleton-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes sk-skeleton-sweep {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* A vertical stack of card rows standing in for a list while it loads. */
+.sk-skeleton-rows {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sk-gap);
+  width: 100%;
+  max-width: 40rem;
+}
+
+.sk-skeleton-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius);
+  background: var(--sk-surface);
+}
+
+/* Respect reduced-motion: hold a static placeholder instead of sweeping. */
+@media (prefers-reduced-motion: reduce) {
+  .sk-skeleton {
+    animation: none;
+    background-image: none;
+  }
+}

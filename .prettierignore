@@ -1,0 +1,10 @@
+dist
+coverage
+.amplify
+.features-gen
+playwright-report
+test-results
+amplify_outputs.json
+package-lock.json
+ios
+android

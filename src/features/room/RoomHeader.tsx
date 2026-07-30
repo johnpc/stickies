@@ -1,0 +1,46 @@
+import {
+  IonBackButton,
+  IonButtons,
+  IonHeader,
+  IonTitle,
+  IonToolbar,
+  useIonToast,
+} from '@ionic/react';
+import { ThemeToggle } from '../shell/ThemeToggle';
+import { ShareRoomButton } from './ShareRoomButton';
+import { prettifyRoomSlug } from './roomSlug';
+import './roomHeader.css';
+
+interface RoomHeaderProps {
+  room: string;
+  count: number;
+}
+
+/** The pad's toolbar: back to home, the room's pretty title + sticky count, a
+ * copy-link share button, and the theme switch. */
+export function RoomHeader({ room, count }: RoomHeaderProps) {
+  const [present] = useIonToast();
+  const title = prettifyRoomSlug(room) || 'Room';
+
+  return (
+    <IonHeader>
+      <IonToolbar>
+        <IonButtons slot="start">
+          <IonBackButton defaultHref="/" text="" />
+        </IonButtons>
+        <IonTitle>
+          <span className="room-header__title" data-testid="room-title">
+            {title}
+          </span>
+          <span className="room-header__count sk-muted"> · {count}</span>
+        </IonTitle>
+        <IonButtons slot="end">
+          <ShareRoomButton
+            onCopied={() => present({ message: 'Room link copied', duration: 1500 })}
+          />
+          <ThemeToggle />
+        </IonButtons>
+      </IonToolbar>
+    </IonHeader>
+  );
+}

@@ -1,0 +1,111 @@
+/**
+ * STICKIES design tokens. Consume these `--sk-*` variables and role classes
+ * everywhere — never hardcoded hex/px in feature CSS. Supports system light/dark
+ * plus an explicit in-app override via [data-theme="light|dark"] on <html>.
+ */
+
+:root {
+  --sk-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* A warm amber accent (the classic sticky-note yellow), darkened enough to
+     clear WCAG AA 4.5:1 under white button text. */
+  --sk-accent: #b5820a;
+  --sk-accent-strong: #9c6f08;
+  --sk-accent-contrast: #ffffff;
+  --sk-accent-soft: #fdf3d3;
+  --sk-accent-gradient: linear-gradient(135deg, #f7c948 0%, #e0a70f 100%);
+
+  --sk-bg: #f6f3ea;
+  --sk-surface: #ffffff;
+  --sk-border: #e7e2d4;
+  --sk-skeleton-base: #ece7da;
+  --sk-skeleton-sheen: #f6f2e9;
+  --sk-text: #1f1d16;
+  --sk-text-muted: #6a6558;
+
+  /* Sticky-note palette. Each pastel clears AA for the shared ink color. */
+  --sk-note-yellow: #fde68a;
+  --sk-note-pink: #fbc7d4;
+  --sk-note-blue: #bfe0fb;
+  --sk-note-green: #c3ebc9;
+  --sk-note-purple: #ddcffb;
+  --sk-note-ink: #22201a;
+
+  --sk-radius: 16px;
+  --sk-radius-sm: 10px;
+  --sk-gap: 16px;
+  --sk-focus-ring: 3px solid var(--sk-accent-strong);
+  --sk-focus-offset: 2px;
+  --sk-shadow: 0 1px 2px rgba(30, 25, 10, 0.05), 0 4px 16px rgba(30, 25, 10, 0.07);
+  --sk-shadow-hover: 0 2px 6px rgba(30, 25, 10, 0.1), 0 10px 28px rgba(30, 25, 10, 0.12);
+
+  /* Ionic theming hooks */
+  --ion-background-color: var(--sk-bg);
+  --ion-text-color: var(--sk-text);
+  --ion-font-family: var(--sk-font-sans);
+  --ion-toolbar-background: var(--sk-surface);
+  --ion-toolbar-color: var(--sk-text);
+}
+
+/* Shared dark palette. `%dark-tokens` values are duplicated for the OS-preference
+   path and the explicit override so neither depends on the other's specificity. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --sk-accent: #f7c948;
+    --sk-accent-strong: #f0b429;
+    --sk-accent-soft: #2c2612;
+    --sk-bg: #14130f;
+    --sk-surface: #201e18;
+    --sk-border: #322e24;
+    --sk-skeleton-base: #2a271f;
+    --sk-skeleton-sheen: #363126;
+    --sk-text: #f4f1e8;
+    --sk-text-muted: #a6a08f;
+    --sk-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 16px rgba(0, 0, 0, 0.4);
+    --sk-shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.45), 0 10px 28px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root[data-theme='dark'] {
+  --sk-accent: #f7c948;
+  --sk-accent-strong: #f0b429;
+  --sk-accent-soft: #2c2612;
+  --sk-bg: #14130f;
+  --sk-surface: #201e18;
+  --sk-border: #322e24;
+  --sk-skeleton-base: #2a271f;
+  --sk-skeleton-sheen: #363126;
+  --sk-text: #f4f1e8;
+  --sk-text-muted: #a6a08f;
+  --sk-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 16px rgba(0, 0, 0, 0.4);
+  --sk-shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.45), 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+
+/* Role classes — the sanctioned typography hooks for feature CSS. */
+.sk-heading {
+  font-weight: 800;
+  color: var(--sk-text);
+  letter-spacing: -0.01em;
+}
+.sk-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--sk-accent-strong);
+}
+.sk-muted {
+  color: var(--sk-text-muted);
+}
+
+/* Safe-area hardening: never let the toolbar sit under the notch / Dynamic
+   Island. max() so it can't double-pad on top of Ionic's own inset. */
+ion-header ion-toolbar:first-of-type {
+  padding-top: max(var(--ion-safe-area-top, 0px), env(safe-area-inset-top, 0px));
+}
+
+/* Global keyboard focus ring. */
+:focus-visible {
+  outline: var(--sk-focus-ring);
+  outline-offset: var(--sk-focus-offset);
+}

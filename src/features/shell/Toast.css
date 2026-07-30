@@ -1,0 +1,46 @@
+/* App-level transient toast, bottom-center. Tokens only. */
+.sk-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(92vw, 460px);
+  padding: 10px 12px 10px 16px;
+  background: var(--sk-surface);
+  color: var(--sk-text);
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-sm);
+  box-shadow: var(--sk-shadow-hover);
+  font-size: 14px;
+}
+.sk-toast__msg {
+  flex: 1;
+  min-width: 0;
+}
+.sk-toast__action {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--sk-accent-strong);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.sk-toast__close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--sk-text-muted);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.sk-toast__close:hover {
+  color: var(--sk-text);
+}

@@ -1,0 +1,151 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Acceptance tests seed + read ONE shared sandbox backend (clearAll + reseed
+# each run). Overlapping CI runs race: one run's clearAll wipes rows mid-read in
+# the other's test. A SINGLE global group serializes every CI run so only one
+# owns the sandbox at a time; don't cancel in progress so a running suite
+# finishes its clear→seed→read cycle uncorrupted.
+concurrency:
+  group: ci-shared-sandbox
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    name: Lint, Test, Coverage, CRAP & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure AWS "personal" profile
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          mkdir -p ~/.aws
+          printf '[personal]\naws_access_key_id=%s\naws_secret_access_key=%s\n' \
+            "$AWS_ACCESS_KEY_ID" "$AWS_SECRET_ACCESS_KEY" > ~/.aws/credentials
+          printf '[profile personal]\nregion=us-west-2\n' > ~/.aws/config
+
+      - name: Generate amplify_outputs.json (sandbox)
+        run: npm run e2e-config
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: File-length discipline (max 100 lines)
+        run: npm run check:lines
+
+      - name: Feature-coverage guard
+        run: npm run check:features
+
+      - name: Unit tests with coverage (80% floor)
+        run: npm run test:coverage
+
+      - name: CRAP score analysis (threshold 15)
+        run: npm run crap
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+  seed:
+    name: Seed sandbox
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Configure AWS "personal" profile
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          mkdir -p ~/.aws
+          printf '[personal]\naws_access_key_id=%s\naws_secret_access_key=%s\n' \
+            "$AWS_ACCESS_KEY_ID" "$AWS_SECRET_ACCESS_KEY" > ~/.aws/credentials
+          printf '[profile personal]\nregion=us-west-2\n' > ~/.aws/config
+      - name: Generate amplify_outputs.json (sandbox)
+        run: npm run e2e-config
+      - name: Seed the sandbox to a known state
+        run: npm run seed
+
+  acceptance:
+    name: Acceptance Tests (${{ matrix.area.name }})
+    needs: seed
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        area:
+          - name: home
+            paths: .features-gen/e2e/features/home
+          - name: room
+            paths: .features-gen/e2e/features/room
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure AWS "personal" profile
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          mkdir -p ~/.aws
+          printf '[personal]\naws_access_key_id=%s\naws_secret_access_key=%s\n' \
+            "$AWS_ACCESS_KEY_ID" "$AWS_SECRET_ACCESS_KEY" > ~/.aws/credentials
+          printf '[profile personal]\nregion=us-west-2\n' > ~/.aws/config
+
+      - name: Generate amplify_outputs.json (sandbox)
+        run: npm run e2e-config
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run acceptance tests (${{ matrix.area.name }})
+        run: npx bddgen && npx playwright test ${{ matrix.area.paths }}
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-report-${{ matrix.area.name }}
+          path: playwright-report/
+          retention-days: 7

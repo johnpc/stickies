@@ -1,0 +1,118 @@
+/* Sticky notes + the pad grid. --sk-* tokens only. */
+
+.sticky-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--sk-gap);
+  padding: var(--sk-gap);
+  max-width: 60rem;
+  margin: 0 auto;
+  padding-bottom: calc(var(--sk-gap) + env(safe-area-inset-bottom, 0px));
+}
+
+.sticky {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 130px;
+  padding: 14px;
+  border-radius: var(--sk-radius-sm);
+  color: var(--sk-note-ink);
+  box-shadow: var(--sk-shadow);
+  overflow-wrap: anywhere;
+  transition: transform 0.12s ease;
+}
+.sticky:hover {
+  transform: translateY(-2px) rotate(-0.4deg);
+  box-shadow: var(--sk-shadow-hover);
+}
+
+.sticky--yellow {
+  background: var(--sk-note-yellow);
+}
+.sticky--pink {
+  background: var(--sk-note-pink);
+}
+.sticky--blue {
+  background: var(--sk-note-blue);
+}
+.sticky--green {
+  background: var(--sk-note-green);
+}
+.sticky--purple {
+  background: var(--sk-note-purple);
+}
+
+.sticky__body {
+  flex: 1;
+  white-space: pre-wrap;
+  font-size: 0.98rem;
+  line-height: 1.35;
+}
+.sticky__link {
+  color: #1b3a63;
+  font-weight: 600;
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+.sticky__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 8px;
+  opacity: 0.55;
+}
+.sticky__actions button {
+  background: none;
+  border: none;
+  color: var(--sk-note-ink);
+  cursor: pointer;
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 2px;
+  display: flex;
+}
+.sticky__actions button:hover {
+  opacity: 1;
+}
+
+.sticky__input {
+  flex: 1;
+  width: 100%;
+  min-height: 100px;
+  resize: none;
+  border: none;
+  background: transparent;
+  color: var(--sk-note-ink);
+  font: inherit;
+  font-size: 0.98rem;
+  line-height: 1.35;
+}
+.sticky__input:focus {
+  outline: none;
+}
+.sticky__input::placeholder {
+  color: rgba(34, 32, 26, 0.5);
+}
+
+.sticky--add {
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: 2px dashed var(--sk-border);
+  color: var(--sk-text-muted);
+  box-shadow: none;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+.sticky--add ion-icon {
+  font-size: 1.6rem;
+}
+.sticky--add:hover {
+  border-color: var(--sk-accent);
+  color: var(--sk-accent-strong);
+  transform: none;
+}
