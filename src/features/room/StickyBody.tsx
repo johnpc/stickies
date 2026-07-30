@@ -3,9 +3,11 @@ import type { StickyRecord } from '../../lib/dataClient';
 import { LinkSticky } from './LinkSticky';
 import { isMediaKind } from './isMediaKind';
 
-// highlight.js is heavy; only pull it (and CodeSticky) when a room actually
-// renders a CODE sticky, so text/link-only pads don't pay for it at first paint.
-const CodeSticky = lazy(() => import('./CodeSticky').then((m) => ({ default: m.CodeSticky })));
+// highlight.js is heavy; only pull it (and CodeSticky, via ExpandableCode) when a
+// room renders a CODE sticky, so text/link-only pads don't pay for it at first paint.
+const ExpandableCode = lazy(() =>
+  import('./ExpandableCode').then((m) => ({ default: m.ExpandableCode })),
+);
 // MediaSticky pulls the storage client; lazy so text/link/code pads skip it.
 const MediaSticky = lazy(() => import('./MediaSticky').then((m) => ({ default: m.MediaSticky })));
 // DocSticky (uploaded text/code preview) also pulls storage + highlight.js.
@@ -22,7 +24,7 @@ export function StickyBody({ sticky }: { sticky: StickyRecord }) {
   if (sticky.kind === 'CODE') {
     return (
       <Suspense fallback={<span className="sticky__text">{sticky.content}</span>}>
-        <CodeSticky code={sticky.content} language={sticky.language} />
+        <ExpandableCode code={sticky.content} language={sticky.language} />
       </Suspense>
     );
   }

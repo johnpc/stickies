@@ -20,6 +20,17 @@ describe('classifyContent', () => {
     expect(classifyContent('```JS\nx\n```').language).toBe('js');
   });
 
+  it('detects an INLINE fence (```code``` on one line, no newline)', () => {
+    const out = classifyContent('```const a = 1;```');
+    expect(out.kind).toBe('CODE');
+    expect(out.content).toBe('const a = 1;');
+    expect(out.language).toBeUndefined();
+  });
+
+  it('detects an inline fence with inner spaces', () => {
+    expect(classifyContent('```  git status  ```').content).toBe('git status');
+  });
+
   it('falls back to LINK for a bare URL', () => {
     const out = classifyContent('example.com');
     expect(out.kind).toBe('LINK');

@@ -9,24 +9,34 @@ export interface ClassifiedContent {
   language?: string;
 }
 
-// A fenced code block: ```lang\n…\n``` (lang optional). Multiline body captured.
-const FENCE = /^```([a-z0-9+#-]*)\n([\s\S]*?)\n?```$/i;
+// Multi-line fence: ```lang\n<body>\n``` — the first line's word is the language.
+const FENCE_MULTILINE = /^```([a-z0-9+#-]*)\n([\s\S]*?)\n?```$/i;
+// Inline fence: ```<body>``` on one line (no newline). Everything between the
+// backticks is code; there's no language tag (a leading word here is ambiguous
+// with code, so we don't guess one).
+const FENCE_INLINE = /^```([\s\S]+?)```$/;
 
 /**
  * Classify raw sticky input into a kind + normalized content (+ language for
  * CODE). A triple-backtick fence is an explicit CODE sticky — deterministic and
- * unambiguous, so we never misfire on prose that merely looks code-ish. Anything
- * else falls back to detectKind (LINK vs TEXT). Pure + unit-tested.
+ * unambiguous, so we never misfire on prose that merely looks code-ish. Handles
+ * both a multi-line fence (```lang\n…\n```) and an INLINE one (```code```) —
+ * the latter is what you get typing a fence on one line + Enter. Anything else
+ * falls back to detectKind (LINK vs TEXT). Pure + unit-tested.
  */
 export function classifyContent(raw: string): ClassifiedContent {
   const trimmed = raw.trim();
-  const fence = FENCE.exec(trimmed);
-  if (fence) {
+  const multi = FENCE_MULTILINE.exec(trimmed);
+  if (multi) {
     return {
       kind: 'CODE',
-      content: fence[2],
-      language: fence[1] ? fence[1].toLowerCase() : undefined,
+      content: multi[2],
+      language: multi[1] ? multi[1].toLowerCase() : undefined,
     };
+  }
+  const inline = FENCE_INLINE.exec(trimmed);
+  if (inline) {
+    return { kind: 'CODE', content: inline[1].trim() };
   }
   return { kind: detectKind(trimmed), content: trimmed };
 }

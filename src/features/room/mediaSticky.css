@@ -54,6 +54,38 @@
   text-decoration: underline;
 }
 
+/* Preview + action row (expand / download) shown under image/video/pdf. */
+.media-sticky {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.media-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.75rem;
+}
+.media-actions button,
+.media-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #1b3a63;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+.media-actions button:hover,
+.media-actions a:hover {
+  text-decoration: underline;
+}
+
 /* DOC sticky: uploaded text/code file preview + actions. */
 .doc-sticky {
   display: flex;

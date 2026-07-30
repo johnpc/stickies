@@ -40,9 +40,9 @@ browser if the app isn't installed. Same link, works everywhere.
 | --------- | ------ | ------------------------------------------------------------------------------- |
 | Text      | ✅     | Plain note; multi-line.                                                         |
 | Link      | ✅     | Auto-detected from a pasted URL; **safe** link + a rich OpenGraph preview card. |
-| Code      | ✅     | Wrap in a ` ``` ` fence (` ```ts `) — syntax highlighting + line numbers.       |
-| Image     | ✅     | Upload — inline image preview.                                                  |
-| PDF/Video | ✅     | Upload — in-browser PDF viewer / video player.                                  |
+| Code      | ✅     | Wrap in a ` ``` ` fence (inline or multi-line) — highlighting, numbers, expand. |
+| Image     | ✅     | Upload — inline preview, download, expand to a full-page lightbox.              |
+| PDF/Video | ✅     | Upload — in-browser viewer/player, download, expand to a lightbox.              |
 | Doc       | ✅     | Upload a text/code file — highlighted preview with expand + copy-all.           |
 | File      | ✅     | Upload anything else (zip, binaries…) — a generic download card.                |
 

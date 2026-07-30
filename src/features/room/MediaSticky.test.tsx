@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StickyRecord } from '../../lib/dataClient';
 
@@ -21,9 +21,20 @@ describe('MediaSticky', () => {
     expect(screen.getByText('Loading…')).toBeInTheDocument();
   });
 
-  it('renders an <img> for image stickies', () => {
+  it('renders an <img> for image stickies, with download + expand', () => {
     render(<MediaSticky sticky={make({ fileName: 'a.png', mimeType: 'image/png' })} />);
     expect(screen.getByTestId('media-image')).toHaveAttribute('src', 'https://s3.example/x');
+    expect(screen.getByTestId('media-download')).toHaveAttribute('download', 'a.png');
+    expect(screen.getByTestId('media-expand')).toBeInTheDocument();
+  });
+
+  it('pops the image out to a lightbox on expand, and closes it', () => {
+    render(<MediaSticky sticky={make({ fileName: 'a.png', mimeType: 'image/png' })} />);
+    expect(screen.queryByTestId('lightbox')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('media-expand'));
+    expect(screen.getByTestId('lightbox')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('lightbox-close'));
+    expect(screen.queryByTestId('lightbox')).not.toBeInTheDocument();
   });
 
   it('renders a <video> for video stickies', () => {
