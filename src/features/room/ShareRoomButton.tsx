@@ -1,19 +1,24 @@
+import { useState } from 'react';
 import { IonButton, IonIcon } from '@ionic/react';
 import { shareOutline } from 'ionicons/icons';
-import { copyCurrentUrl } from './copyCurrentUrl';
+import { ShareRoomPanel } from './ShareRoomPanel';
 
-/** Copies the current room URL to the clipboard so it can be pasted to whoever
- * you want to share the pad with — the URL is the only key a room needs. */
+/** Opens the share panel (URL + copy + QR) for the current room — the URL is the
+ * only key a room needs, so sharing it (paste or scan) is how you invite others. */
 export function ShareRoomButton({ onCopied }: { onCopied: () => void }) {
+  const [open, setOpen] = useState(false);
   return (
-    <IonButton
-      data-testid="room-share"
-      aria-label="Copy room link"
-      onClick={async () => {
-        if (await copyCurrentUrl()) onCopied();
-      }}
-    >
-      <IonIcon slot="icon-only" icon={shareOutline} />
-    </IonButton>
+    <>
+      <IonButton data-testid="room-share" aria-label="Share room" onClick={() => setOpen(true)}>
+        <IonIcon slot="icon-only" icon={shareOutline} />
+      </IonButton>
+      {open && (
+        <ShareRoomPanel
+          url={window.location.href}
+          onClose={() => setOpen(false)}
+          onCopied={onCopied}
+        />
+      )}
+    </>
   );
 }

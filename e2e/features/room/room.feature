@@ -14,10 +14,11 @@ Feature: Room pad — share stickies at a URL
     When they reload the room
     Then the sticky "buy oat milk" is still on the pad
 
-  Scenario: The share button copies the room link to the clipboard
+  Scenario: The share button opens a QR + link panel and copies the room link
     Given a visitor opens a fresh room
     When they tap the share button
-    Then the room URL is copied to their clipboard
+    Then a QR code for the room is shown
+    And the room URL is copied to their clipboard
 
   Scenario: A text sticky can be copied to the clipboard
     Given a visitor opens a fresh room

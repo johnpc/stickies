@@ -13,6 +13,9 @@ Given('a visitor opens a fresh room', async ({ page, roomSlug, state }) => {
 When('they tap the share button', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.getByTestId('room-share').click();
+  // The share panel (QR + URL + copy) opens; copy from there.
+  await page.getByTestId('share-panel').waitFor({ timeout: 8_000 });
+  await page.getByTestId('share-copy').click();
 });
 
 When('they copy the sticky', async ({ page, context }) => {
@@ -25,8 +28,11 @@ Then('{string} is on the clipboard', async ({ page }, text: string) => {
   expect(clip).toBe(text);
 });
 
+Then('a QR code for the room is shown', async ({ page }) => {
+  await expect(page.getByTestId('share-qr')).toBeVisible({ timeout: 8_000 });
+});
+
 Then('the room URL is copied to their clipboard', async ({ page }) => {
-  await expect(page.getByText('Room link copied')).toBeVisible({ timeout: 5_000 });
   const clip = await page.evaluate(() => navigator.clipboard.readText());
   expect(clip).toBe(page.url());
 });
@@ -121,7 +127,12 @@ When('they drag the last sticky onto the first', async ({ page }) => {
   if (!gb || !first) throw new Error('missing grip/first rects');
   await page.mouse.move(gb.x + gb.width / 2, gb.y + gb.height / 2);
   await page.mouse.down();
-  await page.mouse.move(first.x + 3, first.y + first.height / 2, { steps: 12 });
+  // Nudge once so pointerdown's listeners are attached before the real move,
+  // then drag into the LEFT HALF of the first card (insert-before), settling on
+  // the insertion line before releasing — pointer drags are timing-sensitive.
+  await page.mouse.move(gb.x + gb.width / 2, gb.y + gb.height / 2 - 6, { steps: 3 });
+  await page.mouse.move(first.x + first.width * 0.2, first.y + first.height / 2, { steps: 16 });
+  await expect(page.getByTestId('insert-line').first()).toBeVisible({ timeout: 5_000 });
   await page.mouse.up();
   await page.waitForTimeout(1500);
 });

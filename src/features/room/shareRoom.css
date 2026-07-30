@@ -1,0 +1,55 @@
+/* Share panel (inside the Lightbox): QR code + copyable URL. --sk-* tokens. */
+.share-room {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 8px;
+  max-width: 320px;
+}
+.share-room__qr {
+  width: 240px;
+  height: 240px;
+  border-radius: var(--sk-radius-sm);
+  background: #fff;
+}
+.share-room__qr--pending {
+  background: var(--sk-skeleton-base);
+}
+.share-room__hint {
+  margin: 0;
+  text-align: center;
+  font-size: 0.9rem;
+}
+.share-room__url {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--sk-border);
+  border-radius: var(--sk-radius-sm);
+  background: var(--sk-bg);
+}
+.share-room__link {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+  color: var(--sk-text);
+}
+.share-room__copy {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--sk-accent-strong);
+  font: inherit;
+  font-weight: 700;
+}
+.share-room__copy:hover {
+  text-decoration: underline;
+}

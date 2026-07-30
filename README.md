@@ -30,7 +30,8 @@ you can jump into whatever's active. You can also just **type a room name** in t
 
 ### Sharing & deep links
 
-Every room has a **share button** in its header that copies the room URL to your clipboard. Because
+Every room has a **share button** in its header that opens a panel with a **QR code** (scan to open
+the room on another device) and the room URL to copy. Because
 rooms are **Universal Links (iOS) / App Links (Android)**, tapping a shared `stickies.jpc.io/<room>`
 link **opens the installed app straight to that room** — and falls back to loading normally in the
 browser if the app isn't installed. Same link, works everywhere.
