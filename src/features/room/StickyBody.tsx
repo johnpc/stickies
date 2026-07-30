@@ -1,10 +1,13 @@
 import { lazy, Suspense } from 'react';
 import type { StickyRecord } from '../../lib/dataClient';
 import { safeHref } from './safeHref';
+import { isMediaKind } from './isMediaKind';
 
 // highlight.js is heavy; only pull it (and CodeSticky) when a room actually
 // renders a CODE sticky, so text/link-only pads don't pay for it at first paint.
 const CodeSticky = lazy(() => import('./CodeSticky').then((m) => ({ default: m.CodeSticky })));
+// MediaSticky pulls the storage client; lazy so text/link/code pads skip it.
+const MediaSticky = lazy(() => import('./MediaSticky').then((m) => ({ default: m.MediaSticky })));
 
 /** Renders a sticky's body by kind: CODE → highlighted snippet (lazy-loaded),
  * LINK → a guarded anchor (safeHref blocks javascript:/data: on the world-writable
@@ -15,6 +18,13 @@ export function StickyBody({ sticky }: { sticky: StickyRecord }) {
     return (
       <Suspense fallback={<span className="sticky__text">{sticky.content}</span>}>
         <CodeSticky code={sticky.content} language={sticky.language} />
+      </Suspense>
+    );
+  }
+  if (isMediaKind(sticky.kind)) {
+    return (
+      <Suspense fallback={<span className="sticky__text media-sticky__status">Loading…</span>}>
+        <MediaSticky sticky={sticky} />
       </Suspense>
     );
   }

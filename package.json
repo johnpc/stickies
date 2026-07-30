@@ -34,6 +34,11 @@
       "prettier --write"
     ]
   },
+  "overrides": {
+    "@opentelemetry/core": "2.10.0",
+    "@opentelemetry/resources": "2.10.0",
+    "@opentelemetry/sdk-trace-base": "2.10.0"
+  },
   "dependencies": {
     "@capacitor/app": "8.1.1",
     "@capacitor/core": "8.4.2",

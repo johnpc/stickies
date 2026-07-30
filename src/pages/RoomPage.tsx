@@ -15,7 +15,7 @@ export function RoomPage() {
   const { room: rawRoom = '' } = useParams<{ room: string }>();
   const room = normalizeRoomSlug(rawRoom);
   const { stickies, isLoading, isError, refetch } = useRoomStickies(room);
-  const { add, edit, remove } = useStickyMutations(room, stickies.length);
+  const { add, addMedia, edit, remove } = useStickyMutations(room, stickies.length);
 
   return (
     <IonPage>
@@ -30,6 +30,7 @@ export function RoomPage() {
           <StickyGrid
             stickies={stickies}
             onAdd={(content) => add.mutate(content)}
+            onUpload={(file) => addMedia.mutate({ file, seed: Date.now() })}
             onEdit={(id, content) => edit.mutate({ id, content })}
             onDelete={(id) => remove.mutate(id)}
           />

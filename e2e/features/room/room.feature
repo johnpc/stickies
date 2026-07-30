@@ -29,6 +29,11 @@ Feature: Room pad — share stickies at a URL
     When they add a fenced code snippet
     Then a code sticky is shown with line numbers
 
+  Scenario: Uploading an image posts an inline image sticky
+    Given a visitor opens a fresh room
+    When they upload an image file
+    Then an inline image sticky is shown
+
   Scenario: A dangerous javascript: URL is never rendered as a link
     Given a visitor opens a fresh room
     When they add a sticky that says "javascript:alert(1)"

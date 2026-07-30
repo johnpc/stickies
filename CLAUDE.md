@@ -208,8 +208,13 @@ Significant, hard-to-reverse choices — read before re-opening a settled questi
 - **Live via observeQuery → react-query cache.** The shared-pad realtime sync is an `observeQuery`
   subscription writing into the same query key the fetch seeds; mutations also invalidate that key as
   a belt-and-suspenders refresh.
-- **Sticky kinds: TEXT + LINK + CODE.** Kind is chosen by `classifyContent` (a ` ``` ` fence →
-  CODE with a language hint; else `detectKind` → LINK/TEXT). `StickyBody` routes rendering by kind
-  (CODE → highlight.js-highlighted `CodeSticky` with a line-number gutter). Remaining rich types
-  (image/PDF/video previews, generic file download) are planned follow-up slices needing S3 storage —
-  a per-type renderer over the same one model, don't model them ahead of their UI.
+- **Sticky kinds: TEXT, LINK, CODE + media (IMAGE, PDF, VIDEO, FILE).** Typed content is classified by
+  `classifyContent` (a ` ``` ` fence → CODE with a language hint; else `detectKind` → LINK/TEXT).
+  Uploads are classified by `mediaKind` (MIME/ext → IMAGE/PDF/VIDEO, else generic FILE) and stored in
+  S3 under `rooms/<slug>/*`, with the sticky's `content` holding the S3 path. `StickyBody` routes
+  rendering by kind — CODE → `CodeSticky` (highlight.js + gutter), media → `MediaSticky` (inline
+  image/video/PDF preview, or a download card for opaque files). Both `CodeSticky` and `MediaSticky`
+  are `React.lazy` so text/link pads don't load highlight.js or the storage client at first paint.
+- **S3 uploads use the Gen2 `path` API, NOT the legacy `key` API.** `uploadData/getUrl/remove` take
+  `{ path: 'rooms/...' }`; the legacy `{ key }` form prepends `public/` and 403s against our `rooms/*`
+  guest grant. (Deleting a media sticky currently leaves its S3 object — a known, acceptable orphan.)

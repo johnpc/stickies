@@ -1,0 +1,55 @@
+/* Media sticky bodies — image/video/pdf previews + a generic file card. */
+
+.media-sticky__status {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.media-sticky__image,
+.media-sticky__video {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.media-sticky__doc {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.media-sticky__pdf {
+  width: 100%;
+  height: 180px;
+  border: none;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.media-sticky__download,
+.media-sticky__file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.55);
+  color: #1b3a63;
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.media-sticky__file ion-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+.media-sticky__filename {
+  min-width: 0;
+  word-break: break-word;
+}
+.media-sticky__download:hover,
+.media-sticky__file:hover {
+  text-decoration: underline;
+}

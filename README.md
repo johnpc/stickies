@@ -40,16 +40,17 @@ browser if the app isn't installed. Same link, works everywhere.
 | Text      | ✅     | Plain note; multi-line.                                                   |
 | Link      | ✅     | Auto-detected from a pasted URL; rendered as a **safe** link.             |
 | Code      | ✅     | Wrap in a ` ``` ` fence (` ```ts `) — syntax highlighting + line numbers. |
-| Image     | ⬜     | Planned — inline preview.                                                 |
-| PDF/Video | ⬜     | Planned — in-browser preview/player.                                      |
-| File      | ⬜     | Planned — generic download card for opaque files (zip, etc.).             |
+| Image     | ✅     | Upload — inline image preview.                                            |
+| PDF/Video | ✅     | Upload — in-browser PDF viewer / video player.                            |
+| File      | ✅     | Upload anything else (zip, docs…) — a generic download card.              |
 
 ## Where the data lives
 
-There's no AI or ingestion here — the content is whatever people type. Every sticky and every room's
-recents entry is stored in **DynamoDB via AWS AppSync**, written directly by the **guest Cognito
-identity** (no login). Real-time sync uses Amplify's `observeQuery` subscription, so an edit on one
-device appears on every other device viewing the same room URL within moments.
+There's no AI or ingestion here — the content is whatever people type or upload. Every sticky and
+every room's recents entry is stored in **DynamoDB via AWS AppSync**, and uploaded files (images,
+PDFs, videos, anything) go to **S3** — all written directly by the **guest Cognito identity** (no
+login). Real-time sync uses Amplify's `observeQuery` subscription, so an edit on one device appears on
+every other device viewing the same room URL within moments.
 
 > **Security model:** a room is protected only by the obscurity of its URL — anyone with the link can
 > read and edit it. That's intentional for a frictionless quick-share pad. Don't put secrets in a room.

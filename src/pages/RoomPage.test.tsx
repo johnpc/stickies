@@ -13,6 +13,7 @@ vi.mock('../features/room/useStickyMutations', () => ({ useStickyMutations }));
 import { RoomPage } from './RoomPage';
 
 const add = { mutate: vi.fn() };
+const addMedia = { mutate: vi.fn() };
 const edit = { mutate: vi.fn() };
 const remove = { mutate: vi.fn() };
 
@@ -28,8 +29,8 @@ const renderRoom = (path = '/grocery-list') =>
   );
 
 beforeEach(() => {
-  [add.mutate, edit.mutate, remove.mutate].forEach((m) => m.mockClear());
-  useStickyMutations.mockReturnValue({ add, edit, remove });
+  [add.mutate, addMedia.mutate, edit.mutate, remove.mutate].forEach((m) => m.mockClear());
+  useStickyMutations.mockReturnValue({ add, addMedia, edit, remove });
 });
 
 describe('RoomPage', () => {

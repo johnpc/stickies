@@ -21,6 +21,21 @@ Then('the room URL is copied to their clipboard', async ({ page }) => {
   expect(clip).toBe(page.url());
 });
 
+When('they upload an image file', async ({ page }) => {
+  // A tiny valid 1x1 PNG, set directly on the hidden file input.
+  const pngBase64 =
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+  await page.getByTestId('sticky-file-input').setInputFiles({
+    name: 'pixel.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(pngBase64, 'base64'),
+  });
+});
+
+Then('an inline image sticky is shown', async ({ page }) => {
+  await expect(page.getByTestId('media-image')).toBeVisible({ timeout: 20_000 });
+});
+
 When('they add a fenced code snippet', async ({ page }) => {
   const code = "```js\nconst greeting = 'hi';\nconsole.log(greeting);\n```";
   await page.getByTestId('sticky-add').click();

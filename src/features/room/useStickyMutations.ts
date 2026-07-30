@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createSticky, updateStickyContent, deleteSticky } from './stickiesApi';
+import { createMediaSticky } from './createMediaSticky';
 import { classifyContent } from './classifyContent';
 import { roomStickiesKey } from './roomStickiesKey';
 
@@ -23,6 +24,13 @@ export function useStickyMutations(room: string, count: number) {
     onSuccess: settle,
   });
 
+  const addMedia = useMutation({
+    // seed keys the S3 object; a wall-clock stamp is fine here (not pure logic).
+    mutationFn: (input: { file: File; seed: number }) =>
+      createMediaSticky({ room, file: input.file, existingCount: count, seed: input.seed }),
+    onSuccess: settle,
+  });
+
   const edit = useMutation({
     mutationFn: (vars: { id: string; content: string }) =>
       updateStickyContent(vars.id, room, vars.content, count),
@@ -34,5 +42,5 @@ export function useStickyMutations(room: string, count: number) {
     onSuccess: settle,
   });
 
-  return { add, edit, remove };
+  return { add, addMedia, edit, remove };
 }

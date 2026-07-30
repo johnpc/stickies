@@ -3,12 +3,14 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 
-const { createSticky, updateStickyContent, deleteSticky } = vi.hoisted(() => ({
+const { createSticky, updateStickyContent, deleteSticky, createMediaSticky } = vi.hoisted(() => ({
   createSticky: vi.fn().mockResolvedValue({}),
   updateStickyContent: vi.fn().mockResolvedValue({}),
   deleteSticky: vi.fn().mockResolvedValue(undefined),
+  createMediaSticky: vi.fn().mockResolvedValue({}),
 }));
 vi.mock('./stickiesApi', () => ({ createSticky, updateStickyContent, deleteSticky }));
+vi.mock('./createMediaSticky', () => ({ createMediaSticky }));
 
 import { useStickyMutations } from './useStickyMutations';
 
@@ -20,7 +22,11 @@ const wrapper = ({ children }: { children: ReactNode }) => (
   </QueryClientProvider>
 );
 
-beforeEach(() => [createSticky, updateStickyContent, deleteSticky].forEach((m) => m.mockClear()));
+beforeEach(() =>
+  [createSticky, updateStickyContent, deleteSticky, createMediaSticky].forEach((m) =>
+    m.mockClear(),
+  ),
+);
 
 describe('useStickyMutations', () => {
   it('adds a sticky, detecting its kind and passing the current count', async () => {
@@ -46,6 +52,19 @@ describe('useStickyMutations', () => {
       content: 'const a = 1;',
       language: 'ts',
       existingCount: 0,
+    });
+  });
+
+  it('uploads a media sticky through createMediaSticky', async () => {
+    const { result } = renderHook(() => useStickyMutations('room', 1), { wrapper });
+    const file = new File(['x'], 'a.png', { type: 'image/png' });
+    act(() => result.current.addMedia.mutate({ file, seed: 99 }));
+    await waitFor(() => expect(createMediaSticky).toHaveBeenCalled());
+    expect(createMediaSticky).toHaveBeenCalledWith({
+      room: 'room',
+      file,
+      existingCount: 1,
+      seed: 99,
     });
   });
 
