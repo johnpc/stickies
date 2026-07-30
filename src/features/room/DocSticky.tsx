@@ -1,18 +1,19 @@
 import { useState } from 'react';
 import { IonIcon } from '@ionic/react';
-import { copyOutline, downloadOutline } from 'ionicons/icons';
+import { copyOutline, downloadOutline, expandOutline } from 'ionicons/icons';
 import type { StickyRecord } from '../../lib/dataClient';
 import { useDocText } from './useDocText';
 import { useMediaUrl } from './useMediaUrl';
 import { docPreview } from './docPreview';
 import { docLanguage } from './docLanguage';
 import { CodeSticky } from './CodeSticky';
+import { Lightbox } from './Lightbox';
 import { copyText } from './copyText';
 import './mediaSticky.css';
 
 /** A DOC sticky: an uploaded text/code file shown as a highlighted preview (first
- * lines) with expand + copy-all + download. Reuses CodeSticky for the highlighted
- * body; language is inferred from the filename extension (null → plain text). */
+ * lines) with expand (full-page lightbox) + copy-all + download. Reuses CodeSticky
+ * for the body; language is inferred from the filename extension. */
 export function DocSticky({ sticky }: { sticky: StickyRecord }) {
   const [expanded, setExpanded] = useState(false);
   const { text, isLoading, isError } = useDocText(sticky.content);
@@ -24,16 +25,17 @@ export function DocSticky({ sticky }: { sticky: StickyRecord }) {
     return <span className="sticky__text media-sticky__status">Couldn’t load {name}</span>;
   }
 
-  const { shown, truncated, totalLines } = docPreview(text, expanded);
+  const { shown, truncated } = docPreview(text, false);
+  const language = docLanguage(name);
 
   return (
     <div className="doc-sticky" data-testid="doc-sticky">
       <div className="doc-sticky__name sk-muted">{name}</div>
-      <CodeSticky code={shown} language={docLanguage(name)} />
+      <CodeSticky code={shown} language={language} />
       <div className="doc-sticky__actions">
         {truncated && (
-          <button data-testid="doc-expand" onClick={() => setExpanded((e) => !e)}>
-            {expanded ? 'Show less' : `Show all ${totalLines} lines`}
+          <button data-testid="doc-expand" onClick={() => setExpanded(true)}>
+            <IonIcon icon={expandOutline} /> Expand
           </button>
         )}
         <button data-testid="doc-copy" onClick={() => copyText(text)}>
@@ -45,6 +47,11 @@ export function DocSticky({ sticky }: { sticky: StickyRecord }) {
           </a>
         )}
       </div>
+      {expanded && (
+        <Lightbox title={name} onClose={() => setExpanded(false)}>
+          <CodeSticky code={text} language={language} />
+        </Lightbox>
+      )}
     </div>
   );
 }

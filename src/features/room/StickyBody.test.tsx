@@ -35,8 +35,9 @@ describe('StickyBody', () => {
         sticky={make({ kind: 'CODE', content: 'const a = 1;\nconst b = 2;', language: 'ts' })}
       />,
     );
-    // CodeSticky is lazy-loaded — await it resolving through Suspense.
-    expect(await screen.findByTestId('code-sticky')).toBeInTheDocument();
-    expect(screen.getByTestId('code-lang')).toHaveTextContent('ts');
+    // CodeSticky is lazy-loaded (ExpandableCode → dynamic import); give the
+    // Suspense resolution generous headroom so it can't flake under CPU load.
+    expect(await screen.findByTestId('code-sticky', {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(await screen.findByTestId('code-lang', {}, { timeout: 5000 })).toHaveTextContent('ts');
   });
 });

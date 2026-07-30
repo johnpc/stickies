@@ -32,12 +32,16 @@ beforeEach(() => {
 });
 
 describe('DocSticky', () => {
-  it('previews the first lines and expands to full on click', () => {
+  it('previews the first lines and pops the full text into a lightbox on expand', () => {
     useDocText.mockReturnValue({ text: long, isLoading: false, isError: false });
     render(<DocSticky sticky={sticky} />);
+    // Inline preview shows the first 8 lines; no lightbox yet.
     expect(screen.getByTestId('code').textContent?.split('\n')).toHaveLength(8);
+    expect(screen.queryByTestId('lightbox')).not.toBeInTheDocument();
     fireEvent.click(screen.getByTestId('doc-expand'));
-    expect(screen.getByTestId('code').textContent?.split('\n')).toHaveLength(20);
+    // Lightbox opens with the FULL text (20 lines).
+    const box = screen.getByTestId('lightbox');
+    expect(box.querySelector('[data-testid="code"]')?.textContent?.split('\n')).toHaveLength(20);
   });
 
   it('copies the full text (not just the preview)', () => {
