@@ -86,6 +86,11 @@ computeReorder`) so one move = one row, no reindex; an insertion LINE renders in
 - **`Room`** — a lazily-upserted **recents index** row (one per room ever touched), all sharing a
   constant `listKey` partition so the home feed is one GSI query sorted by `lastEditedAt`. A room does
   NOT need a Room row to work — stickies stand alone; the row exists only to power the recents list.
+- **`Presence`** — ephemeral "N people here" (`usePresence` → `PresenceBadge`). One row per (room,
+  tab-session id); each tab heartbeats every 10s, an observeQuery streams the room's rows, and
+  `countLivePresence` counts those fresh within a 30s TTL (so a closed tab drops out even if its
+  `pagehide` delete didn't flush). Count is seeded/floored at 1 (YOU are here) so the badge shows
+  instantly without waiting for the round-trip. All best-effort — presence never breaks the pad.
 
 ### Guest-first (no account, ever)
 

@@ -57,6 +57,23 @@ const schema = a.schema({
       allow.authenticated().to(['read', 'create', 'update', 'delete']),
     ]),
 
+  // Ephemeral presence: one row per (room, session) that a client heartbeats
+  // while viewing a room, so the header can show "N people here". The row id is
+  // the sessionId so heartbeats are idempotent upserts; `heartbeatAt` lets the
+  // client ignore stale rows (a tab that closed without cleanup). Partitioned by
+  // `room` for the per-room observeQuery. Guest-writable like everything else.
+  Presence: a
+    .model({
+      room: a.string().required(),
+      heartbeatAt: a.datetime().required(),
+    })
+    .secondaryIndexes((index) => [index('room')])
+    .authorization((allow) => [
+      allow.guest().to(['read', 'create', 'update', 'delete']),
+      allow.authenticated('identityPool').to(['read', 'create', 'update', 'delete']),
+      allow.authenticated().to(['read', 'create', 'update', 'delete']),
+    ]),
+
   // Guest-callable OpenGraph link preview: fetches a user-supplied URL server-side
   // (browsers can't — CORS) and returns its title/description/image/siteName for a
   // LINK sticky's preview card. The handler guards against SSRF (blocks non-public

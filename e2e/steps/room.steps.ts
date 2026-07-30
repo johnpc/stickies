@@ -18,6 +18,10 @@ When('they tap the share button', async ({ page, context }) => {
   await page.getByTestId('share-copy').click();
 });
 
+Then('the room shows at least one person present', async ({ page }) => {
+  await expect(page.getByTestId('presence-badge')).toContainText('here', { timeout: 20_000 });
+});
+
 When('they delete the first sticky', async ({ page }) => {
   await page.getByTestId('sticky').first().getByTestId('sticky-delete').click();
 });

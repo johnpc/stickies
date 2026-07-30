@@ -26,3 +26,4 @@ export function unwrap<T>(result: { data: T; errors?: readonly { message: string
 
 export type StickyRecord = Schema['Sticky']['type'];
 export type RoomRecord = Schema['Room']['type'];
+export type PresenceRecord = Schema['Presence']['type'];

@@ -12,6 +12,8 @@ const { useRoomStickies, useStickyMutations } = vi.hoisted(() => ({
 }));
 vi.mock('../features/room/useRoomStickies', () => ({ useRoomStickies }));
 vi.mock('../features/room/useStickyMutations', () => ({ useStickyMutations }));
+// PresenceBadge (in RoomHeader) hits the Amplify client; stub it out.
+vi.mock('../features/room/usePresence', () => ({ usePresence: () => 0 }));
 
 import { RoomPage } from './RoomPage';
 

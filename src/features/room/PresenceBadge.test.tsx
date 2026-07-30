@@ -1,0 +1,21 @@
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+
+const { usePresence } = vi.hoisted(() => ({ usePresence: vi.fn() }));
+vi.mock('./usePresence', () => ({ usePresence }));
+
+import { PresenceBadge } from './PresenceBadge';
+
+describe('PresenceBadge', () => {
+  it('shows the live count when at least one viewer is present', () => {
+    usePresence.mockReturnValue(3);
+    render(<PresenceBadge room="r" />);
+    expect(screen.getByTestId('presence-badge')).toHaveTextContent('3 here');
+  });
+
+  it('renders nothing while connecting (count 0)', () => {
+    usePresence.mockReturnValue(0);
+    render(<PresenceBadge room="r" />);
+    expect(screen.queryByTestId('presence-badge')).not.toBeInTheDocument();
+  });
+});

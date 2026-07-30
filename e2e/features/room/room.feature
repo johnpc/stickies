@@ -20,6 +20,10 @@ Feature: Room pad — share stickies at a URL
     Then a QR code for the room is shown
     And the room URL is copied to their clipboard
 
+  Scenario: The room shows a live presence count for the current viewer
+    Given a visitor opens a fresh room
+    Then the room shows at least one person present
+
   Scenario: Deleting a sticky can be undone
     Given a visitor opens a fresh room
     When they add a sticky that says "oops delete"

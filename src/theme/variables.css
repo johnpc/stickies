@@ -31,6 +31,9 @@
   --sk-note-purple: #ddcffb;
   --sk-note-ink: #22201a;
 
+  /* Live "online" green for the presence badge dot (same in light + dark). */
+  --sk-online: #2e9e6b;
+
   --sk-radius: 16px;
   --sk-radius-sm: 10px;
   --sk-gap: 16px;

@@ -8,6 +8,7 @@ import {
 } from '@ionic/react';
 import { ThemeToggle } from '../shell/ThemeToggle';
 import { ShareRoomButton } from './ShareRoomButton';
+import { PresenceBadge } from './PresenceBadge';
 import { prettifyRoomSlug } from './roomSlug';
 import './roomHeader.css';
 
@@ -35,6 +36,7 @@ export function RoomHeader({ room, count }: RoomHeaderProps) {
           <span className="room-header__count sk-muted"> · {count}</span>
         </IonTitle>
         <IonButtons slot="end">
+          <PresenceBadge room={room} />
           <ShareRoomButton
             onCopied={() => present({ message: 'Room link copied', duration: 1500 })}
           />
