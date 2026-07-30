@@ -36,6 +36,21 @@ Then('an inline image sticky is shown', async ({ page }) => {
   await expect(page.getByTestId('media-image')).toBeVisible({ timeout: 20_000 });
 });
 
+When('they upload a text file with many lines', async ({ page }) => {
+  const code = Array.from({ length: 20 }, (_, i) => `const line${i} = ${i};`).join('\n');
+  await page.getByTestId('sticky-file-input').setInputFiles({
+    name: 'demo.ts',
+    mimeType: 'text/plain',
+    buffer: Buffer.from(code, 'utf8'),
+  });
+});
+
+Then('a document sticky shows a preview with an expand control', async ({ page }) => {
+  await expect(page.getByTestId('doc-sticky')).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId('doc-expand')).toBeVisible();
+  await expect(page.getByTestId('doc-copy')).toBeVisible();
+});
+
 When('they add a fenced code snippet', async ({ page }) => {
   const code = "```js\nconst greeting = 'hi';\nconsole.log(greeting);\n```";
   await page.getByTestId('sticky-add').click();

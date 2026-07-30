@@ -42,7 +42,8 @@ browser if the app isn't installed. Same link, works everywhere.
 | Code      | ✅     | Wrap in a ` ``` ` fence (` ```ts `) — syntax highlighting + line numbers. |
 | Image     | ✅     | Upload — inline image preview.                                            |
 | PDF/Video | ✅     | Upload — in-browser PDF viewer / video player.                            |
-| File      | ✅     | Upload anything else (zip, docs…) — a generic download card.              |
+| Doc       | ✅     | Upload a text/code file — highlighted preview with expand + copy-all.     |
+| File      | ✅     | Upload anything else (zip, binaries…) — a generic download card.          |
 
 ## Where the data lives
 

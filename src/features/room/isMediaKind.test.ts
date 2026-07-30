@@ -3,7 +3,7 @@ import { isMediaKind } from './isMediaKind';
 
 describe('isMediaKind', () => {
   it('is true for upload-backed kinds', () => {
-    for (const k of ['IMAGE', 'PDF', 'VIDEO', 'FILE'] as const) {
+    for (const k of ['IMAGE', 'PDF', 'VIDEO', 'DOC', 'FILE'] as const) {
       expect(isMediaKind(k)).toBe(true);
     }
   });

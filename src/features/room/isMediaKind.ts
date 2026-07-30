@@ -1,6 +1,6 @@
 import type { StickyRecord } from '../../lib/dataClient';
 
-const MEDIA_KINDS = new Set(['IMAGE', 'PDF', 'VIDEO', 'FILE']);
+const MEDIA_KINDS = new Set(['IMAGE', 'PDF', 'VIDEO', 'DOC', 'FILE']);
 
 /** Whether a sticky kind is backed by an S3 upload (rendered by MediaSticky).
  * Pure; kept separate so StickyBody can branch without importing the storage

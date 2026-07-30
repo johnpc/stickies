@@ -53,3 +53,40 @@
 .media-sticky__file:hover {
   text-decoration: underline;
 }
+
+/* DOC sticky: uploaded text/code file preview + actions. */
+.doc-sticky {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.doc-sticky__name {
+  font-size: 0.7rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.doc-sticky__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.75rem;
+}
+.doc-sticky__actions button,
+.doc-sticky__actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #1b3a63;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+.doc-sticky__actions button:hover,
+.doc-sticky__actions a:hover {
+  text-decoration: underline;
+}

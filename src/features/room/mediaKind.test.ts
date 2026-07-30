@@ -18,6 +18,13 @@ describe('mediaKind', () => {
     expect(mediaKind('', 'movie.webm')).toBe('VIDEO');
   });
 
+  it('classifies text/code files as DOC (previewable)', () => {
+    expect(mediaKind('text/plain', 'notes.txt')).toBe('DOC');
+    expect(mediaKind('', 'app.ts')).toBe('DOC');
+    expect(mediaKind('', 'data.csv')).toBe('DOC');
+    expect(mediaKind('application/json', 'config.json')).toBe('DOC');
+  });
+
   it('falls back to FILE for opaque types (zip, docx, unknown)', () => {
     expect(mediaKind('application/zip', 'archive.zip')).toBe('FILE');
     expect(mediaKind('', 'notes.docx')).toBe('FILE');

@@ -24,7 +24,7 @@ const schema = a.schema({
   Sticky: a
     .model({
       room: a.string().required(), // the room slug this sticky belongs to
-      kind: a.enum(['TEXT', 'LINK', 'CODE', 'IMAGE', 'PDF', 'VIDEO', 'FILE']),
+      kind: a.enum(['TEXT', 'LINK', 'CODE', 'IMAGE', 'PDF', 'VIDEO', 'DOC', 'FILE']),
       content: a.string().required(), // text/URL/code, OR the S3 key for media kinds
       color: a.string(), // palette token name, e.g. "yellow" | "pink" | "blue"
       language: a.string(), // CODE: detected/selected language hint for highlighting

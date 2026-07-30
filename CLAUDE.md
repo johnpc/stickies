@@ -212,9 +212,12 @@ Significant, hard-to-reverse choices — read before re-opening a settled questi
   `classifyContent` (a ` ``` ` fence → CODE with a language hint; else `detectKind` → LINK/TEXT).
   Uploads are classified by `mediaKind` (MIME/ext → IMAGE/PDF/VIDEO, else generic FILE) and stored in
   S3 under `rooms/<slug>/*`, with the sticky's `content` holding the S3 path. `StickyBody` routes
-  rendering by kind — CODE → `CodeSticky` (highlight.js + gutter), media → `MediaSticky` (inline
-  image/video/PDF preview, or a download card for opaque files). Both `CodeSticky` and `MediaSticky`
-  are `React.lazy` so text/link pads don't load highlight.js or the storage client at first paint.
+  rendering by kind — CODE → `CodeSticky` (highlight.js + gutter), DOC (uploaded text/code file) →
+  `DocSticky` (fetches the S3 text, highlighted preview of the first lines + expand + copy-all +
+  download), other media → `MediaSticky` (inline image/video/PDF preview, or a download card for
+  opaque files). `mediaKind` returns DOC for text-ish MIME/extensions, FILE otherwise. `CodeSticky`,
+  `DocSticky`, and `MediaSticky` are all `React.lazy` so text/link pads don't load highlight.js or the
+  storage client at first paint.
 - **S3 uploads use the Gen2 `path` API, NOT the legacy `key` API.** `uploadData/getUrl/remove` take
   `{ path: 'rooms/...' }`; the legacy `{ key }` form prepends `public/` and 403s against our `rooms/*`
   guest grant. (Deleting a media sticky currently leaves its S3 object — a known, acceptable orphan.)
