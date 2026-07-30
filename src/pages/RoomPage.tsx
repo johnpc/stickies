@@ -32,7 +32,7 @@ export function RoomPage() {
             onAdd={(content) => add.mutate(content)}
             onUpload={(file) => addMedia.mutate({ file, seed: Date.now() })}
             onEdit={(id, content) => edit.mutate({ id, content })}
-            onDelete={(id) => remove.mutate(id)}
+            onDelete={(sticky) => remove.mutate(sticky)}
           />
         </LoadState>
       </IonContent>

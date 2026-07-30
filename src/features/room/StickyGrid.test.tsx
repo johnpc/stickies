@@ -36,7 +36,7 @@ describe('StickyGrid', () => {
       />,
     );
     fireEvent.click(screen.getAllByTestId('sticky-delete')[1]);
-    expect(onDelete).toHaveBeenCalledWith('2');
+    expect(onDelete).toHaveBeenCalledWith(expect.objectContaining({ id: '2' }));
     fireEvent.click(screen.getAllByTestId('sticky-edit')[0]);
     const input = screen.getByTestId('sticky-input');
     fireEvent.change(input, { target: { value: 'edited' } });

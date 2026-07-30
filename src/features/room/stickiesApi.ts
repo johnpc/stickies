@@ -7,6 +7,7 @@
 import { dataClient, unwrap, type StickyRecord } from '../../lib/dataClient';
 import { touchRoom } from './touchRoom';
 import { colorForIndex } from './stickyPalette';
+import { removeMedia } from './mediaApi';
 
 export type StickyKind = 'TEXT' | 'LINK' | 'CODE' | 'IMAGE' | 'PDF' | 'VIDEO' | 'DOC' | 'FILE';
 
@@ -50,12 +51,17 @@ export async function updateStickyContent(
   return updated as StickyRecord;
 }
 
-/** Remove a sticky (and re-touch its room with the reduced count). */
+/** Remove a sticky (and re-touch its room with the reduced count). For media/doc
+ * kinds `mediaPath` is the S3 key to clean up so deleting the sticky doesn't
+ * orphan its object; S3 removal is best-effort (a failure never blocks the row
+ * delete). */
 export async function deleteSticky(
   id: string,
   room: string,
   remainingCount: number,
+  mediaPath?: string | null,
 ): Promise<void> {
   unwrap(await dataClient.models.Sticky.delete({ id }));
+  if (mediaPath) await removeMedia(mediaPath).catch(() => {});
   await touchRoom(room, remainingCount);
 }

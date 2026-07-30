@@ -9,7 +9,7 @@ interface StickyGridProps {
   onAdd: (content: string) => void;
   onUpload: (file: File) => void;
   onEdit: (id: string, content: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (sticky: StickyRecord) => void;
 }
 
 /** The pad: a masonry-ish grid of sticky cards followed by the composer + an
@@ -22,7 +22,7 @@ export function StickyGrid({ stickies, onAdd, onUpload, onEdit, onDelete }: Stic
           key={sticky.id}
           sticky={sticky}
           onEdit={(content) => onEdit(sticky.id, content)}
-          onDelete={() => onDelete(sticky.id)}
+          onDelete={() => onDelete(sticky)}
         />
       ))}
       <StickyComposer count={stickies.length} onAdd={onAdd} />

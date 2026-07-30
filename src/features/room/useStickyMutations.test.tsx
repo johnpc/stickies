@@ -2,6 +2,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
+import type { StickyRecord } from '../../lib/dataClient';
 
 const { createSticky, updateStickyContent, deleteSticky, createMediaSticky } = vi.hoisted(() => ({
   createSticky: vi.fn().mockResolvedValue({}),
@@ -74,9 +75,20 @@ describe('useStickyMutations', () => {
     await waitFor(() => expect(updateStickyContent).toHaveBeenCalledWith('x', 'room', 'new', 3));
   });
 
-  it('deletes a sticky with the reduced remaining count', async () => {
+  it('deletes a text sticky with the reduced count and no media path', async () => {
     const { result } = renderHook(() => useStickyMutations('room', 3), { wrapper });
-    act(() => result.current.remove.mutate('x'));
-    await waitFor(() => expect(deleteSticky).toHaveBeenCalledWith('x', 'room', 2));
+    act(() =>
+      result.current.remove.mutate({ id: 'x', kind: 'TEXT', content: 'hi' } as StickyRecord),
+    );
+    await waitFor(() => expect(deleteSticky).toHaveBeenCalledWith('x', 'room', 2, undefined));
+  });
+
+  it('passes the S3 path when deleting a media sticky (so it cleans up)', async () => {
+    const { result } = renderHook(() => useStickyMutations('room', 3), { wrapper });
+    const media = { id: 'm', kind: 'IMAGE', content: 'rooms/room/1-a.png' } as StickyRecord;
+    act(() => result.current.remove.mutate(media));
+    await waitFor(() =>
+      expect(deleteSticky).toHaveBeenCalledWith('m', 'room', 2, 'rooms/room/1-a.png'),
+    );
   });
 });

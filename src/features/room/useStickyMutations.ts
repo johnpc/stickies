@@ -1,7 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { StickyRecord } from '../../lib/dataClient';
 import { createSticky, updateStickyContent, deleteSticky } from './stickiesApi';
 import { createMediaSticky } from './createMediaSticky';
 import { classifyContent } from './classifyContent';
+import { isMediaKind } from './isMediaKind';
 import { roomStickiesKey } from './roomStickiesKey';
 
 /**
@@ -38,7 +40,14 @@ export function useStickyMutations(room: string, count: number) {
   });
 
   const remove = useMutation({
-    mutationFn: (id: string) => deleteSticky(id, room, Math.max(0, count - 1)),
+    // Take the whole sticky so media/doc deletes can clean up their S3 object.
+    mutationFn: (sticky: StickyRecord) =>
+      deleteSticky(
+        sticky.id,
+        room,
+        Math.max(0, count - 1),
+        isMediaKind(sticky.kind) ? sticky.content : undefined,
+      ),
     onSuccess: settle,
   });
 

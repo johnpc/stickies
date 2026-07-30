@@ -233,4 +233,5 @@ Significant, hard-to-reverse choices — read before re-opening a settled questi
   storage client at first paint.
 - **S3 uploads use the Gen2 `path` API, NOT the legacy `key` API.** `uploadData/getUrl/remove` take
   `{ path: 'rooms/...' }`; the legacy `{ key }` form prepends `public/` and 403s against our `rooms/*`
-  guest grant. (Deleting a media sticky currently leaves its S3 object — a known, acceptable orphan.)
+  guest grant. Deleting a media/doc sticky also removes its S3 object (best-effort — a failed cleanup
+  never blocks the row delete), so no orphaned uploads.

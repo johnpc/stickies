@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { listStickyByRoom, create, update, del, touchRoom } = vi.hoisted(() => ({
+const { listStickyByRoom, create, update, del, touchRoom, removeMedia } = vi.hoisted(() => ({
   listStickyByRoom: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
   del: vi.fn(),
   touchRoom: vi.fn(),
+  removeMedia: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../lib/dataClient', () => ({
@@ -13,12 +14,14 @@ vi.mock('../../lib/dataClient', () => ({
   unwrap: (r: { data: unknown }) => r.data,
 }));
 vi.mock('./touchRoom', () => ({ touchRoom }));
+vi.mock('./mediaApi', () => ({ removeMedia }));
 
 import { createSticky, deleteSticky, listStickiesByRoom, updateStickyContent } from './stickiesApi';
 
 beforeEach(() => {
-  [listStickyByRoom, create, update, del, touchRoom].forEach((m) => m.mockReset());
+  [listStickyByRoom, create, update, del, touchRoom, removeMedia].forEach((m) => m.mockReset());
   touchRoom.mockResolvedValue(undefined);
+  removeMedia.mockResolvedValue(undefined);
 });
 
 describe('listStickiesByRoom', () => {
@@ -60,5 +63,20 @@ describe('deleteSticky', () => {
     await deleteSticky('x', 'room', 2);
     expect(del).toHaveBeenCalledWith({ id: 'x' });
     expect(touchRoom).toHaveBeenCalledWith('room', 2);
+    expect(removeMedia).not.toHaveBeenCalled();
+  });
+
+  it('cleans up the S3 object when a media path is given', async () => {
+    del.mockResolvedValue({ data: {} });
+    await deleteSticky('m', 'room', 1, 'rooms/room/1-a.png');
+    expect(removeMedia).toHaveBeenCalledWith('rooms/room/1-a.png');
+  });
+
+  it('still deletes the row when S3 cleanup fails (best-effort)', async () => {
+    del.mockResolvedValue({ data: {} });
+    removeMedia.mockRejectedValue(new Error('gone'));
+    await deleteSticky('m', 'room', 1, 'rooms/room/1-a.png');
+    expect(del).toHaveBeenCalledWith({ id: 'm' });
+    expect(touchRoom).toHaveBeenCalledWith('room', 1);
   });
 });
