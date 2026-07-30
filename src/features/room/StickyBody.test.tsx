@@ -1,7 +1,14 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
-import { StickyBody } from './StickyBody';
+import { describe, expect, it, vi } from 'vitest';
 import type { StickyRecord } from '../../lib/dataClient';
+
+// LinkSticky fetches an OG preview via a hook; stub the hook so these stay focused
+// on StickyBody's kind routing (no preview → plain link path).
+vi.mock('./useLinkPreview', () => ({
+  useLinkPreview: () => ({ preview: undefined, isLoading: false }),
+}));
+
+import { StickyBody } from './StickyBody';
 
 const make = (over: Partial<StickyRecord>): StickyRecord =>
   ({ id: '1', room: 'r', kind: 'TEXT', content: 'x', ...over }) as StickyRecord;

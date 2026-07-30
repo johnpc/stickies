@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import type { StickyRecord } from '../../lib/dataClient';
-import { safeHref } from './safeHref';
+import { LinkSticky } from './LinkSticky';
 import { isMediaKind } from './isMediaKind';
 
 // highlight.js is heavy; only pull it (and CodeSticky) when a room actually
@@ -36,13 +36,8 @@ export function StickyBody({ sticky }: { sticky: StickyRecord }) {
       </Suspense>
     );
   }
-  const href = sticky.kind === 'LINK' ? safeHref(sticky.content) : null;
-  if (href) {
-    return (
-      <a className="sticky__link" href={href} target="_blank" rel="noopener noreferrer">
-        {sticky.content}
-      </a>
-    );
+  if (sticky.kind === 'LINK') {
+    return <LinkSticky url={sticky.content} />;
   }
   return <span className="sticky__text">{sticky.content}</span>;
 }

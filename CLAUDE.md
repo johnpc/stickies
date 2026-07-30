@@ -110,6 +110,11 @@ A room is world-writable, so every LINK sticky's URL is attacker-controlled. **E
 href MUST pass through `safeHref`** (`src/features/room/safeHref.ts`), which rejects
 `javascript:`/`data:`/`vbscript:` schemes. Never render a raw user URL as an `<a href>`.
 
+LINK stickies also render a rich **OpenGraph preview card** (`LinkSticky` → `useLinkPreview` → the
+guest-callable `linkPreview` resolver, which scrapes the URL server-side since browsers can't — CORS).
+The resolver is **SSRF-guarded** (`amplify/linkpreview/safeFetchUrl.ts` blocks non-http(s) and
+private/link-local/metadata hosts) and **fails soft** (all-null → the client shows the plain link).
+
 ## Design
 
 - **Style only via design tokens** — the `--sk-*` CSS variables + role classes (`.sk-heading`,

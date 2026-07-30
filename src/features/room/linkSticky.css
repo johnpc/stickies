@@ -1,0 +1,46 @@
+/* Rich link-preview card for LINK stickies. --sk-* tokens where possible. */
+.link-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--sk-note-ink);
+}
+.link-preview__img {
+  width: 100%;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.4);
+}
+.link-preview__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.link-preview__site {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+}
+.link-preview__title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.link-preview__desc {
+  font-size: 0.78rem;
+  line-height: 1.3;
+  opacity: 0.8;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.link-preview:hover .link-preview__title {
+  text-decoration: underline;
+}

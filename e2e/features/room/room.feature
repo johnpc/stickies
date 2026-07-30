@@ -39,6 +39,11 @@ Feature: Room pad — share stickies at a URL
     When they upload a text file with many lines
     Then a document sticky shows a preview with an expand control
 
+  Scenario: A pasted URL with OpenGraph tags shows a rich preview card
+    Given a visitor opens a fresh room
+    When they add a sticky that says "https://github.com"
+    Then a link preview card is shown
+
   Scenario: A dangerous javascript: URL is never rendered as a link
     Given a visitor opens a fresh room
     When they add a sticky that says "javascript:alert(1)"

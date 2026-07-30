@@ -95,6 +95,11 @@ Then('the sticky links to {string}', async ({ page }, href: string) => {
   await expect(page.getByRole('link').first()).toHaveAttribute('href', href, { timeout: 15_000 });
 });
 
+Then('a link preview card is shown', async ({ page }) => {
+  // The server resolver scrapes OG tags; github.com has them, so a card renders.
+  await expect(page.getByTestId('link-preview')).toBeVisible({ timeout: 20_000 });
+});
+
 Then('no sticky is a clickable link', async ({ page }) => {
   // The sticky renders (its text is visible) but never as an anchor.
   await expect(page.getByText('javascript:alert(1)', { exact: true })).toBeVisible({

@@ -1,7 +1,14 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { StickyCard } from './StickyCard';
 import type { StickyRecord } from '../../lib/dataClient';
+
+// LINK bodies fetch an OG preview via a hook that hits the Amplify client; stub
+// it (no preview → plain link path) so StickyCard tests stay isolated.
+vi.mock('./useLinkPreview', () => ({
+  useLinkPreview: () => ({ preview: undefined, isLoading: false }),
+}));
+
+import { StickyCard } from './StickyCard';
 
 const make = (over: Partial<StickyRecord>): StickyRecord =>
   ({ id: '1', room: 'r', kind: 'TEXT', content: 'note', color: 'yellow', ...over }) as StickyRecord;

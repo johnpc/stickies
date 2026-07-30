@@ -1,4 +1,5 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
+import { linkPreview } from '../linkpreview/resource';
 
 /**
  * STICKIES data schema.
@@ -54,6 +55,24 @@ const schema = a.schema({
       allow.authenticated('identityPool').to(['read', 'create', 'update', 'delete']),
       allow.authenticated().to(['read', 'create', 'update', 'delete']),
     ]),
+
+  // Guest-callable OpenGraph link preview: fetches a user-supplied URL server-side
+  // (browsers can't — CORS) and returns its title/description/image/siteName for a
+  // LINK sticky's preview card. The handler guards against SSRF (blocks non-public
+  // hosts) and fails soft (nulls) so a bad/unreachable URL just yields no preview.
+  linkPreview: a
+    .query()
+    .arguments({ url: a.string().required() })
+    .returns(
+      a.customType({
+        title: a.string(),
+        description: a.string(),
+        image: a.string(),
+        siteName: a.string(),
+      }),
+    )
+    .authorization((allow) => [allow.guest(), allow.authenticated()])
+    .handler(a.handler.function(linkPreview)),
 });
 
 export type Schema = ClientSchema<typeof schema>;

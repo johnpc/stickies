@@ -35,15 +35,15 @@ browser if the app isn't installed. Same link, works everywhere.
 
 ## Sticky types
 
-| Type      | Status | Notes                                                                     |
-| --------- | ------ | ------------------------------------------------------------------------- |
-| Text      | ✅     | Plain note; multi-line.                                                   |
-| Link      | ✅     | Auto-detected from a pasted URL; rendered as a **safe** link.             |
-| Code      | ✅     | Wrap in a ` ``` ` fence (` ```ts `) — syntax highlighting + line numbers. |
-| Image     | ✅     | Upload — inline image preview.                                            |
-| PDF/Video | ✅     | Upload — in-browser PDF viewer / video player.                            |
-| Doc       | ✅     | Upload a text/code file — highlighted preview with expand + copy-all.     |
-| File      | ✅     | Upload anything else (zip, binaries…) — a generic download card.          |
+| Type      | Status | Notes                                                                           |
+| --------- | ------ | ------------------------------------------------------------------------------- |
+| Text      | ✅     | Plain note; multi-line.                                                         |
+| Link      | ✅     | Auto-detected from a pasted URL; **safe** link + a rich OpenGraph preview card. |
+| Code      | ✅     | Wrap in a ` ``` ` fence (` ```ts `) — syntax highlighting + line numbers.       |
+| Image     | ✅     | Upload — inline image preview.                                                  |
+| PDF/Video | ✅     | Upload — in-browser PDF viewer / video player.                                  |
+| Doc       | ✅     | Upload a text/code file — highlighted preview with expand + copy-all.           |
+| File      | ✅     | Upload anything else (zip, binaries…) — a generic download card.                |
 
 ## Where the data lives
 
