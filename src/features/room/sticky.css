@@ -2,12 +2,21 @@
 
 .sticky-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  /* Fluid tiles: exactly 2 comfortable columns on a phone, more as the viewport
+     grows. min() keeps a single note from overflowing a very narrow screen. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 165px), 1fr));
   gap: var(--sk-gap);
   padding: var(--sk-gap);
-  max-width: 60rem;
+  max-width: 64rem;
   margin: 0 auto;
   padding-bottom: calc(var(--sk-gap) + env(safe-area-inset-bottom, 0px));
+}
+
+/* Desktop: roomier notes so a wall of stickies doesn't read as cramped. */
+@media (min-width: 768px) {
+  .sticky-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
 }
 
 .sticky {
