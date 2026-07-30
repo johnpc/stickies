@@ -182,14 +182,22 @@ npx ampx sandbox       # personal cloud backend sandbox
   `/.well-known/apple-app-site-association` and `/.well-known/assetlinks.json` (shipped in `public/`).
   **TODO before Android App Links verify:** replace `REPLACE_WITH_SIGNING_CERT_SHA256` in
   `assetlinks.json` with the release/debug signing cert's SHA-256 (`keytool -list -v -keystore …`).
-  **Prod gotcha:** the SPA 200-rewrite regex below matches extension-less paths, so it would swallow
-  `/.well-known/apple-app-site-association` (no extension) and serve `index.html` instead of the JSON.
-  The custom-rules JSON MUST place an explicit passthrough for `/.well-known/<*>` BEFORE the catch-all
-  SPA rule, or iOS association verification fails.
-- **SPA rewrite (Amplify Hosting) — required so `/:room` deep links serve `index.html` with a 200**,
-  not a 404. Every room URL is a client route; without a 200 rewrite, sharing a fresh room link
-  returns a 404 to the first loader. Apply the regex rule (see spork CLAUDE.md) once the prod app is
-  provisioned; set `AMPLIFY_APP_ID` for `prod-config`.
+  **iOS AASA limitation:** Amplify Hosting force-redirects extension-less paths (301 → trailing
+  slash), which the `apple-app-site-association` file has no extension to escape — so it resolves to
+  index.html (`text/html`), and a `/.well-known/*` passthrough custom rule does NOT override that
+  platform redirect. iOS universal-link _verification_ would fail until this is solved (options:
+  serve AASA from a path with a rewrite that wins, or a CloudFront function). Not blocking today —
+  links degrade to the browser and no TestFlight build is live. `assetlinks.json` (has an extension)
+  serves fine at 200.
+- **SPA rewrite (Amplify Hosting) — APPLIED to prod app `d24w01u3ylemi2` on 2026-07-30, and REQUIRED.**
+  Amplify's default `{"/<*>" → "/index.html", "404-200"}` does NOT stop a fresh `/:room` deep link
+  from 301→404 (it appends a trailing slash first) — so EVERY shared room link was broken on first
+  load until fixed. The live custom-rules (console/API only, NOT in the repo — re-apply if
+  re-provisioned) are: assetlinks passthrough + the regex SPA-200 rule
+  `</^[^.]+$|\.(?!(css|gif|ico|jpg|jpeg|js|png|txt|svg|woff|woff2|ttf|map|json|xml|webmanifest)$)([^.]+$)/>`
+  → `/index.html` status `200`. Verify after any re-provision:
+  `curl -so/dev/null -w '%{http_code}' https://stickies.jpc.io/some-room` → 200. Set `AMPLIFY_APP_ID`
+  for `prod-config`.
 - **CI:** `.github/workflows/ci.yml` (quality + seed + Gherkin acceptance matrix: `home`, `room`).
   `ios-deploy.yml` / `android-deploy.yml` publish after CI on `main`. Secrets: `AWS_ACCESS_KEY_ID`,
   `AWS_SECRET_ACCESS_KEY`, `TEST_USERNAME`, `TEST_PASSWORD`, `ASC_KEY_ID`, `ASC_ISSUER_ID`,
