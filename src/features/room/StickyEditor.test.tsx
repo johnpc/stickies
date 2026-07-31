@@ -132,4 +132,20 @@ describe('StickyEditor', () => {
     unmount();
     expect(onOrphan).not.toHaveBeenCalled();
   });
+
+  it('keeps the note size so editing a Large note does not collapse it', () => {
+    // Regression: the editor rendered size-less, so a Large/Small note snapped to
+    // Medium (and reflowed the pad) the moment you tapped Edit.
+    const { container } = render(
+      <StickyEditor color="yellow" initial="big" size="L" onSave={vi.fn()} onCancel={vi.fn()} />,
+    );
+    expect(container.querySelector('.sticky')).toHaveClass('sticky--size-L');
+  });
+
+  it('defaults to Medium size when none is given (composer)', () => {
+    const { container } = render(
+      <StickyEditor color="yellow" initial="" onSave={vi.fn()} onCancel={vi.fn()} />,
+    );
+    expect(container.querySelector('.sticky')).toHaveClass('sticky--size-M');
+  });
 });
