@@ -49,11 +49,10 @@
   padding: 2px;
   display: flex;
   font-size: 1.15rem;
-  opacity: 0.55;
-  touch-action: none;
-}
-.sticky__grip:hover {
+  /* Full opacity by default so the control is clearly tappable on TOUCH (no
+     hover). Only dim-until-hover on hover-capable pointers (see below). */
   opacity: 1;
+  touch-action: none;
 }
 /* The insertion line shown in the gap where the dragged sticky will land. */
 .sticky-insert {
@@ -99,7 +98,9 @@
   justify-content: flex-end;
   gap: 4px;
   margin-top: 8px;
-  opacity: 0.55;
+  /* Full opacity by default — touch has no hover, so a dimmed resting state left
+     the controls permanently low-contrast on the primary platform. */
+  opacity: 1;
 }
 .sticky__actions button {
   background: none;
@@ -111,8 +112,21 @@
   padding: 2px;
   display: flex;
 }
-.sticky__actions button:hover {
-  opacity: 1;
+
+/* On hover-capable, fine pointers (desktop mouse) keep the subtle dim-until-hover
+   so the card chrome stays unobtrusive — but touch/coarse devices always show it. */
+@media (hover: hover) and (pointer: fine) {
+  .sticky__actions,
+  .sticky__grip {
+    opacity: 0.55;
+    transition: opacity 0.12s ease;
+  }
+  .sticky:hover .sticky__actions,
+  .sticky:hover .sticky__grip,
+  .sticky__actions:focus-within,
+  .sticky__grip:focus-visible {
+    opacity: 1;
+  }
 }
 
 .sticky__input {
