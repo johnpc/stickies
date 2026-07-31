@@ -2,19 +2,19 @@ import { IonIcon } from '@ionic/react';
 import { copyOutline } from 'ionicons/icons';
 import { Lightbox } from './Lightbox';
 import { useQrCode } from './useQrCode';
-import { copyCurrentUrl } from './copyCurrentUrl';
+import { useCopyAction } from './useCopyAction';
 import './shareRoom.css';
 
 interface ShareRoomPanelProps {
   url: string;
   onClose: () => void;
-  onCopied: () => void;
 }
 
 /** The share panel: the room URL (copyable) + a QR code of it so anyone can scan
  * to join the same pad from their phone. Rendered in the full-page Lightbox. */
-export function ShareRoomPanel({ url, onClose, onCopied }: ShareRoomPanelProps) {
+export function ShareRoomPanel({ url, onClose }: ShareRoomPanelProps) {
   const qr = useQrCode(url);
+  const copy = useCopyAction();
   return (
     <Lightbox title="Share this room" onClose={onClose}>
       <div className="share-room" data-testid="share-panel">
@@ -36,9 +36,9 @@ export function ShareRoomPanel({ url, onClose, onCopied }: ShareRoomPanelProps) 
           <button
             className="share-room__copy"
             data-testid="share-copy"
-            onClick={async () => {
-              if (await copyCurrentUrl()) onCopied();
-            }}
+            // Copy the URL shown in the panel; useCopyAction toasts on BOTH
+            // success and failure (a blocked clipboard used to be silent here).
+            onClick={() => copy(url)}
           >
             <IonIcon icon={copyOutline} /> Copy
           </button>
