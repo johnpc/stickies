@@ -39,6 +39,12 @@ export function StickyCard(props: StickyCardProps) {
           onEdit(content);
           setEditing(false);
         }}
+        onEmpty={() => {
+          // Clearing an existing note to blank removes it (undoable via the
+          // delete toast) — same as Notes/Keep, not a silent revert.
+          setEditing(false);
+          onDelete();
+        }}
       />
     );
   }

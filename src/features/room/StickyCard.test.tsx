@@ -76,6 +76,26 @@ describe('StickyCard', () => {
     expect(onEdit).toHaveBeenCalledWith('new');
   });
 
+  it('deletes the note when its text is cleared to blank in the editor', () => {
+    const onDelete = vi.fn();
+    const onEdit = vi.fn();
+    render(
+      <StickyCard
+        sticky={make({ content: 'remove me' })}
+        index={0}
+        onEdit={onEdit}
+        onRecolor={vi.fn()}
+        onDelete={onDelete}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('sticky-edit'));
+    const input = screen.getByTestId('sticky-input');
+    fireEvent.change(input, { target: { value: '   ' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onDelete).toHaveBeenCalledOnce();
+    expect(onEdit).not.toHaveBeenCalled();
+  });
+
   it('fires onDelete', () => {
     const onDelete = vi.fn();
     render(
