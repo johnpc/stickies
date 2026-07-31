@@ -33,6 +33,13 @@ export function RoomPage() {
     <IonPage>
       <RoomHeader room={room} count={stickies.length} />
       <IonContent>
+        {/* The page's main heading for assistive tech — the room name is
+            otherwise only in the toolbar title (not a heading), leaving the pad
+            with no <h1> to orient by or jump to. Visually hidden; matches the
+            home page's heading structure. */}
+        <h1 className="sr-only" data-testid="room-heading">
+          {prettifyRoomSlug(room)}
+        </h1>
         <LoadState
           isLoading={isLoading}
           isError={isError}
