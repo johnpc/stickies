@@ -31,7 +31,7 @@ export function ExpandableCode({ code, language, title = 'Snippet' }: Expandable
       </div>
       {expanded && (
         <Lightbox title={title} onClose={() => setExpanded(false)}>
-          <CodeSticky code={code} language={language} />
+          <CodeSticky code={code} language={language} full />
         </Lightbox>
       )}
     </div>

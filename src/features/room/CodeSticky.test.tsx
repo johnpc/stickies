@@ -22,4 +22,15 @@ describe('CodeSticky', () => {
     expect(gutter).toHaveLength(CODE_MAX_LINES);
     expect(screen.getByTestId('code-truncated')).toBeInTheDocument();
   });
+
+  it('the full (lightbox) variant renders MORE than the inline cap so Expand reveals more', () => {
+    // Regression: Expand re-rendered the SAME inline-capped view, so it never
+    // showed more than the preview. The full variant uses the higher expanded cap.
+    const n = CODE_MAX_LINES + 600;
+    const big = Array.from({ length: n }, (_, i) => `line ${i}`).join('\n');
+    render(<CodeSticky code={big} language="javascript" full />);
+    const gutter = screen.getByTestId('code-sticky').querySelectorAll('.code-sticky__gutter span');
+    expect(gutter).toHaveLength(n); // all shown (n < the expanded cap), not clipped to 400
+    expect(screen.queryByTestId('code-truncated')).not.toBeInTheDocument();
+  });
 });

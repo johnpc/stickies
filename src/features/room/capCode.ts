@@ -9,10 +9,17 @@
  * full snippet. Pure + unit-testable.
  */
 
-/** Max lines to render inline before truncating. */
+/** Inline (on-pad) render limits — small, since every viewer renders every card. */
 export const CODE_MAX_LINES = 400;
-/** Max characters to render (guards a single monster/minified line). */
+/** Max characters to render inline (guards a single monster/minified line). */
 export const CODE_MAX_CHARS = 40_000;
+
+/** EXPANDED (lightbox) limits — much higher, because only one snippet renders at
+ * a time (not the whole pad), so the "freeze every viewer" risk doesn't apply.
+ * Still bounded so a pathological minified blob can't lock the tab. This makes
+ * Expand actually reveal more instead of showing the same capped preview. */
+export const CODE_EXPANDED_MAX_LINES = 5000;
+export const CODE_EXPANDED_MAX_CHARS = 500_000;
 
 export interface CappedCode {
   /** The slice to highlight + render. */
@@ -21,18 +28,23 @@ export interface CappedCode {
   truncated: boolean;
 }
 
-/** Cap `code` to CODE_MAX_LINES / CODE_MAX_CHARS for rendering. */
-export function capCode(code: string): CappedCode {
+/** Cap `code` for rendering. Pass the higher expanded limits for the lightbox so
+ * Expand shows far more than the inline preview. */
+export function capCode(
+  code: string,
+  maxLines = CODE_MAX_LINES,
+  maxChars = CODE_MAX_CHARS,
+): CappedCode {
   let sliced = code;
   let truncated = false;
 
-  const nl = indexOfNthNewline(sliced, CODE_MAX_LINES);
+  const nl = indexOfNthNewline(sliced, maxLines);
   if (nl !== -1) {
     sliced = sliced.slice(0, nl);
     truncated = true;
   }
-  if (sliced.length > CODE_MAX_CHARS) {
-    sliced = sliced.slice(0, CODE_MAX_CHARS);
+  if (sliced.length > maxChars) {
+    sliced = sliced.slice(0, maxChars);
     truncated = true;
   }
   return { code: sliced, truncated };

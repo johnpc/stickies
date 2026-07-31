@@ -70,7 +70,7 @@ export function DocSticky({ sticky }: { sticky: StickyRecord }) {
               Preview truncated — Download for the full file.
             </p>
           )}
-          <CodeSticky code={text} language={language} />
+          <CodeSticky code={text} language={language} full />
         </Lightbox>
       )}
     </div>
