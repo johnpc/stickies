@@ -2,14 +2,16 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StickyRecord } from '../../lib/dataClient';
 
-const { useDocText, useMediaUrl, copyText } = vi.hoisted(() => ({
+const { useDocText, useMediaUrl, copyText, downloadFile } = vi.hoisted(() => ({
   useDocText: vi.fn(),
   useMediaUrl: vi.fn(),
   copyText: vi.fn().mockResolvedValue(true),
+  downloadFile: vi.fn(),
 }));
 vi.mock('./useDocText', () => ({ useDocText }));
 vi.mock('./useMediaUrl', () => ({ useMediaUrl }));
 vi.mock('./copyText', () => ({ copyText }));
+vi.mock('./downloadFile', () => ({ downloadFile }));
 // CodeSticky highlights via hljs; stub it to keep this a focused DOC test.
 vi.mock('./CodeSticky', () => ({
   CodeSticky: ({ code }: { code: string }) => <pre data-testid="code">{code}</pre>,
@@ -51,9 +53,20 @@ describe('DocSticky', () => {
     expect(copyText).toHaveBeenCalledWith(long);
   });
 
-  it('shows an error when the text fails to load', () => {
+  it('shows an error when the text fails to load, still offering download of the intact file', () => {
     useDocText.mockReturnValue({ text: null, isLoading: false, isError: true });
     render(<DocSticky sticky={sticky} />);
-    expect(screen.getByText(/Couldn.t load a.txt/)).toBeInTheDocument();
+    expect(screen.getByText(/Couldn.t load a preview of a.txt/)).toBeInTheDocument();
+    // The preview failed, but the uploaded file is intact — download must remain.
+    fireEvent.click(screen.getByTestId('doc-download'));
+    expect(downloadFile).toHaveBeenCalledWith('https://s3.example/x', 'a.txt');
+  });
+
+  it('omits the download button in the error state when no URL is available', () => {
+    useDocText.mockReturnValue({ text: null, isLoading: false, isError: true });
+    useMediaUrl.mockReturnValue({ url: undefined });
+    render(<DocSticky sticky={sticky} />);
+    expect(screen.getByText(/Couldn.t load a preview/)).toBeInTheDocument();
+    expect(screen.queryByTestId('doc-download')).not.toBeInTheDocument();
   });
 });

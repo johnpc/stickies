@@ -24,7 +24,21 @@ export function DocSticky({ sticky }: { sticky: StickyRecord }) {
 
   if (isLoading) return <span className="sticky__text media-sticky__status">Loading…</span>;
   if (isError || text == null) {
-    return <span className="sticky__text media-sticky__status">Couldn’t load {name}</span>;
+    // The text PREVIEW failed, but the uploaded file itself is intact — still
+    // offer a download so the sticky isn't a dead end (useMediaUrl is separate
+    // from the doc-text fetch).
+    return (
+      <div className="doc-sticky" data-testid="doc-sticky">
+        <span className="sticky__text media-sticky__status">Couldn’t load a preview of {name}</span>
+        {url && (
+          <div className="doc-sticky__actions">
+            <button data-testid="doc-download" onClick={() => downloadFile(url, name)}>
+              <IonIcon icon={downloadOutline} /> Download
+            </button>
+          </div>
+        )}
+      </div>
+    );
   }
 
   const { shown, truncated } = docPreview(text, false);
