@@ -7,17 +7,21 @@ vi.mock('qrcode', () => ({ default: { toDataURL } }));
 import { useQrCode } from './useQrCode';
 
 describe('useQrCode', () => {
-  it('resolves a data URL for the text', async () => {
+  it('starts pending, then resolves to a ready data URL', async () => {
     toDataURL.mockResolvedValue('data:image/png;base64,ZZ');
     const { result } = renderHook(() => useQrCode('https://stickies.jpc.io/x'));
-    await waitFor(() => expect(result.current).toBe('data:image/png;base64,ZZ'));
+    expect(result.current.status).toBe('pending'); // no flash of a wrong state
+    await waitFor(() => expect(result.current.status).toBe('ready'));
+    expect(result.current.dataUrl).toBe('data:image/png;base64,ZZ');
     expect(toDataURL).toHaveBeenCalledWith('https://stickies.jpc.io/x', expect.any(Object));
   });
 
-  it('stays null when generation fails', async () => {
-    toDataURL.mockRejectedValue(new Error('boom'));
+  it('reports an ERROR status (distinct from pending) when generation fails', async () => {
+    // Regression: pending and failure both returned null, so the panel showed an
+    // eternal loading skeleton with no explanation on a genuine QR failure.
+    toDataURL.mockRejectedValue(new Error('too big'));
     const { result } = renderHook(() => useQrCode('x'));
-    await waitFor(() => expect(toDataURL).toHaveBeenCalled());
-    expect(result.current).toBeNull();
+    await waitFor(() => expect(result.current.status).toBe('error'));
+    expect(result.current.dataUrl).toBeNull();
   });
 });

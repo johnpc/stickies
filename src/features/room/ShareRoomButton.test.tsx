@@ -4,7 +4,9 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 const { copy } = vi.hoisted(() => ({ copy: vi.fn() }));
 vi.mock('./useCopyAction', () => ({ useCopyAction: () => copy }));
 // Stub the QR generator (async canvas work) so the panel renders synchronously.
-vi.mock('./useQrCode', () => ({ useQrCode: () => 'data:image/png;base64,QR' }));
+vi.mock('./useQrCode', () => ({
+  useQrCode: () => ({ status: 'ready', dataUrl: 'data:image/png;base64,QR' }),
+}));
 
 import { ShareRoomButton } from './ShareRoomButton';
 

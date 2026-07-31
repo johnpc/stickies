@@ -16,6 +16,18 @@
 .share-room__qr--pending {
   background: var(--sk-skeleton-base);
 }
+/* QR generation failed (e.g. URL too long): a readable message, not a dead box. */
+.share-room__qr--error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  text-align: center;
+  background: var(--sk-surface);
+  border: 1px dashed var(--sk-border);
+  color: var(--sk-text-muted);
+  font-size: 0.9rem;
+}
 .share-room__hint {
   margin: 0;
   text-align: center;
