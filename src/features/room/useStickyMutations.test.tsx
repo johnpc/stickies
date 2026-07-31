@@ -116,6 +116,23 @@ describe('useStickyMutations', () => {
     off();
   });
 
+  it('surfaces a retryable toast when a write rejects (offline = no silent loss)', async () => {
+    createSticky.mockRejectedValueOnce(new Error('Request timed out — check your connection.'));
+    const onToast = vi.fn();
+    const off = subscribeToast(onToast);
+    const { result } = renderHook(() => useStickyMutations('room', 0), { wrapper });
+    act(() => result.current.add.mutate('hi'));
+    await waitFor(() => expect(onToast).toHaveBeenCalled());
+    const payload = onToast.mock.calls[0][0];
+    expect(payload.message).toMatch(/timed out/i);
+    expect(payload.action?.label).toBe('Retry');
+    // Retry re-fires the same write.
+    createSticky.mockResolvedValueOnce({});
+    act(() => payload.action!.run());
+    await waitFor(() => expect(createSticky).toHaveBeenCalledTimes(2));
+    off();
+  });
+
   it('restores the sticky when Undo is invoked', async () => {
     let undo: (() => void) | undefined;
     const off = subscribeToast((t) => {

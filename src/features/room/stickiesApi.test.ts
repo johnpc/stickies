@@ -12,6 +12,7 @@ const { listStickyByRoom, create, update, del, touchRoom, removeMedia } = vi.hoi
 vi.mock('../../lib/dataClient', () => ({
   dataClient: { models: { Sticky: { listStickyByRoom, create, update, delete: del } } },
   unwrap: (r: { data: unknown }) => r.data,
+  unwrapWrite: (r: { data: unknown }) => r.data,
 }));
 vi.mock('./touchRoom', () => ({ touchRoom }));
 vi.mock('./mediaApi', () => ({ removeMedia }));

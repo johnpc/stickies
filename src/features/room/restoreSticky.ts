@@ -2,7 +2,8 @@
  * Split from stickiesApi to keep that module within the line limit. Restores
  * content/kind/color/ord/media metadata so it reappears exactly where it was;
  * `count` is the room's post-restore sticky count. */
-import { dataClient, unwrap, type StickyRecord } from '../../lib/dataClient';
+import { dataClient, unwrapWrite, type StickyRecord } from '../../lib/dataClient';
+import { withTimeout } from '../../lib/withTimeout';
 import { touchRoom } from './touchRoom';
 
 export async function restoreSticky(
@@ -10,17 +11,19 @@ export async function restoreSticky(
   room: string,
   count: number,
 ): Promise<void> {
-  unwrap(
-    await dataClient.models.Sticky.create({
-      room: sticky.room,
-      kind: sticky.kind,
-      content: sticky.content,
-      color: sticky.color,
-      ord: sticky.ord,
-      language: sticky.language,
-      fileName: sticky.fileName,
-      mimeType: sticky.mimeType,
-    }),
+  unwrapWrite(
+    await withTimeout(
+      dataClient.models.Sticky.create({
+        room: sticky.room,
+        kind: sticky.kind,
+        content: sticky.content,
+        color: sticky.color,
+        ord: sticky.ord,
+        language: sticky.language,
+        fileName: sticky.fileName,
+        mimeType: sticky.mimeType,
+      }),
+    ),
   );
   await touchRoom(room, count);
 }

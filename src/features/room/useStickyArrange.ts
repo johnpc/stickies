@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { setStickyColor, setStickyOrder } from './stickyArrangeApi';
+import { notifyWriteError } from './notifyWriteError';
 import { roomStickiesKey } from './roomStickiesKey';
 
 /**
@@ -17,12 +18,14 @@ export function useStickyArrange(room: string, count: number) {
     mutationFn: (vars: { id: string; color: string }) =>
       setStickyColor(vars.id, room, vars.color, count),
     onSuccess: settle,
+    onError: (error, vars) => notifyWriteError(error, () => recolor.mutate(vars)),
   });
 
   const reorder = useMutation({
     mutationFn: (vars: { id: string; ord: number }) =>
       setStickyOrder(vars.id, room, vars.ord, count),
     onSuccess: settle,
+    onError: (error, vars) => notifyWriteError(error, () => reorder.mutate(vars)),
   });
 
   return { recolor, reorder };

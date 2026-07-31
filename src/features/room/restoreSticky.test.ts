@@ -5,6 +5,7 @@ const { create, touchRoom } = vi.hoisted(() => ({ create: vi.fn(), touchRoom: vi
 vi.mock('../../lib/dataClient', () => ({
   dataClient: { models: { Sticky: { create } } },
   unwrap: (r: { data: unknown }) => r.data,
+  unwrapWrite: (r: { data: unknown }) => r.data,
 }));
 vi.mock('./touchRoom', () => ({ touchRoom }));
 

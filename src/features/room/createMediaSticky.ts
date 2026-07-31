@@ -4,7 +4,8 @@
  * (IMAGE/PDF/VIDEO/FILE), uploads under the room's prefix, then writes a Sticky
  * whose `content` is the S3 key plus the filename + mime for rendering.
  */
-import { dataClient, unwrap, type StickyRecord } from '../../lib/dataClient';
+import { dataClient, unwrapWrite, type StickyRecord } from '../../lib/dataClient';
+import { withTimeout } from '../../lib/withTimeout';
 import { touchRoom } from './touchRoom';
 import { colorForIndex } from './stickyPalette';
 import { mediaKey, uploadMedia } from './mediaApi';
@@ -18,18 +19,20 @@ export async function createMediaSticky(input: {
 }): Promise<StickyRecord> {
   const { room, file, existingCount, seed } = input;
   const key = await uploadMedia(mediaKey(room, file.name, seed), file);
-  const created = unwrap(
-    await dataClient.models.Sticky.create({
-      room,
-      kind: mediaKind(file.type, file.name),
-      content: key,
-      fileName: file.name,
-      mimeType: file.type,
-      // seed is a monotonic stamp (also keys the S3 object) → distinct ord/color
-      // per add, collision-free under rapid uploads (mirrors createSticky's seq).
-      color: colorForIndex(seed),
-      ord: seed,
-    }),
+  const created = unwrapWrite(
+    await withTimeout(
+      dataClient.models.Sticky.create({
+        room,
+        kind: mediaKind(file.type, file.name),
+        content: key,
+        fileName: file.name,
+        mimeType: file.type,
+        // seed is a monotonic stamp (also keys the S3 object) → distinct ord/color
+        // per add, collision-free under rapid uploads (mirrors createSticky's seq).
+        color: colorForIndex(seed),
+        ord: seed,
+      }),
+    ),
   );
   await touchRoom(room, existingCount + 1);
   return created as StickyRecord;
