@@ -86,6 +86,17 @@
   font-size: 0.98rem;
   line-height: 1.35;
 }
+/* A long TEXT/LINK note (e.g. a pasted article) must not balloon the card and
+   dominate the pad — CODE/DOC stickies cap+expand, plain text had no bound.
+   Cap the height and let the note scroll internally; short notes/status lines
+   are unaffected. */
+.sticky__text {
+  display: block;
+  max-height: 320px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .sticky__link {
   color: #1b3a63;
   font-weight: 600;
