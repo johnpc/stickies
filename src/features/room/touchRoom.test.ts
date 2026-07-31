@@ -45,4 +45,19 @@ describe('touchRoom', () => {
     });
     expect(create).not.toHaveBeenCalled();
   });
+
+  it('never throws when the recents-index write fails (best-effort, not the sticky)', async () => {
+    // Simulate the first-write race: get says "new", create conflicts.
+    get.mockResolvedValue({ data: null });
+    create.mockRejectedValue(new Error('The conditional request failed'));
+    // Must resolve (swallow) — otherwise a SUCCESSFUL sticky write would be
+    // reported to the user as failed.
+    await expect(touchRoom('grocery', 1)).resolves.toBeUndefined();
+  });
+
+  it('swallows an update failure too', async () => {
+    get.mockResolvedValue({ data: { id: 'grocery' } });
+    update.mockRejectedValue(new Error('network'));
+    await expect(touchRoom('grocery', 2)).resolves.toBeUndefined();
+  });
 });
