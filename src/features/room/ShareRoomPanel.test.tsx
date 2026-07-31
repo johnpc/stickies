@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 const { useQrCode } = vi.hoisted(() => ({ useQrCode: vi.fn() }));
 vi.mock('./useQrCode', () => ({ useQrCode }));
-vi.mock('./useCopyAction', () => ({ useCopyAction: () => vi.fn() }));
+const { copy } = vi.hoisted(() => ({ copy: vi.fn() }));
+vi.mock('./useCopyAction', () => ({ useCopyAction: () => copy }));
 
 import { ShareRoomPanel } from './ShareRoomPanel';
 
@@ -36,5 +37,21 @@ describe('ShareRoomPanel', () => {
     expect(document.querySelector('.share-room__qr--pending')).not.toBeNull();
     expect(screen.queryByTestId('share-qr-error')).not.toBeInTheDocument();
     expect(screen.queryByTestId('share-qr')).not.toBeInTheDocument();
+  });
+
+  it('displays + copies a READABLE url but feeds the QR the raw (encoded) one', () => {
+    // A unicode room's href is percent-encoded; show/copy the decoded form, but
+    // the QR must encode the canonical raw URL that scanners expect.
+    copy.mockClear();
+    useQrCode.mockReturnValue({ status: 'ready', dataUrl: 'data:image/png;base64,QR' });
+    const encoded = 'https://stickies.jpc.io/' + encodeURIComponent('café');
+    render(<ShareRoomPanel url={encoded} onClose={vi.fn()} />);
+    // Shown decoded, no %XX.
+    expect(screen.getByTestId('share-url')).toHaveTextContent('https://stickies.jpc.io/café');
+    // QR got the RAW encoded url.
+    expect(useQrCode).toHaveBeenCalledWith(encoded);
+    // Copy sends the readable form.
+    fireEvent.click(screen.getByTestId('share-copy'));
+    expect(copy).toHaveBeenCalledWith('https://stickies.jpc.io/café');
   });
 });
