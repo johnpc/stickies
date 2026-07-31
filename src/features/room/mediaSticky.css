@@ -121,6 +121,11 @@
   font-weight: 700;
   overflow-wrap: anywhere;
 }
+/* Shown in the expanded view when the preview was capped at the read limit. */
+.doc-sticky__truncated {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+}
 .doc-sticky__actions {
   display: flex;
   flex-wrap: wrap;

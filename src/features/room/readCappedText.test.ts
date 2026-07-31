@@ -21,21 +21,27 @@ function streamResponse(chunks: Uint8Array[]): Response {
 const bytes = (s: string) => new TextEncoder().encode(s);
 
 describe('readCappedText', () => {
-  it('reads a small streamed body in full', async () => {
+  it('reads a small streamed body in full, not truncated', async () => {
     const res = streamResponse([bytes('line1\n'), bytes('line2\n')]);
-    expect(await readCappedText(res)).toBe('line1\nline2\n');
+    expect(await readCappedText(res)).toEqual({ text: 'line1\nline2\n', truncated: false });
   });
 
-  it('stops reading once the byte cap is reached (no full-file load)', async () => {
-    // Three 100-byte chunks, cap at 150 → only ~150 bytes decoded, rest skipped.
+  it('stops at the byte cap and flags truncated (no full-file load)', async () => {
+    // Three 100-byte chunks, cap at 150 → reads 200 (>cap) then stops → truncated.
     const chunk = bytes('x'.repeat(100));
     const res = streamResponse([chunk, chunk, chunk]);
     const out = await readCappedText(res, 150);
-    expect(out.length).toBe(150);
+    expect(out.text.length).toBe(150);
+    expect(out.truncated).toBe(true);
   });
 
-  it('falls back to res.text() (capped) when there is no readable stream body', async () => {
+  it('falls back to res.text() (capped + flagged) when there is no stream body', async () => {
     const res = { body: null, text: () => Promise.resolve('a'.repeat(500)) } as unknown as Response;
-    expect(await readCappedText(res, 100)).toBe('a'.repeat(100));
+    expect(await readCappedText(res, 100)).toEqual({ text: 'a'.repeat(100), truncated: true });
+  });
+
+  it('fallback is not truncated when the whole body fits', async () => {
+    const res = { body: null, text: () => Promise.resolve('short') } as unknown as Response;
+    expect(await readCappedText(res, 100)).toEqual({ text: 'short', truncated: false });
   });
 });
