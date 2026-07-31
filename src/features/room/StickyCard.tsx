@@ -21,6 +21,8 @@ interface StickyCardProps {
   dragging?: boolean;
   /** Begin a pointer-drag from the grip handle (mouse + touch). */
   onDragHandle?: (e: React.PointerEvent) => void;
+  /** Keyboard reorder from the grip (arrow keys move the sticky one slot). */
+  onGripKeyDown?: (e: React.KeyboardEvent) => void;
 }
 
 /** One note on the pad. The body is rendered by StickyBody; this shell owns the
@@ -28,6 +30,7 @@ interface StickyCardProps {
  * `data-card-index` lets the drag hook hit-test card rects. */
 export function StickyCard(props: StickyCardProps) {
   const { sticky, index, onEdit, onRecolor, onResize, onDelete, dragging, onDragHandle } = props;
+  const { onGripKeyDown } = props;
   const [editing, setEditing] = useState(false);
   const color = asStickyColor(sticky.color);
   const size = asStickySize(sticky.size);
@@ -78,6 +81,7 @@ export function StickyCard(props: StickyCardProps) {
         onEdit={() => setEditing(true)}
         onDelete={onDelete}
         onDragHandle={onDragHandle}
+        onGripKeyDown={onGripKeyDown}
       />
     </div>
   );
