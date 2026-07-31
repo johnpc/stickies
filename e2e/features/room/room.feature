@@ -49,6 +49,12 @@ Feature: Room pad — share stickies at a URL
     When they add a sticky that says "example.com"
     Then the sticky links to "https://example.com/"
 
+  Scenario: A URL inside a text note is a tappable link, keeping the words around it
+    Given a visitor opens a fresh room
+    When they add a sticky that says "Standup: https://example.com/call at 10am"
+    Then the sticky links to "https://example.com/call"
+    And the pad contains the text "at 10am"
+
   Scenario: A fenced snippet becomes a syntax-highlighted code sticky
     Given a visitor opens a fresh room
     When they add a fenced code snippet

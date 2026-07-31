@@ -215,6 +215,10 @@ Then('the sticky links to {string}', async ({ page }, href: string) => {
   await expect(page.getByRole('link').first()).toHaveAttribute('href', href, { timeout: 15_000 });
 });
 
+Then('the pad contains the text {string}', async ({ page }, text: string) => {
+  await expect(page.getByTestId('sticky-grid')).toContainText(text, { timeout: 15_000 });
+});
+
 Then('a link preview card is shown', async ({ page }) => {
   // The server resolver scrapes OG tags; github.com has them, so a card renders.
   await expect(page.getByTestId('link-preview')).toBeVisible({ timeout: 20_000 });
