@@ -36,7 +36,11 @@ const renderRoom = (path = '/grocery-list') =>
 beforeEach(() => {
   [add.mutate, addMedia.mutate, edit.mutate, remove.mutate].forEach((m) => m.mockClear());
   useStickyMutations.mockReturnValue({ add, addMedia, edit, remove });
-  useStickyArrange.mockReturnValue({ recolor: { mutate: vi.fn() }, reorder: { mutate: vi.fn() } });
+  useStickyArrange.mockReturnValue({
+    recolor: { mutate: vi.fn() },
+    resize: { mutate: vi.fn() },
+    reorder: { mutate: vi.fn() },
+  });
 });
 
 describe('RoomPage', () => {

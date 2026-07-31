@@ -1,12 +1,10 @@
 import { useState } from 'react';
-import { IonIcon } from '@ionic/react';
-import { closeOutline, createOutline, reorderTwoOutline } from 'ionicons/icons';
 import type { StickyRecord } from '../../lib/dataClient';
 import { asStickyColor, type StickyColor } from './stickyPalette';
+import { asStickySize, type StickySize } from './stickySize';
 import { StickyBody } from './StickyBody';
 import { StickyEditor } from './StickyEditor';
-import { ColorPicker } from './ColorPicker';
-import { isEditableKind } from './isEditableKind';
+import { StickyActions } from './StickyActions';
 import { editableContent } from './editableContent';
 import { copyText } from './copyText';
 import { showToast } from '../shell/toastBus';
@@ -17,6 +15,7 @@ interface StickyCardProps {
   index: number;
   onEdit: (content: string) => void;
   onRecolor: (color: StickyColor) => void;
+  onResize: (size: StickySize) => void;
   onDelete: () => void;
   /** True while this card is the one being dragged (dims it). */
   dragging?: boolean;
@@ -25,12 +24,13 @@ interface StickyCardProps {
 }
 
 /** One note on the pad. The body is rendered by StickyBody; this shell owns the
- * card chrome, color swatches, a drag GRIP (pointer-based reorder), and the
- * inline-edit swap. `data-card-index` lets the drag hook hit-test card rects. */
+ * card chrome (StickyActions), the S/M/L size class, and the inline-edit swap.
+ * `data-card-index` lets the drag hook hit-test card rects. */
 export function StickyCard(props: StickyCardProps) {
-  const { sticky, index, onEdit, onRecolor, onDelete, dragging, onDragHandle } = props;
+  const { sticky, index, onEdit, onRecolor, onResize, onDelete, dragging, onDragHandle } = props;
   const [editing, setEditing] = useState(false);
   const color = asStickyColor(sticky.color);
+  const size = asStickySize(sticky.size);
 
   if (editing) {
     return (
@@ -60,38 +60,24 @@ export function StickyCard(props: StickyCardProps) {
 
   return (
     <div
-      className={`sticky sticky--${color}${dragging ? ' sticky--dragging' : ''}`}
+      className={`sticky sticky--${color} sticky--size-${size}${dragging ? ' sticky--dragging' : ''}`}
       data-testid="sticky"
       data-card-index={index}
+      data-size={size}
     >
       <div className="sticky__body">
         <StickyBody sticky={sticky} />
       </div>
-      <div className="sticky__actions">
-        {onDragHandle && (
-          <button
-            className="sticky__grip"
-            aria-label="Drag to reorder"
-            data-testid="sticky-grip"
-            onPointerDown={onDragHandle}
-          >
-            <IonIcon icon={reorderTwoOutline} />
-          </button>
-        )}
-        <ColorPicker current={color} onPick={onRecolor} />
-        {isEditableKind(sticky.kind) && (
-          <button
-            aria-label="Edit sticky"
-            data-testid="sticky-edit"
-            onClick={() => setEditing(true)}
-          >
-            <IonIcon icon={createOutline} />
-          </button>
-        )}
-        <button aria-label="Delete sticky" data-testid="sticky-delete" onClick={onDelete}>
-          <IonIcon icon={closeOutline} />
-        </button>
-      </div>
+      <StickyActions
+        kind={sticky.kind}
+        color={color}
+        size={size}
+        onRecolor={onRecolor}
+        onResize={onResize}
+        onEdit={() => setEditing(true)}
+        onDelete={onDelete}
+        onDragHandle={onDragHandle}
+      />
     </div>
   );
 }

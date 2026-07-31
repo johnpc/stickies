@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import type { StickyRecord } from '../../lib/dataClient';
 import type { StickyColor } from './stickyPalette';
+import type { StickySize } from './stickySize';
 import { StickyCard } from './StickyCard';
 import { StickyComposer } from './StickyComposer';
 import { MediaUploadButton } from './MediaUploadButton';
@@ -15,6 +16,7 @@ interface StickyGridProps {
   uploading?: boolean;
   onEdit: (id: string, content: string) => void;
   onRecolor: (id: string, color: StickyColor) => void;
+  onResize: (id: string, size: StickySize) => void;
   onReorder: (id: string, ord: number) => void;
   onDelete: (sticky: StickyRecord) => void;
 }
@@ -23,7 +25,8 @@ interface StickyGridProps {
  * upload tile. An insertion line renders in the GAP where a dragged sticky will
  * land. Logic lives in the room hooks + useDragReorder. */
 export function StickyGrid(props: StickyGridProps) {
-  const { stickies, onAdd, onUpload, onEdit, onRecolor, onReorder, onDelete, uploading } = props;
+  const { stickies, onAdd, onUpload, onEdit, onRecolor, onResize, onReorder, onDelete, uploading } =
+    props;
   const { gridRef, draggingId, insertIndex, startDrag } = useDragReorder(stickies, onReorder);
 
   return (
@@ -40,6 +43,7 @@ export function StickyGrid(props: StickyGridProps) {
             onDragHandle={() => startDrag(sticky.id)}
             onEdit={(content) => onEdit(sticky.id, content)}
             onRecolor={(color) => onRecolor(sticky.id, color)}
+            onResize={(size) => onResize(sticky.id, size)}
             onDelete={() => onDelete(sticky)}
           />
         </Fragment>
