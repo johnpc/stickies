@@ -27,6 +27,24 @@
   border-radius: 8px;
   background: #fff;
 }
+.media-sticky__pdf-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+/* An always-present way into the PDF — the iframe is blank on iOS, so this link
+   (which opens fine there) guarantees the PDF is reachable on every platform. */
+.media-sticky__pdf-open {
+  align-self: flex-start;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1b3a63;
+}
+.media-sticky__pdf-wrap--large iframe {
+  width: 100%;
+  height: 82vh;
+  border: none;
+}
 
 .media-sticky__download,
 .media-sticky__file {
