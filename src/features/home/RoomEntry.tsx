@@ -32,6 +32,14 @@ export function RoomEntry() {
         value={value}
         placeholder="Pick a room name…"
         aria-label="Room name"
+        // A room name is an IDENTIFIER, not prose: the URL is the only key, so two
+        // people must type the SAME thing to meet. Turn off mobile text mangling
+        // (iOS autocorrect can silently swap an unfamiliar word → wrong room) and
+        // the red spellcheck squiggle.
+        autoCorrect="off"
+        autoCapitalize="none"
+        autoComplete="off"
+        spellCheck={false}
         onChange={(e) => setValue(e.target.value)}
       />
       <button
