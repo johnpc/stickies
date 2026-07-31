@@ -4,6 +4,7 @@ import { dataClient, type StickyRecord } from '../../lib/dataClient';
 import { listStickiesByRoom } from './stickiesApi';
 import { sortStickies } from './sortStickies';
 import { roomStickiesKey } from './roomStickiesKey';
+import { subscribeWithRetry } from './subscribeWithRetry';
 
 /**
  * A room's stickies, kept LIVE. Seeds from a one-shot fetch (so isLoading/isError
@@ -22,14 +23,15 @@ export function useRoomStickies(room: string) {
 
   useEffect(() => {
     if (!room) return;
-    const sub = dataClient.models.Sticky.observeQuery({
-      filter: { room: { eq: room } },
-    }).subscribe({
-      next: ({ items }) => {
+    // Self-healing subscription: if the AppSync stream dies (network flap, token
+    // expiry, mobile backgrounding) it re-subscribes, so live sync doesn't stall
+    // silently. A fresh observeQuery re-delivers the current snapshot on reconnect.
+    return subscribeWithRetry<{ items: StickyRecord[] }>(
+      () => dataClient.models.Sticky.observeQuery({ filter: { room: { eq: room } } }),
+      ({ items }) => {
         queryClient.setQueryData<StickyRecord[]>(roomStickiesKey(room), sortStickies(items));
       },
-    });
-    return () => sub.unsubscribe();
+    );
   }, [room, queryClient]);
 
   return {

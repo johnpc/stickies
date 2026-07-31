@@ -3,6 +3,7 @@ import { dataClient, type PresenceRecord } from '../../lib/dataClient';
 import { getSessionId } from './sessionId';
 import { heartbeat, clearPresence, reapPresence } from './presenceApi';
 import { countLivePresence, reapableIds } from './presence';
+import { subscribeWithRetry } from './subscribeWithRetry';
 
 const HEARTBEAT_MS = 10_000;
 const RECOUNT_MS = 5_000;
@@ -29,17 +30,18 @@ export function usePresence(room: string): number {
     const beat = () => heartbeat(sessionId, room, new Date().toISOString()).catch(() => {});
     beat();
 
-    const sub = dataClient.models.Presence.observeQuery({
-      filter: { room: { eq: room } },
-    }).subscribe({
-      next: ({ items }) => {
+    // Self-healing subscription (see subscribeWithRetry): re-subscribes if the
+    // stream dies so the "N here" count doesn't freeze on a network flap.
+    const unsubscribe = subscribeWithRetry<{ items: PresenceRecord[] }>(
+      () => dataClient.models.Presence.observeQuery({ filter: { room: { eq: room } } }),
+      ({ items }) => {
         rowsRef.current = items;
         recount();
         // Opportunistically delete long-dead rows (crashed tabs that never
         // cleaned up) so presence rows can't grow unbounded. Best-effort.
         for (const id of reapableIds(items, Date.now())) reapPresence(id).catch(() => {});
       },
-    });
+    );
     const beatTimer = setInterval(beat, HEARTBEAT_MS);
     const recountTimer = setInterval(recount, RECOUNT_MS);
     const leave = () => clearPresence(sessionId).catch(() => {});
@@ -48,7 +50,7 @@ export function usePresence(room: string): number {
     return () => {
       clearInterval(beatTimer);
       clearInterval(recountTimer);
-      sub.unsubscribe();
+      unsubscribe();
       window.removeEventListener('pagehide', leave);
       leave();
     };
