@@ -81,4 +81,55 @@ describe('StickyEditor', () => {
     expect(onSave).not.toHaveBeenCalled();
     expect(onCancel).not.toHaveBeenCalled();
   });
+
+  it('rescues an unsaved dirty draft via onOrphan when yanked (remote delete)', () => {
+    const onOrphan = vi.fn();
+    const { unmount } = render(
+      <StickyEditor
+        color="yellow"
+        initial="old"
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+        onOrphan={onOrphan}
+      />,
+    );
+    fireEvent.change(screen.getByTestId('sticky-input'), {
+      target: { value: 'my edit in progress' },
+    });
+    // Unmount WITHOUT save/cancel — the note was deleted out from under us.
+    unmount();
+    expect(onOrphan).toHaveBeenCalledWith('my edit in progress');
+  });
+
+  it('does NOT orphan when the editor is unmounted after a normal save', () => {
+    const onOrphan = vi.fn();
+    const { unmount } = render(
+      <StickyEditor
+        color="yellow"
+        initial="old"
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+        onOrphan={onOrphan}
+      />,
+    );
+    fireEvent.change(screen.getByTestId('sticky-input'), { target: { value: 'saved text' } });
+    fireEvent.pointerDown(screen.getByTestId('sticky-save'));
+    unmount();
+    expect(onOrphan).not.toHaveBeenCalled();
+  });
+
+  it('does NOT orphan an unchanged (non-dirty) editor on unmount', () => {
+    const onOrphan = vi.fn();
+    const { unmount } = render(
+      <StickyEditor
+        color="yellow"
+        initial="unchanged"
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+        onOrphan={onOrphan}
+      />,
+    );
+    unmount();
+    expect(onOrphan).not.toHaveBeenCalled();
+  });
 });
