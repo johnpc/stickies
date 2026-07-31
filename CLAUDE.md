@@ -241,6 +241,10 @@ Significant, hard-to-reverse choices — read before re-opening a settled questi
   a belt-and-suspenders refresh.
 - **Sticky kinds: TEXT, LINK, CODE + media (IMAGE, PDF, VIDEO, FILE).** Typed content is classified by
   `classifyContent` (a ` ``` ` fence → CODE with a language hint; else `detectKind` → LINK/TEXT).
+  A CODE sticky stores its body fence-STRIPPED (+ a separate `language`), so **editing must seed the
+  editor via `editableContent` (which re-wraps the fence)** — feeding the bare body back through
+  `classifyContent` on save re-classifies it as plain TEXT and silently destroys the snippet (a real
+  bug that shipped once; the edit round-trip is unit-tested).
   Uploads are classified by `mediaKind` (MIME/ext → IMAGE/PDF/VIDEO, else generic FILE) and stored in
   S3 under `rooms/<slug>/*`, with the sticky's `content` holding the S3 path. `StickyBody` routes
   rendering by kind — CODE → `CodeSticky` (highlight.js + gutter), DOC (uploaded text/code file) →
