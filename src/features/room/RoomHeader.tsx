@@ -30,10 +30,15 @@ export function RoomHeader({ room, count }: RoomHeaderProps) {
           <IonBackButton defaultHref="/" text="" />
         </IonButtons>
         <IonTitle>
-          <span className="room-header__title" data-testid="room-title">
-            {title}
+          <span className="room-header__wrap">
+            <span className="room-header__title" data-testid="room-title">
+              {title}
+            </span>
+            <span className="room-header__count sk-muted" data-testid="room-count">
+              {' '}
+              · {count}
+            </span>
           </span>
-          <span className="room-header__count sk-muted"> · {count}</span>
         </IonTitle>
         <IonButtons slot="end">
           <PresenceBadge room={room} />
