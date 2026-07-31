@@ -206,3 +206,18 @@
   color: var(--sk-accent-strong);
   transform: none;
 }
+
+/* Respect a reduced-motion preference (vestibular safety, WCAG 2.3.3): drop the
+   card's lift-and-tilt hover and its transitions. The static state changes
+   (shadow, opacity, colour) still apply — this only removes the movement. The
+   skeleton loader has its own reduced-motion guard. */
+@media (prefers-reduced-motion: reduce) {
+  .sticky,
+  .sticky__actions,
+  .sticky__grip {
+    transition: none;
+  }
+  .sticky:hover {
+    transform: none;
+  }
+}
