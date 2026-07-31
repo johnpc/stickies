@@ -5,6 +5,7 @@ import { asStickySize, type StickySize } from './stickySize';
 import { StickyBody } from './StickyBody';
 import { StickyEditor } from './StickyEditor';
 import { StickyActions } from './StickyActions';
+import { stickyLabel } from './stickyLabel';
 import { editableContent } from './editableContent';
 import { copyText } from './copyText';
 import { showToast } from '../shell/toastBus';
@@ -68,6 +69,11 @@ export function StickyCard(props: StickyCardProps) {
       data-testid="sticky"
       data-card-index={index}
       data-size={size}
+      // A distinct, described region for assistive tech — conveys the color (a
+      // visual-only cue) and, for media/code, the kind + filename, so each note
+      // reads as its own labelled group rather than a run of undifferentiated text.
+      role="group"
+      aria-label={stickyLabel(sticky, color)}
     >
       <div className="sticky__body">
         <StickyBody sticky={sticky} />
