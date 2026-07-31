@@ -50,6 +50,9 @@ describe('RoomPage', () => {
     renderRoom();
     expect(screen.getByTestId('room-title')).toHaveTextContent('Grocery List');
     expect(screen.getByText('milk')).toBeInTheDocument();
+    // The room has a real <h1> for AT orientation (not just the toolbar title).
+    const heading = screen.getByRole('heading', { level: 1, name: 'Grocery List' });
+    expect(heading).toHaveClass('sr-only');
   });
 
   it('adds a sticky through the composer', async () => {
