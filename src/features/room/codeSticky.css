@@ -20,6 +20,11 @@
 
 .code-sticky__scroll {
   overflow-x: auto;
+  /* Cap a long snippet's height so it scrolls in-card instead of ballooning the
+     pad (matches the TEXT-sticky cap); the full snippet is one tap away via
+     Expand. The lightbox variant unsets this to show everything full-page. */
+  max-height: 320px;
+  overflow-y: auto;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.55);
 }
