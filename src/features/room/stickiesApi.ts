@@ -21,10 +21,11 @@ export async function listStickiesByRoom(room: string): Promise<StickyRecord[]> 
 }
 
 /** Add a sticky to a room and bump the room's recents row. `seq` is a MONOTONIC
- * stamp (a wall-clock time from the caller) used for both `ord` (append order)
- * and the rotating color — using it instead of a render-time count means rapid
- * concurrent adds can't collide on the same ord/color. `existingCount` only
- * feeds the recents row's display count. */
+ * stamp (a wall-clock time from the caller) used for `ord` (append order) so
+ * rapid concurrent adds can't collide on the same position. Color rotates by
+ * `existingCount` so it MATCHES the composer's preview (colorForIndex(count)) —
+ * previously colouring by `seq` meant the saved note was a different colour than
+ * the one you composed in. `existingCount` also feeds the recents display count. */
 export async function createSticky(input: {
   room: string;
   kind: StickyKind;
@@ -40,7 +41,7 @@ export async function createSticky(input: {
         kind: input.kind,
         content: input.content,
         language: input.language,
-        color: colorForIndex(input.seq),
+        color: colorForIndex(input.existingCount),
         ord: input.seq, // monotonic append; distinct per add so order is stable
       }),
     ),

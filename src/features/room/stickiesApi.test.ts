@@ -39,14 +39,17 @@ describe('listStickiesByRoom', () => {
 });
 
 describe('createSticky', () => {
-  it('creates with a seq-derived color + ord and touches the room with the new count', async () => {
+  it('colors by existingCount (matches the composer preview) and orders by seq', async () => {
     create.mockResolvedValue({ data: { id: 'new' } });
-    // seq=1 → colorForIndex(1)='pink', ord=1 (seq drives both, not the count).
-    await createSticky({ room: 'room', kind: 'TEXT', content: 'hi', seq: 1, existingCount: 1 });
+    // ord comes from seq (monotonic append); color from existingCount so it
+    // matches the composer's colorForIndex(count) preview. Distinct values here
+    // prove the color follows the count, not the seq: seq=1 would be 'pink',
+    // existingCount=2 → colorForIndex(2)='blue'.
+    await createSticky({ room: 'room', kind: 'TEXT', content: 'hi', seq: 1, existingCount: 2 });
     expect(create).toHaveBeenCalledWith(
-      expect.objectContaining({ room: 'room', kind: 'TEXT', content: 'hi', color: 'pink', ord: 1 }),
+      expect.objectContaining({ room: 'room', kind: 'TEXT', content: 'hi', color: 'blue', ord: 1 }),
     );
-    expect(touchRoom).toHaveBeenCalledWith('room', 2);
+    expect(touchRoom).toHaveBeenCalledWith('room', 3);
   });
 });
 
