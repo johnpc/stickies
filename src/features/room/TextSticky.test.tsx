@@ -26,4 +26,21 @@ describe('TextSticky', () => {
     render(<TextSticky text="   " />);
     expect(screen.queryByTestId('text-copy')).not.toBeInTheDocument();
   });
+
+  it('renders a URL embedded in a note as a safe tappable link', () => {
+    render(<TextSticky text="Standup: https://zoom.us/j/1 at 10am" />);
+    const link = screen.getByRole('link', { name: 'https://zoom.us/j/1' });
+    expect(link).toHaveAttribute('href', 'https://zoom.us/j/1');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
+    // Surrounding words are preserved as text.
+    expect(screen.getByText(/Standup:/)).toBeInTheDocument();
+    expect(screen.getByText(/at 10am/)).toBeInTheDocument();
+  });
+
+  it('does NOT render a javascript: URL in a note as a link (XSS guard)', () => {
+    render(<TextSticky text="run javascript:alert(1) now" />);
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.getByText(/javascript:alert\(1\)/)).toBeInTheDocument();
+  });
 });

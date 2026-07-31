@@ -21,6 +21,7 @@ edited.
 
 1. **Pick any URL.** Add a room name after the address, like `/grocery-list`.
 2. **Post stickies.** Jot a note or paste a link — it's saved instantly and shows up for everyone.
+   A URL anywhere in a note (even mid-sentence) becomes a safe, tappable link.
 3. **Arrange them.** Recolor from the swatch row, **resize** a note (small / medium / large) to make
    one stand out, **reorder** via the grip (drag with mouse/touch, or focus it and use the **arrow
    keys** — no mouse needed), **copy** any text/code note, and **undo** an accidental delete.
