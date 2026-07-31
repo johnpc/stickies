@@ -11,6 +11,22 @@ describe('safeHref', () => {
     expect(safeHref('example.com')).toBe('https://example.com/');
   });
 
+  it('strips wrapping + trailing punctuation a URL picks up from prose', () => {
+    // Regression: these used to become broken links like https://(https//example.com).
+    expect(safeHref('(https://example.com)')).toBe('https://example.com/');
+    expect(safeHref('[https://example.com]')).toBe('https://example.com/');
+    expect(safeHref('"https://example.com"')).toBe('https://example.com/');
+    expect(safeHref('https://example.com,')).toBe('https://example.com/');
+    expect(safeHref('https://example.com.')).toBe('https://example.com/');
+    // A dangling close-paren with no opener (the tail of "(see https://x.com/a)").
+    expect(safeHref('https://example.com/a).')).toBe('https://example.com/a');
+  });
+
+  it('keeps parentheses that are part of the URL (e.g. a Wikipedia path)', () => {
+    const wiki = 'https://en.wikipedia.org/wiki/Foo_(bar)';
+    expect(safeHref(wiki)).toBe(wiki);
+  });
+
   it('allows mailto and tel', () => {
     expect(safeHref('mailto:a@b.com')).toBe('mailto:a@b.com');
     expect(safeHref('tel:+15551234')).toBe('tel:+15551234');
