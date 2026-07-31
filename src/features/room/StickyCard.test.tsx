@@ -37,6 +37,39 @@ describe('StickyCard', () => {
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
+  it('exposes each card as a labelled group naming its color (a11y for the color cue)', () => {
+    render(
+      <StickyCard
+        sticky={make({ content: 'buy milk', color: 'green' })}
+        index={0}
+        onEdit={vi.fn()}
+        onRecolor={vi.fn()}
+        onResize={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole('group', { name: 'green note' })).toBeInTheDocument();
+  });
+
+  it('labels a media card by kind + filename (its content is an opaque S3 key)', () => {
+    render(
+      <StickyCard
+        sticky={make({
+          kind: 'IMAGE',
+          content: 'rooms/r/1-a.png',
+          fileName: 'a.png',
+          color: 'blue',
+        })}
+        index={0}
+        onEdit={vi.fn()}
+        onRecolor={vi.fn()}
+        onResize={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole('group', { name: 'blue note: image a.png' })).toBeInTheDocument();
+  });
+
   it('renders a LINK sticky as a safe anchor', () => {
     render(
       <StickyCard
