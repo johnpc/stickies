@@ -214,8 +214,13 @@ npx ampx sandbox       # personal cloud backend sandbox
   re-provisioned) are: assetlinks passthrough + the regex SPA-200 rule
   `</^[^.]+$|\.(?!(css|gif|ico|jpg|jpeg|js|png|txt|svg|woff|woff2|ttf|map|json|xml|webmanifest)$)([^.]+$)/>`
   → `/index.html` status `200`. Verify after any re-provision:
-  `curl -so/dev/null -w '%{http_code}' https://stickies.jpc.io/some-room` → 200. Set `AMPLIFY_APP_ID`
-  for `prod-config`.
+  `curl -so/dev/null -w '%{http_code}' https://stickies.jpc.io/some-room` → 200.
+- **Backend config for builds = the sandbox STACK, not an Amplify-Hosting branch.** Both `e2e-config`
+  and `prod-config` pull `amplify_outputs.json` via `ampx generate outputs --stack
+amplify-stickies-xss-sandbox-d7f764fcf6` (override the stack with `STICKIES_STACK`). `prod-config`
+  adds retry-on-`DeploymentInProgressError`. It used to use an `--app-id/--branch main` model with a
+  literal `PROD_APP_ID_PLACEHOLDER`, which hard-failed `StackDoesNotExist` and broke the iOS/Android
+  deploy workflows — don't reintroduce that.
 - **CI:** `.github/workflows/ci.yml` (quality + seed + Gherkin acceptance matrix: `home`, `room`).
   `ios-deploy.yml` / `android-deploy.yml` publish after CI on `main`. Secrets: `AWS_ACCESS_KEY_ID`,
   `AWS_SECRET_ACCESS_KEY`, `TEST_USERNAME`, `TEST_PASSWORD`, `ASC_KEY_ID`, `ASC_ISSUER_ID`,
