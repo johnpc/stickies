@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
 import { IonIcon } from '@ionic/react';
 import { checkmarkOutline } from 'ionicons/icons';
 import type { StickyColor } from './stickyPalette';
+import { useStickyEditor } from './useStickyEditor';
 import './sticky.css';
 
 interface StickyEditorProps {
@@ -25,7 +25,8 @@ interface StickyEditorProps {
  * on mobile (soft keyboards have no Shift+Enter); commit via the Save button,
  * Cmd/Ctrl+Enter, or blur (tap away). Escape cancels. A blank value cancels in
  * the composer (can't create an empty note); when editing an existing note, a
- * blank value removes it via onEmpty (an undoable delete). */
+ * blank value removes it via onEmpty (an undoable delete). Behavior lives in
+ * useStickyEditor so this stays a pure renderer. */
 export function StickyEditor({
   color,
   initial,
@@ -34,31 +35,18 @@ export function StickyEditor({
   onEmpty,
   onOrphan,
 }: StickyEditorProps) {
-  const [value, setValue] = useState(initial);
-  // Track the live draft + whether we settled (saved/cancelled) so an unmount
-  // caused by a remote delete can rescue unsaved text via onOrphan.
-  const draftRef = useRef(initial);
-  draftRef.current = value;
-  const settledRef = useRef(false);
-
-  useEffect(() => {
-    return () => {
-      const draft = draftRef.current.trim();
-      if (!settledRef.current && draft && draft !== initial.trim()) onOrphan?.(draft);
-    };
-  }, [initial, onOrphan]);
-
-  const commit = () => {
-    settledRef.current = true;
-    const trimmed = value.trim();
-    if (trimmed) onSave(trimmed);
-    else if (onEmpty) onEmpty();
-    else onCancel();
-  };
+  const { value, setValue, taRef, commit, cancel } = useStickyEditor({
+    initial,
+    onSave,
+    onCancel,
+    onEmpty,
+    onOrphan,
+  });
 
   return (
     <div className={`sticky sticky--${color}`}>
       <textarea
+        ref={taRef}
         className="sticky__input"
         data-testid="sticky-input"
         autoFocus
@@ -71,8 +59,7 @@ export function StickyEditor({
             e.preventDefault();
             commit();
           } else if (e.key === 'Escape') {
-            settledRef.current = true;
-            onCancel();
+            cancel();
           }
         }}
         onBlur={commit}
