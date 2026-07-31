@@ -57,3 +57,10 @@
   white-space: pre;
   font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
 }
+
+/* Shown when a huge snippet's preview was capped for performance. */
+.code-sticky__truncated {
+  margin: 6px 0 0;
+  font-size: 0.72rem;
+  color: var(--sk-text-muted);
+}

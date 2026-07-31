@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { highlightCode, codeLines } from './highlightCode';
+import { capCode } from './capCode';
 import 'highlight.js/styles/github.css';
 import './codeSticky.css';
 
@@ -9,13 +10,17 @@ interface CodeStickyProps {
 }
 
 /** Renders a CODE sticky's body: a language tag, a line-number gutter, and the
- * syntax-highlighted source. Pure renderer — highlighting lives in a helper. */
+ * syntax-highlighted source. Pure renderer — highlighting lives in a helper. The
+ * RENDERED source is capped (capCode) so a huge/minified snippet can't freeze
+ * every viewer's main thread via synchronous highlight.js; the full source stays
+ * available via Copy (ExpandableCode). */
 export function CodeSticky({ code, language }: CodeStickyProps) {
+  const { code: shown, truncated } = useMemo(() => capCode(code), [code]);
   const { html, language: resolved } = useMemo(
-    () => highlightCode(code, language),
-    [code, language],
+    () => highlightCode(shown, language),
+    [shown, language],
   );
-  const lines = useMemo(() => codeLines(code), [code]);
+  const lines = useMemo(() => codeLines(shown), [shown]);
 
   return (
     <div className="code-sticky" data-testid="code-sticky">
@@ -34,6 +39,11 @@ export function CodeSticky({ code, language }: CodeStickyProps) {
           <code className="hljs code-sticky__code" dangerouslySetInnerHTML={{ __html: html }} />
         </pre>
       </div>
+      {truncated && (
+        <p className="code-sticky__truncated" data-testid="code-truncated">
+          Preview truncated — use Copy for the full snippet.
+        </p>
+      )}
     </div>
   );
 }
