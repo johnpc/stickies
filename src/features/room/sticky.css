@@ -134,6 +134,15 @@
   text-decoration: underline;
   overflow-wrap: anywhere;
 }
+/* A whole-card plain-link body (LINK sticky whose rich preview failed): cap +
+   scroll a very long URL so it can't balloon the card, matching the TEXT cap.
+   NOT applied to inline .sticky__link runs inside a text note, which must flow
+   with the surrounding words. */
+.sticky__link--block {
+  display: block;
+  max-height: 320px;
+  overflow-y: auto;
+}
 
 .sticky__actions {
   display: flex;
