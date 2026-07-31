@@ -1,6 +1,8 @@
 import { useRef } from 'react';
 import { IonIcon, IonSpinner } from '@ionic/react';
 import { cloudUploadOutline } from 'ionicons/icons';
+import { uploadSizeError } from './mediaApi';
+import { showToast } from '../shell/toastBus';
 import './sticky.css';
 
 interface MediaUploadButtonProps {
@@ -44,8 +46,16 @@ export function MediaUploadButton({ onUpload, pending }: MediaUploadButtonProps)
         data-testid="sticky-file-input"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) onUpload(file);
           e.target.value = '';
+          if (!file) return;
+          // Reject an over-cap file HERE with a specific message, before it enters
+          // the upload flow (where the generic write-error toast would be shown).
+          const tooBig = uploadSizeError(file);
+          if (tooBig) {
+            showToast(tooBig);
+            return;
+          }
+          onUpload(file);
         }}
       />
     </>
