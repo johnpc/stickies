@@ -59,5 +59,36 @@ describe('Toast', () => {
       act(() => vi.advanceTimersByTime(6000));
       expect(screen.queryByTestId('app-toast')).not.toBeInTheDocument();
     });
+
+    it('does NOT auto-expire an actionable toast — Undo stays available past 6s', () => {
+      // Regression: every toast auto-advanced after 6s, so an "Undo" vanished on
+      // its own. On a world-writable pad that made an accidental delete
+      // permanently unrecoverable once the window lapsed.
+      const undo = vi.fn();
+      render(<Toast />);
+      act(() => showToast('Sticky deleted', { label: 'Undo', run: undo }));
+      // Well past the plain-toast timeout — the Undo must still be there.
+      act(() => vi.advanceTimersByTime(30_000));
+      expect(screen.getByTestId('app-toast')).toHaveTextContent('Sticky deleted');
+      expect(screen.getByTestId('app-toast-action')).toBeInTheDocument();
+      // And it still works.
+      fireEvent.click(screen.getByTestId('app-toast-action'));
+      expect(undo).toHaveBeenCalledOnce();
+      expect(screen.queryByTestId('app-toast')).not.toBeInTheDocument();
+    });
+
+    it('holds a queued toast behind an actionable one until it is dismissed', () => {
+      render(<Toast />);
+      act(() => showToast('Sticky deleted', { label: 'Undo', run: vi.fn() }));
+      act(() => showToast('Copied'));
+      // Even well past 6s, the actionable toast holds; the plain one waits.
+      act(() => vi.advanceTimersByTime(10_000));
+      expect(screen.getByTestId('app-toast')).toHaveTextContent('Sticky deleted');
+      fireEvent.click(screen.getByLabelText('Dismiss'));
+      expect(screen.getByTestId('app-toast')).toHaveTextContent('Copied');
+      // The plain one then expires normally.
+      act(() => vi.advanceTimersByTime(6000));
+      expect(screen.queryByTestId('app-toast')).not.toBeInTheDocument();
+    });
   });
 });
