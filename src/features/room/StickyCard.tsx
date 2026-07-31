@@ -8,6 +8,8 @@ import { StickyEditor } from './StickyEditor';
 import { ColorPicker } from './ColorPicker';
 import { isEditableKind } from './isEditableKind';
 import { editableContent } from './editableContent';
+import { copyText } from './copyText';
+import { showToast } from '../shell/toastBus';
 import './sticky.css';
 
 interface StickyCardProps {
@@ -45,6 +47,12 @@ export function StickyCard(props: StickyCardProps) {
           // delete toast) — same as Notes/Keep, not a silent revert.
           setEditing(false);
           onDelete();
+        }}
+        onOrphan={(draft) => {
+          // The note was deleted by someone else while we were editing it. Don't
+          // lose the typed text: stash it on the clipboard and say so.
+          void copyText(draft);
+          showToast('That note was deleted — your unsaved text was copied to the clipboard.');
         }}
       />
     );

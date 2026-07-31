@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { IonIcon } from '@ionic/react';
 import { checkmarkOutline } from 'ionicons/icons';
 import type { StickyColor } from './stickyPalette';
@@ -13,6 +13,11 @@ interface StickyEditorProps {
    * emptied note is removed (like Notes/Keep) rather than silently reverting.
    * Omitted by the composer, where a blank value just cancels (no empty note). */
   onEmpty?: () => void;
+  /** Called with the draft if the editor unmounts with UNSAVED changes and
+   * without an explicit save/cancel — i.e. it was yanked out from under the user
+   * (another viewer deleted the note being edited). Lets the caller rescue the
+   * text instead of losing it silently. */
+  onOrphan?: (draft: string) => void;
 }
 
 /** Inline editor shown in place of a sticky while editing (also reused, empty,
@@ -21,10 +26,30 @@ interface StickyEditorProps {
  * Cmd/Ctrl+Enter, or blur (tap away). Escape cancels. A blank value cancels in
  * the composer (can't create an empty note); when editing an existing note, a
  * blank value removes it via onEmpty (an undoable delete). */
-export function StickyEditor({ color, initial, onSave, onCancel, onEmpty }: StickyEditorProps) {
+export function StickyEditor({
+  color,
+  initial,
+  onSave,
+  onCancel,
+  onEmpty,
+  onOrphan,
+}: StickyEditorProps) {
   const [value, setValue] = useState(initial);
+  // Track the live draft + whether we settled (saved/cancelled) so an unmount
+  // caused by a remote delete can rescue unsaved text via onOrphan.
+  const draftRef = useRef(initial);
+  draftRef.current = value;
+  const settledRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      const draft = draftRef.current.trim();
+      if (!settledRef.current && draft && draft !== initial.trim()) onOrphan?.(draft);
+    };
+  }, [initial, onOrphan]);
 
   const commit = () => {
+    settledRef.current = true;
     const trimmed = value.trim();
     if (trimmed) onSave(trimmed);
     else if (onEmpty) onEmpty();
@@ -46,6 +71,7 @@ export function StickyEditor({ color, initial, onSave, onCancel, onEmpty }: Stic
             e.preventDefault();
             commit();
           } else if (e.key === 'Escape') {
+            settledRef.current = true;
             onCancel();
           }
         }}
