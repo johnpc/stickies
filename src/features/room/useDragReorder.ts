@@ -16,6 +16,12 @@ export function useDragReorder(
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [insertIndex, setInsertIndex] = useState<number | null>(null);
   const gridRef = useRef<HTMLDivElement | null>(null);
+  // Hold the LATEST list in a ref: the pointerup handler is registered once at
+  // drag start, so closing over `stickies` would compute the reorder against a
+  // stale snapshot if another viewer adds/removes a sticky mid-drag — while the
+  // insert index comes from the live DOM. Reading the ref keeps both current.
+  const stickiesRef = useRef(stickies);
+  stickiesRef.current = stickies;
 
   // Read the current card rectangles from the DOM (data-card-index on each card).
   const readCards = useCallback((): CardRect[] => {
@@ -43,7 +49,7 @@ export function useDragReorder(
         window.removeEventListener('pointerup', up);
         setInsertIndex((idx) => {
           if (idx != null) {
-            const change = computeReorder(stickies, id, idx);
+            const change = computeReorder(stickiesRef.current, id, idx);
             if (change) onReorder(change.id, change.ord);
           }
           return null;
@@ -53,7 +59,7 @@ export function useDragReorder(
       window.addEventListener('pointermove', move);
       window.addEventListener('pointerup', up);
     },
-    [readCards, stickies, onReorder],
+    [readCards, onReorder],
   );
 
   return { gridRef, draggingId, insertIndex, startDrag };
