@@ -19,7 +19,7 @@ const MAX_SLUG_LENGTH = 60;
  * symbols, and emoji are dropped. Two people typing the same name still converge.
  */
 export function normalizeRoomSlug(raw: string): string {
-  return raw
+  const cleaned = raw
     .normalize('NFKD') // split accented letters into base + combining mark…
     .replace(/[̀-ͯ]/g, '') // …then drop the marks (Café → Cafe)
     .toLowerCase()
@@ -27,9 +27,12 @@ export function normalizeRoomSlug(raw: string): string {
     .replace(/[\s_]+/g, '-')
     .replace(/[^\p{L}\p{N}-]+/gu, '') // keep any-script letters/digits + hyphen; drop the rest
     .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, MAX_SLUG_LENGTH)
-    .replace(/-$/, '');
+    .replace(/^-|-$/g, '');
+  // Cap by CODE POINTS, not UTF-16 units: a plain .slice() can bisect a surrogate
+  // pair (an astral letter like a rare CJK ideograph), leaving a lone surrogate —
+  // which makes the slug non-idempotent AND makes encodeURIComponent throw, so
+  // the URL can't be built or round-tripped. Spreading iterates code points.
+  return [...cleaned].slice(0, MAX_SLUG_LENGTH).join('').replace(/-$/, '');
 }
 
 /** A human-friendly title for a slug — "grocery-list" → "Grocery List". */
