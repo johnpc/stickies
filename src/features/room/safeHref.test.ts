@@ -16,6 +16,18 @@ describe('safeHref', () => {
     expect(safeHref('tel:+15551234')).toBe('tel:+15551234');
   });
 
+  it('turns a bare email into a mailto link (not a broken https link)', () => {
+    // Regression: "alex@example.com" used to become "https://alex@example.com/"
+    // (navigates to example.com with the local part as basic-auth userinfo).
+    expect(safeHref('alex@example.com')).toBe('mailto:alex@example.com');
+    expect(safeHref('  a.b@sub.example.co.uk ')).toBe('mailto:a.b@sub.example.co.uk');
+  });
+
+  it('does not treat a bare word or a spaced value as an email', () => {
+    expect(safeHref('not an email @ x')).toBeNull();
+    expect(safeHref('@handle')).toBeNull();
+  });
+
   it('rejects javascript:, data:, and vbscript: URLs (XSS guard)', () => {
     expect(safeHref('javascript:alert(1)')).toBeNull();
     expect(safeHref('data:text/html,<script>1</script>')).toBeNull();

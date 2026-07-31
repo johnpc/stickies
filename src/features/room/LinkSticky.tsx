@@ -18,7 +18,9 @@ function hasCardText(p: LinkPreview): boolean {
  * back to the plain link, honoring the "fails soft" promise. */
 export function LinkSticky({ url }: { url: string }) {
   const href = safeHref(url);
-  const { preview } = useLinkPreview(url, !!href);
+  // Only http(s) links have an OG preview to scrape — skip it for mailto:/tel:.
+  const isWeb = !!href && /^https?:/.test(href);
+  const { preview } = useLinkPreview(url, isWeb);
   const [imgFailed, setImgFailed] = useState(false);
   // Re-arm the image if the sticky's URL changes (edited to a different link).
   useEffect(() => setImgFailed(false), [url]);
