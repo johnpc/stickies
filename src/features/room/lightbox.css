@@ -73,3 +73,8 @@
   width: 100%;
   align-self: stretch;
 }
+/* Expand = full-page: undo the in-card height cap so the whole snippet shows
+   (the lightbox panel itself scrolls). */
+.lightbox__content .code-sticky__scroll {
+  max-height: none;
+}
