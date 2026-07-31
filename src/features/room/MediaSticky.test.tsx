@@ -2,8 +2,12 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StickyRecord } from '../../lib/dataClient';
 
-const { useMediaUrl } = vi.hoisted(() => ({ useMediaUrl: vi.fn() }));
+const { useMediaUrl, downloadFile } = vi.hoisted(() => ({
+  useMediaUrl: vi.fn(),
+  downloadFile: vi.fn(),
+}));
 vi.mock('./useMediaUrl', () => ({ useMediaUrl }));
+vi.mock('./downloadFile', () => ({ downloadFile }));
 
 import { MediaSticky } from './MediaSticky';
 
@@ -24,7 +28,8 @@ describe('MediaSticky', () => {
   it('renders an <img> for image stickies, with download + expand', () => {
     render(<MediaSticky sticky={make({ fileName: 'a.png', mimeType: 'image/png' })} />);
     expect(screen.getByTestId('media-image')).toHaveAttribute('src', 'https://s3.example/x');
-    expect(screen.getByTestId('media-download')).toHaveAttribute('download', 'a.png');
+    fireEvent.click(screen.getByTestId('media-download'));
+    expect(downloadFile).toHaveBeenCalledWith('https://s3.example/x', 'a.png');
     expect(screen.getByTestId('media-expand')).toBeInTheDocument();
   });
 
@@ -59,9 +64,10 @@ describe('MediaSticky', () => {
         sticky={make({ kind: 'FILE', fileName: 'a.zip', mimeType: 'application/zip' })}
       />,
     );
-    const link = screen.getByTestId('media-file');
-    expect(link).toHaveAttribute('href', 'https://s3.example/x');
-    expect(link).toHaveTextContent('a.zip');
+    const card = screen.getByTestId('media-file');
+    expect(card).toHaveTextContent('a.zip');
+    fireEvent.click(card);
+    expect(downloadFile).toHaveBeenCalledWith('https://s3.example/x', 'a.zip');
   });
 
   it('shows a friendly error when the URL fails to resolve', () => {

@@ -1,5 +1,6 @@
 import { IonIcon } from '@ionic/react';
 import { downloadOutline, expandOutline } from 'ionicons/icons';
+import { downloadFile } from './downloadFile';
 import './mediaSticky.css';
 
 interface MediaActionsProps {
@@ -9,9 +10,10 @@ interface MediaActionsProps {
   onExpand?: () => void;
 }
 
-/** The action row under a media preview: expand (optional) + download. Every
- * media kind gets a download link (the browser saves via the `download` attr);
- * previewable kinds also get an expand button. */
+/** The action row under a media preview: expand (optional) + download.
+ * Download fetches the (cross-origin S3) bytes and saves them under the original
+ * filename — a plain `<a download>` would be ignored cross-origin and just open
+ * the file inline. Previewable kinds also get an expand button. */
 export function MediaActions({ url, fileName, onExpand }: MediaActionsProps) {
   return (
     <div className="media-actions">
@@ -20,15 +22,13 @@ export function MediaActions({ url, fileName, onExpand }: MediaActionsProps) {
           <IonIcon icon={expandOutline} /> Expand
         </button>
       )}
-      <a
-        href={url}
-        download={fileName}
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        type="button"
         data-testid="media-download"
+        onClick={() => downloadFile(url, fileName)}
       >
         <IonIcon icon={downloadOutline} /> Download
-      </a>
+      </button>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { docLanguage } from './docLanguage';
 import { CodeSticky } from './CodeSticky';
 import { Lightbox } from './Lightbox';
 import { useCopyAction } from './useCopyAction';
+import { downloadFile } from './downloadFile';
 import './mediaSticky.css';
 
 /** A DOC sticky: an uploaded text/code file shown as a highlighted preview (first
@@ -43,9 +44,9 @@ export function DocSticky({ sticky }: { sticky: StickyRecord }) {
           <IonIcon icon={copyOutline} /> Copy
         </button>
         {url && (
-          <a href={url} target="_blank" rel="noopener noreferrer" download={name}>
+          <button data-testid="doc-download" onClick={() => downloadFile(url, name)}>
             <IonIcon icon={downloadOutline} /> Download
-          </a>
+          </button>
         )}
       </div>
       {expanded && (
