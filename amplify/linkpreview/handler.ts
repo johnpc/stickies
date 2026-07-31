@@ -10,6 +10,8 @@ import { parseOpenGraph, type LinkPreviewData } from './parseOpenGraph';
 
 const EMPTY: LinkPreviewData = { title: null, description: null, image: null, siteName: null };
 const MAX_BYTES = 200_000;
+const MAX_REDIRECTS = 5;
+const HEADERS = { 'user-agent': 'StickiesLinkPreview/1.0', accept: 'text/html' };
 
 /** Resolve a possibly-relative image URL against the page URL. */
 function absolutize(image: string | null, base: string): string | null {
@@ -21,24 +23,46 @@ function absolutize(image: string | null, base: string): string | null {
   }
 }
 
+/**
+ * Fetch following redirects MANUALLY, re-running the SSRF guard on every hop.
+ * `redirect: 'follow'` would let a public URL 302 to an internal host that
+ * safeFetchUrl never sees (classic SSRF-via-redirect bypass), so each Location is
+ * re-validated (resolved relative to the current URL). Returns the response + its
+ * final URL, or null if any hop is refused / too many redirects.
+ */
+async function safeFetch(
+  start: string,
+  signal: AbortSignal,
+): Promise<{ res: Response; url: string } | null> {
+  let current = start;
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    const res = await fetch(current, { redirect: 'manual', signal, headers: HEADERS });
+    if (res.status < 300 || res.status >= 400) return { res, url: current };
+    const location = res.headers.get('location');
+    if (!location) return { res, url: current };
+    const next = safeFetchUrl(new URL(location, current).toString());
+    if (!next) return null;
+    current = next;
+  }
+  return null;
+}
+
 export const handler: Schema['linkPreview']['functionHandler'] = async (event) => {
   const safe = safeFetchUrl(event.arguments.url);
   if (!safe) return EMPTY;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch(safe, {
-      redirect: 'follow',
-      signal: controller.signal,
-      headers: { 'user-agent': 'StickiesLinkPreview/1.0', accept: 'text/html' },
-    });
-    clearTimeout(timer);
-    const type = res.headers.get('content-type') ?? '';
-    if (!res.ok || !type.includes('text/html')) return EMPTY;
-    const html = (await res.text()).slice(0, MAX_BYTES);
+    const hit = await safeFetch(safe, controller.signal);
+    if (!hit) return EMPTY;
+    const type = hit.res.headers.get('content-type') ?? '';
+    if (!hit.res.ok || !type.includes('text/html')) return EMPTY;
+    const html = (await hit.res.text()).slice(0, MAX_BYTES);
     const data = parseOpenGraph(html);
-    return { ...data, image: absolutize(data.image, safe) };
+    return { ...data, image: absolutize(data.image, hit.url) };
   } catch {
     return EMPTY;
+  } finally {
+    clearTimeout(timer);
   }
 };
