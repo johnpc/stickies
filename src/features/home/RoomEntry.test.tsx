@@ -41,4 +41,15 @@ describe('RoomEntry', () => {
     fireEvent.submit(screen.getByTestId('room-entry'));
     expect(screen.getByTestId('path')).toHaveTextContent('/');
   });
+
+  it('disables mobile text mangling so a typed room name is not silently changed', () => {
+    renderEntry();
+    const input = screen.getByTestId('room-entry-input');
+    // The room name is the URL key — autocorrect/autocapitalize would break
+    // "two people typing the same name meet in the same room".
+    expect(input).toHaveAttribute('autocorrect', 'off');
+    expect(input).toHaveAttribute('autocapitalize', 'none');
+    expect(input).toHaveAttribute('autocomplete', 'off');
+    expect(input).toHaveAttribute('spellcheck', 'false');
+  });
 });
