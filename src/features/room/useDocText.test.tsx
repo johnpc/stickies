@@ -36,4 +36,22 @@ describe('useDocText', () => {
     const { result } = renderHook(() => useDocText('rooms/r/1-a.txt'), { wrapper });
     await waitFor(() => expect(result.current.isError).toBe(true));
   });
+
+  it('errors out instead of hanging forever when the fetch never settles', async () => {
+    vi.useFakeTimers();
+    try {
+      resolveMediaUrl.mockResolvedValue('https://s3.example/doc');
+      // A fetch that never resolves (a stalled S3 GET).
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(() => new Promise(() => {})),
+      );
+      const { result } = renderHook(() => useDocText('rooms/r/1-a.txt'), { wrapper });
+      // Let the query start + resolveMediaUrl settle, then blow past the 15s timeout.
+      await vi.advanceTimersByTimeAsync(16_000);
+      await vi.waitFor(() => expect(result.current.isError).toBe(true));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
