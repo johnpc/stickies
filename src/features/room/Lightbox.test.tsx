@@ -66,4 +66,33 @@ describe('Lightbox', () => {
     unmount();
     expect(document.body.style.overflow).toBe('');
   });
+
+  it('traps Tab within the dialog (wraps last→first)', () => {
+    render(
+      <Lightbox onClose={vi.fn()}>
+        <button>action</button>
+      </Lightbox>,
+    );
+    // Focusables: the close button (first) + the child <button> (last).
+    const close = screen.getByTestId('lightbox-close');
+    const action = screen.getByText('action');
+    action.focus();
+    expect(document.activeElement).toBe(action);
+    // Tab on the LAST element wraps to the first (close), not out to the page.
+    fireEvent.keyDown(document, { key: 'Tab' });
+    expect(document.activeElement).toBe(close);
+  });
+
+  it('traps Shift+Tab within the dialog (wraps first→last)', () => {
+    render(
+      <Lightbox onClose={vi.fn()}>
+        <button>action</button>
+      </Lightbox>,
+    );
+    const close = screen.getByTestId('lightbox-close'); // first, focused on open
+    const action = screen.getByText('action'); // last
+    expect(document.activeElement).toBe(close);
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(action);
+  });
 });
