@@ -36,6 +36,7 @@ export function StickyCard(props: StickyCardProps) {
     return (
       <StickyEditor
         color={color}
+        size={size}
         initial={editableContent(sticky)}
         onCancel={() => setEditing(false)}
         onSave={(content) => {

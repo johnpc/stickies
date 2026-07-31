@@ -1,12 +1,17 @@
 import { IonIcon } from '@ionic/react';
 import { checkmarkOutline } from 'ionicons/icons';
 import type { StickyColor } from './stickyPalette';
+import type { StickySize } from './stickySize';
 import { useStickyEditor } from './useStickyEditor';
 import './sticky.css';
 
 interface StickyEditorProps {
   color: StickyColor;
   initial: string;
+  /** The note's size, so the editor keeps the card's footprint while editing —
+   * a Large/Small note must not collapse to Medium and reflow the pad. Defaults
+   * to Medium; the composer omits it (a new note is Medium). */
+  size?: StickySize;
   onSave: (content: string) => void;
   onCancel: () => void;
   /** Edit mode only: called when an EXISTING note is cleared to blank, so the
@@ -30,6 +35,7 @@ interface StickyEditorProps {
 export function StickyEditor({
   color,
   initial,
+  size = 'M',
   onSave,
   onCancel,
   onEmpty,
@@ -44,7 +50,7 @@ export function StickyEditor({
   });
 
   return (
-    <div className={`sticky sticky--${color}`}>
+    <div className={`sticky sticky--${color} sticky--size-${size}`}>
       <textarea
         ref={taRef}
         className="sticky__input"

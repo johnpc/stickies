@@ -175,6 +175,23 @@ describe('StickyCard', () => {
     expect(onResize).toHaveBeenCalledWith('L');
   });
 
+  it('keeps the size class while editing so a large note does not collapse', () => {
+    const { container } = render(
+      <StickyCard
+        sticky={make({ size: 'L', content: 'big note' })}
+        index={0}
+        onEdit={vi.fn()}
+        onRecolor={vi.fn()}
+        onResize={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('sticky-edit'));
+    // The editor swap must carry the size so the card footprint stays put.
+    expect(container.querySelector('.sticky')).toHaveClass('sticky--size-L');
+    expect(screen.getByTestId('sticky-input')).toBeInTheDocument();
+  });
+
   it('applies the stored size class so a large note is visually prominent', () => {
     render(
       <StickyCard
