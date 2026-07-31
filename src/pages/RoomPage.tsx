@@ -1,9 +1,10 @@
 import { useParams } from 'react-router-dom';
 import { IonContent, IonPage } from '@ionic/react';
-import { normalizeRoomSlug } from '../features/room/roomSlug';
+import { normalizeRoomSlug, prettifyRoomSlug } from '../features/room/roomSlug';
 import { useRoomStickies } from '../features/room/useRoomStickies';
 import { useStickyMutations } from '../features/room/useStickyMutations';
 import { useStickyArrange } from '../features/room/useStickyArrange';
+import { useDocumentTitle, DEFAULT_TITLE } from '../features/shell/useDocumentTitle';
 import { LoadState } from '../features/shell/LoadState';
 import { RoomHeader } from '../features/room/RoomHeader';
 import { StickyGrid } from '../features/room/StickyGrid';
@@ -21,6 +22,10 @@ export function RoomPage() {
   const { stickies, isLoading, isError, refetch } = useRoomStickies(room);
   const { add, addMedia, edit, remove } = useStickyMutations(room, stickies.length);
   const { recolor, reorder } = useStickyArrange(room, stickies.length);
+  // Distinguish this room in the tab / history / bookmarks (all rooms otherwise
+  // shared the static index.html title). Falls back to the default for an
+  // invalid slug — call it unconditionally to respect the rules of hooks.
+  useDocumentTitle(room ? `${prettifyRoomSlug(room)} · Stickies` : DEFAULT_TITLE);
 
   if (!room) return <InvalidRoom />;
 
