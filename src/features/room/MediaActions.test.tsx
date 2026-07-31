@@ -1,13 +1,16 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+
+const { downloadFile } = vi.hoisted(() => ({ downloadFile: vi.fn() }));
+vi.mock('./downloadFile', () => ({ downloadFile }));
+
 import { MediaActions } from './MediaActions';
 
 describe('MediaActions', () => {
-  it('always renders a download link with the filename', () => {
+  it('downloads the file under its name (fetch-to-blob, not a cross-origin anchor)', () => {
     render(<MediaActions url="https://s3/x" fileName="pic.png" />);
-    const dl = screen.getByTestId('media-download');
-    expect(dl).toHaveAttribute('href', 'https://s3/x');
-    expect(dl).toHaveAttribute('download', 'pic.png');
+    fireEvent.click(screen.getByTestId('media-download'));
+    expect(downloadFile).toHaveBeenCalledWith('https://s3/x', 'pic.png');
   });
 
   it('shows expand only when onExpand is given', () => {

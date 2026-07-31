@@ -7,6 +7,7 @@ import { useMediaUrl } from './useMediaUrl';
 import { mediaPreview } from './mediaPreview';
 import { MediaActions } from './MediaActions';
 import { Lightbox } from './Lightbox';
+import { downloadFile } from './downloadFile';
 import './mediaSticky.css';
 
 /** Renders a media sticky from its S3 key: an inline preview for image/PDF/video
@@ -27,17 +28,15 @@ export function MediaSticky({ sticky }: { sticky: StickyRecord }) {
   // Opaque files: a plain download card, no preview/expand.
   if (kind === 'FILE') {
     return (
-      <a
+      <button
+        type="button"
         className="media-sticky__file"
-        href={url}
-        download={name}
-        target="_blank"
-        rel="noopener noreferrer"
+        onClick={() => downloadFile(url, name)}
         data-testid="media-file"
       >
         <IonIcon icon={downloadOutline} aria-hidden="true" />
         <span className="media-sticky__filename">{name}</span>
-      </a>
+      </button>
     );
   }
 
