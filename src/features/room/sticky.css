@@ -63,6 +63,14 @@
   font-size: 1.3rem;
   line-height: 1.4;
 }
+/* A Large media sticky should actually show its image/video bigger — otherwise
+   the media stays capped at its small-tile height (220px) while the 2×2 card
+   grows, leaving the bottom half empty. Raise the cap so the media fills the
+   taller tile (object-fit still preserves aspect ratio, no distortion). */
+.sticky--size-L .media-sticky__image,
+.sticky--size-L .media-sticky__video {
+  max-height: 420px;
+}
 
 /* Drag grip handle (touch + mouse). touch-action:none so a touch-drag doesn't
    scroll the page instead of reordering. */
