@@ -14,6 +14,9 @@ describe('LinkSticky', () => {
     const link = screen.getByRole('link');
     expect(link).toHaveAttribute('href', 'https://example.com/');
     expect(screen.queryByTestId('link-preview')).not.toBeInTheDocument();
+    // The whole-card fallback link carries the block variant, so a very long URL
+    // is height-capped + scrolls (like TEXT) instead of ballooning the card.
+    expect(link).toHaveClass('sticky__link--block');
   });
 
   it('renders a bare email as a mailto link (not a broken https link)', () => {

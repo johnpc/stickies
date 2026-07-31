@@ -56,7 +56,13 @@ export function LinkSticky({ url }: { url: string }) {
   }
 
   return (
-    <a className="sticky__link" href={href} target="_blank" rel="noopener noreferrer">
+    <a
+      className="sticky__link sticky__link--block"
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      data-testid="link-plain"
+    >
       {url}
     </a>
   );
