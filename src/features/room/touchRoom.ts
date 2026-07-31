@@ -52,6 +52,15 @@ export async function touchRoom(
 
 async function upsertRoom(slug: string, count: number, now: string): Promise<void> {
   const existing = unwrap(await dataClient.models.Room.get({ id: slug }));
+  // An emptied room: DELETE its recents row rather than leaving a stickyCount:0
+  // row. A zero-count row is filtered from the feed, but it still bumped to the
+  // TOP of the lastEditedAt GSI on the delete — so a churn of emptied rooms
+  // crowds the fixed over-fetch window (listRecentRooms) and the feed under-fills
+  // (shows fewer rooms than exist), while dead rows accumulate unbounded.
+  if (count <= 0) {
+    if (existing) unwrap(await dataClient.models.Room.delete({ id: slug }));
+    return;
+  }
   if (existing) {
     unwrap(
       await dataClient.models.Room.update({ id: slug, lastEditedAt: now, stickyCount: count }),
