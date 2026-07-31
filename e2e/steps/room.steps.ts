@@ -26,7 +26,7 @@ When('they edit the first sticky to {string}', async ({ page }, content: string)
   await page.getByTestId('sticky').first().getByTestId('sticky-edit').click();
   const input = page.getByTestId('sticky-input');
   await input.fill(content);
-  await input.press('Enter');
+  await input.press('ControlOrMeta+Enter');
 });
 
 Then('the first sticky is a clickable link', async ({ page }) => {
@@ -100,7 +100,7 @@ When('they add a fenced code snippet', async ({ page }) => {
   const code = "```js\nconst greeting = 'hi';\nconsole.log(greeting);\n```";
   await page.getByTestId('sticky-add').click();
   await page.getByTestId('sticky-input').fill(code);
-  await page.getByTestId('sticky-input').press('Enter');
+  await page.getByTestId('sticky-input').press('ControlOrMeta+Enter');
   await expect(page.getByTestId('code-sticky')).toBeVisible({ timeout: 15_000 });
 });
 
@@ -117,7 +117,7 @@ Then('a code sticky is shown with line numbers', async ({ page }) => {
 When('they add a sticky that says {string}', async ({ page }, content: string) => {
   await page.getByTestId('sticky-add').click();
   await page.getByTestId('sticky-input').fill(content);
-  await page.getByTestId('sticky-input').press('Enter');
+  await page.getByTestId('sticky-input').press('ControlOrMeta+Enter');
   // Wait for the note to render (the create round-trip landed) before any step
   // navigates away — leaving too early cancels the follow-up recents-row write.
   await expect(page.getByText(content, { exact: true })).toBeVisible({ timeout: 15_000 });
@@ -140,7 +140,7 @@ When('they add three stickies {string} {string} {string}', async ({ page }, a, b
   for (const t of [a, b, c]) {
     await page.getByTestId('sticky-add').click();
     await page.getByTestId('sticky-input').fill(t);
-    await page.getByTestId('sticky-input').press('Enter');
+    await page.getByTestId('sticky-input').press('ControlOrMeta+Enter');
     await expect(page.getByText(t, { exact: true })).toBeVisible({ timeout: 15_000 });
   }
 });

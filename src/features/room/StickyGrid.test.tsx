@@ -44,7 +44,7 @@ describe('StickyGrid', () => {
     fireEvent.click(screen.getAllByTestId('sticky-edit')[0]);
     const input = screen.getByTestId('sticky-input');
     fireEvent.change(input, { target: { value: 'edited' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.pointerDown(screen.getByTestId('sticky-save'));
     expect(onEdit).toHaveBeenCalledWith('1', 'edited');
   });
 });

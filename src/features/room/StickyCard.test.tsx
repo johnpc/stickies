@@ -77,7 +77,7 @@ describe('StickyCard', () => {
     fireEvent.click(screen.getByTestId('sticky-edit'));
     const input = screen.getByTestId('sticky-input');
     fireEvent.change(input, { target: { value: 'new' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.pointerDown(screen.getByTestId('sticky-save'));
     expect(onEdit).toHaveBeenCalledWith('new');
   });
 
@@ -96,7 +96,7 @@ describe('StickyCard', () => {
     fireEvent.click(screen.getByTestId('sticky-edit'));
     const input = screen.getByTestId('sticky-input');
     fireEvent.change(input, { target: { value: '   ' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.pointerDown(screen.getByTestId('sticky-save'));
     expect(onDelete).toHaveBeenCalledOnce();
     expect(onEdit).not.toHaveBeenCalled();
   });
@@ -117,7 +117,7 @@ describe('StickyCard', () => {
     // The editor shows the RECONSTRUCTED fence, not the bare stripped body — so
     // saving unchanged re-classifies back to CODE (the regression this guards).
     expect(input.value).toBe('```ts\nconst a = 1;\n```');
-    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.pointerDown(screen.getByTestId('sticky-save'));
     expect(onEdit).toHaveBeenCalledWith('```ts\nconst a = 1;\n```');
   });
 

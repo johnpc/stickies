@@ -232,6 +232,12 @@ Significant, hard-to-reverse choices — read before re-opening a settled questi
 
 - **Guest-only, URL-as-key.** No account to open/read/edit a room; the room URL is the only access
   control. Chosen for zero-friction quick sharing. Revisit only if private/locked rooms are wanted.
+- **Editor commit: Enter = newline, not save.** `StickyEditor` treats Enter as a literal newline so
+  multi-line notes work on mobile (soft keyboards have no Shift+Enter — Enter-to-save shipped once and
+  made multi-line notes impossible on the primary platform). Commit paths: the **Save** button
+  (`sticky-save`, fires on `onPointerDown` so it beats the textarea blur), **Cmd/Ctrl+Enter**, and
+  **blur**. e2e steps commit via `press('ControlOrMeta+Enter')`. Escape cancels; blank commit
+  cancels (composer) or deletes (edit, via `onEmpty`).
 - **A room is not an entity.** Rooms aren't pre-created; the `Room` model is only a recents INDEX
   (lazily upserted on write), never a gate. Stickies work in any room whether or not a Room row exists.
 - **Recents via a constant-partition GSI.** Every `Room` shares `listKey="ALL"` so "most recently
