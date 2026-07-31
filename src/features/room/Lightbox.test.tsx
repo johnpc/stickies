@@ -12,6 +12,25 @@ describe('Lightbox', () => {
     expect(screen.getByTestId('lightbox')).toHaveTextContent('photo.png');
   });
 
+  it('names the dialog via aria-labelledby → its title', () => {
+    render(
+      <Lightbox title="photo.png" onClose={vi.fn()}>
+        <img alt="x" />
+      </Lightbox>,
+    );
+    // getByRole('dialog', { name }) resolves the accessible name via labelledby.
+    expect(screen.getByRole('dialog', { name: 'photo.png' })).toBeInTheDocument();
+  });
+
+  it('falls back to a generic aria-label when there is no title', () => {
+    render(
+      <Lightbox onClose={vi.fn()}>
+        <div />
+      </Lightbox>,
+    );
+    expect(screen.getByRole('dialog', { name: 'Preview' })).toBeInTheDocument();
+  });
+
   it('closes on the ✕ button', () => {
     const onClose = vi.fn();
     render(
