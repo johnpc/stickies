@@ -1,15 +1,23 @@
 import { useQuery } from '@tanstack/react-query';
 import { resolveMediaUrl } from './mediaApi';
 
+/** How often to re-sign a media URL. S3 signs ours for ~15m; refresh well before
+ * that so a sticky left open on a shared pad never rots into a broken 403. */
+const REFRESH_MS = 10 * 60 * 1000;
+
 /** Resolves a media sticky's S3 key to a signed URL for preview/download.
- * Cached by key; signed URLs are short-lived so we let them refetch on staleness
- * rather than pinning forever. */
+ * Cached by key. Signed URLs EXPIRE (~15m), and staleTime alone doesn't refetch
+ * without a trigger (window focus is off app-wide) — so a pad left open would
+ * show broken images after expiry. A background refetchInterval re-signs the URL
+ * on a timer (and keeps running in the background) so the preview stays live. */
 export function useMediaUrl(key: string) {
   const query = useQuery({
     queryKey: ['media-url', key],
     queryFn: () => resolveMediaUrl(key),
     enabled: !!key,
-    staleTime: 5 * 60 * 1000, // signed URLs last ~15m; refetch well before expiry
+    staleTime: REFRESH_MS,
+    refetchInterval: REFRESH_MS,
+    refetchIntervalInBackground: true,
   });
   return { url: query.data, isLoading: query.isLoading, isError: query.isError };
 }
