@@ -42,6 +42,20 @@ describe('normalizeRoomSlug', () => {
     const capped = normalizeRoomSlug(`${'a'.repeat(59)} bcd`);
     expect(capped.endsWith('-')).toBe(false);
   });
+
+  it('caps by CODE POINTS without bisecting a surrogate pair', () => {
+    // Regression: a plain .slice(0,60) on a string of astral letters (e.g. a rare
+    // CJK ideograph, one surrogate PAIR each) could cut a pair in half, leaving a
+    // lone high surrogate. That made the slug non-idempotent AND made
+    // encodeURIComponent throw, so the room URL couldn't be built or round-trip.
+    const slug = normalizeRoomSlug('\u{20000}'.repeat(70));
+    expect([...slug]).toHaveLength(60); // 60 code points, not units
+    const last = slug.charCodeAt(slug.length - 1);
+    expect(last < 0xd800 || last > 0xdbff).toBe(true); // not a lone high surrogate
+    // The two properties the bug broke:
+    expect(normalizeRoomSlug(slug)).toBe(slug); // idempotent
+    expect(() => encodeURIComponent(slug)).not.toThrow(); // URL-safe
+  });
 });
 
 describe('prettifyRoomSlug', () => {
