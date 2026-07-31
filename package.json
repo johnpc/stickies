@@ -11,6 +11,7 @@
     "prod-config": "node scripts/prod-config.mjs",
     "e2e-config": "ampx generate outputs --stack amplify-stickies-xss-sandbox-d7f764fcf6 --profile personal",
     "gen:icons": "node scripts/gen-app-icons.mjs",
+    "gen:og": "node scripts/gen-og-image.mjs",
     "seed": "tsx amplify/seed/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",

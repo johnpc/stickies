@@ -30,6 +30,34 @@ describe('social meta (index.html)', () => {
     expect(tw('twitter:image')).toMatch(/^https:\/\/stickies\.jpc\.io\/.+\.png$/);
   });
 
+  it('declares the OG image type + 1.91:1 dimensions so crawlers render the card', () => {
+    expect(og('og:image:type')).toBe('image/png');
+    expect(Number(og('og:image:width'))).toBe(1200);
+    expect(Number(og('og:image:height'))).toBe(630);
+    expect(og('og:image:alt')).toMatch(/stickies/i);
+  });
+
+  it('ships og-image.png as a REAL PNG at the declared 1200×630 (not a mislabeled JPEG)', () => {
+    // Regression: og-image.png was JPEG bytes at 3:1 served as image/png, so
+    // stricter unfurlers dropped it and others cropped it. Read the actual file's
+    // header + IHDR dimensions and assert they match the declared meta.
+    const png = readFileSync(path.resolve(process.cwd(), 'public/og-image.png'));
+    expect([...png.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    // IHDR width/height are big-endian uint32 at byte offsets 16 and 20.
+    expect(png.readUInt32BE(16)).toBe(Number(og('og:image:width')));
+    expect(png.readUInt32BE(20)).toBe(Number(og('og:image:height')));
+  });
+
+  it('uses a translucent iOS status bar so an installed light app has no black band', () => {
+    // `black` painted a solid band above the cream toolbar; translucent lets the
+    // app background show through the safe-area padding.
+    expect(
+      doc
+        .querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')
+        ?.getAttribute('content'),
+    ).toBe('black-translucent');
+  });
+
   it('links an apple-touch-icon so iOS Add-to-Home-Screen uses the app icon', () => {
     // Without this, iOS falls back to a page screenshot for the home-screen icon.
     const icon = doc.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href');
