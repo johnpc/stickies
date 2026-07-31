@@ -1,7 +1,20 @@
+/* Name + count share the title as a flex row: only the NAME ellipsizes; the
+   count is flex-shrink:0 so a long room name can't clip the always-meant-to-be-
+   visible sticky count off-screen (IonTitle's default nowrap+ellipsis did). */
+.room-header__wrap {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+}
 .room-header__title {
   font-weight: 800;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .room-header__count {
+  flex-shrink: 0;
   font-weight: 600;
   font-size: 0.9em;
 }
