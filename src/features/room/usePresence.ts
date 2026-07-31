@@ -27,7 +27,16 @@ export function usePresence(room: string): number {
     // Never drop below 1 while mounted — the live rows may briefly exclude our
     // own just-created row before the subscription catches up.
     const recount = () => setCount(Math.max(1, countLivePresence(rowsRef.current, Date.now())));
-    const beat = () => heartbeat(sessionId, room, new Date().toISOString()).catch(() => {});
+    // Track the in-flight heartbeat so leave() can wait for it. The mount beat is
+    // a get→create (two round-trips); the leave delete is one. Fired independently,
+    // a fast open-then-leave lets the delete resolve BEFORE the create it's meant
+    // to undo — leaving a phantom row that everyone else counts as "here" for up
+    // to the 30s TTL. Chaining leave after this promise guarantees delete-after-create.
+    let beating: Promise<unknown> = Promise.resolve();
+    const beat = () => {
+      beating = heartbeat(sessionId, room, new Date().toISOString()).catch(() => {});
+      return beating;
+    };
     beat();
 
     // Self-healing subscription (see subscribeWithRetry): re-subscribes if the
@@ -44,7 +53,9 @@ export function usePresence(room: string): number {
     );
     const beatTimer = setInterval(beat, HEARTBEAT_MS);
     const recountTimer = setInterval(recount, RECOUNT_MS);
-    const leave = () => clearPresence(sessionId).catch(() => {});
+    // Delete our row only AFTER the in-flight heartbeat settles, so the delete
+    // can't win the race against its own create and strand a phantom row.
+    const leave = () => beating.then(() => clearPresence(sessionId)).catch(() => {});
     window.addEventListener('pagehide', leave);
 
     return () => {

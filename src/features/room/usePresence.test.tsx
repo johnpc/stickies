@@ -34,7 +34,7 @@ afterEach(() => {
 });
 
 describe('usePresence', () => {
-  it('heartbeats on mount, counts fresh rows from the subscription, cleans up on unmount', () => {
+  it('heartbeats on mount, counts fresh rows from the subscription, cleans up on unmount', async () => {
     const { result, unmount } = renderHook(() => usePresence('room'));
     expect(heartbeat).toHaveBeenCalledWith('sess-test', 'room', expect.any(String));
     expect(observeQuery).toHaveBeenCalledWith({ filter: { room: { eq: 'room' } } });
@@ -54,6 +54,40 @@ describe('usePresence', () => {
 
     unmount();
     expect(unsubscribe).toHaveBeenCalled();
+    // leave() awaits the in-flight heartbeat before deleting (delete-after-create),
+    // so flush microtasks for the chained clearPresence to fire.
+    await act(async () => {
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+    });
+    expect(clearPresence).toHaveBeenCalledWith('sess-test');
+  });
+
+  it('deletes our row only AFTER the in-flight heartbeat settles (no phantom on quick leave)', async () => {
+    // The race: mount fires heartbeat (get→create, slow); unmount fires the
+    // delete (fast). Run independently, the delete can land before the create,
+    // stranding a phantom row others count as "here" for ~30s. So clearPresence
+    // must NOT be called until the pending heartbeat resolves.
+    let resolveBeat: () => void = () => {};
+    heartbeat.mockImplementationOnce(
+      () =>
+        new Promise<void>((res) => {
+          resolveBeat = res;
+        }),
+    );
+    const { unmount } = renderHook(() => usePresence('room'));
+    expect(heartbeat).toHaveBeenCalledTimes(1);
+
+    // Leave while the heartbeat is still in flight — the delete must be deferred.
+    unmount();
+    await Promise.resolve();
+    expect(clearPresence).not.toHaveBeenCalled();
+
+    // Once the heartbeat settles, the delete fires (delete-after-create). Flush
+    // several microtasks: the chain is heartbeat().catch() → beating.then(delete).
+    await act(async () => {
+      resolveBeat();
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+    });
     expect(clearPresence).toHaveBeenCalledWith('sess-test');
   });
 
