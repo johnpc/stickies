@@ -2,6 +2,7 @@ import { type ReactNode } from 'react';
 import { alertCircleOutline, fileTrayOutline } from 'ionicons/icons';
 import { EmptyState } from './EmptyState';
 import { SkeletonRows } from './SkeletonRows';
+import { RetryButton } from './RetryButton';
 
 interface LoadStateProps {
   isLoading: boolean;
@@ -46,16 +47,7 @@ export function LoadState({
         message="We couldn’t load this. Check your connection and try again."
         testId="load-error"
       >
-        {onRetry && (
-          <button
-            type="button"
-            className="empty-state__cta"
-            data-testid="load-retry"
-            onClick={onRetry}
-          >
-            Try again
-          </button>
-        )}
+        {onRetry && <RetryButton onRetry={onRetry} />}
       </EmptyState>
     );
   }
