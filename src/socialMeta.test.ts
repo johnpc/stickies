@@ -29,4 +29,14 @@ describe('social meta (index.html)', () => {
     expect(tw('twitter:title')).toMatch(/stickies/i);
     expect(tw('twitter:image')).toMatch(/^https:\/\/stickies\.jpc\.io\/.+\.png$/);
   });
+
+  it('links an apple-touch-icon so iOS Add-to-Home-Screen uses the app icon', () => {
+    // Without this, iOS falls back to a page screenshot for the home-screen icon.
+    const icon = doc.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href');
+    expect(icon).toBe('/apple-touch-icon.png');
+    // The iOS standalone flag should be present too.
+    expect(
+      doc.querySelector('meta[name="apple-mobile-web-app-capable"]')?.getAttribute('content'),
+    ).toBe('yes');
+  });
 });
