@@ -1,6 +1,8 @@
 /* Sticky notes + the pad grid. --sk-* tokens only. */
 
 .sticky-grid {
+  /* Positioning context for the absolute drag insertion overlay (.sticky-insert). */
+  position: relative;
   display: grid;
   /* Fluid tiles: exactly 2 comfortable columns on a phone, more as the viewport
      grows. min() keeps a single note from overflowing a very narrow screen. */
@@ -78,13 +80,19 @@
   touch-action: none;
 }
 /* The insertion line shown in the gap where the dragged sticky will land. */
+/* Absolute OVERLAY bar in the target gap (left/top/height set inline from the
+   drag hook). Positioned at the gutter centre, then nudged left by half its own
+   width so it sits ON the gap line rather than beside it. Doesn't occupy a grid
+   track, so the pad never reflows mid-drag. */
 .sticky-insert {
+  position: absolute;
   width: 4px;
-  align-self: stretch;
-  min-height: 130px;
+  margin-left: -2px;
   border-radius: 999px;
   background: var(--sk-accent);
   box-shadow: 0 0 0 2px var(--sk-accent-soft);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .sticky--yellow {

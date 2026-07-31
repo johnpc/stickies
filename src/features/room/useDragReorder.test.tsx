@@ -87,6 +87,23 @@ describe('useDragReorder', () => {
     expect(onReorder).toHaveBeenCalledWith('a', 101);
   });
 
+  it('exposes an insertLine overlay box while dragging and clears it on release', () => {
+    const onReorder = vi.fn();
+    const { result } = renderHook(() => useDragReorder(list, onReorder));
+    act(() => {
+      const grid = stubGrid();
+      grid.getBoundingClientRect = () => ({ left: 0, top: 0 }) as DOMRect;
+      result.current.gridRef.current = grid;
+    });
+    act(() => result.current.startDrag('a'));
+    act(() => window.dispatchEvent(pointer('pointermove', 280, 50)));
+    // A box exists to render the overlay bar (not a grid child), with a height.
+    expect(result.current.insertLine).not.toBeNull();
+    expect(result.current.insertLine?.height).toBeGreaterThan(0);
+    act(() => window.dispatchEvent(pointer('pointerup')));
+    expect(result.current.insertLine).toBeNull();
+  });
+
   it('does not persist when released in the sticky’s own slot', () => {
     const onReorder = vi.fn();
     const { result } = renderHook(() => useDragReorder(list, onReorder));
