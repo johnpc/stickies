@@ -22,8 +22,8 @@ edited.
 1. **Pick any URL.** Add a room name after the address, like `/grocery-list`.
 2. **Post stickies.** Jot a note or paste a link — it's saved instantly and shows up for everyone.
 3. **Arrange them.** Recolor from the swatch row, **resize** a note (small / medium / large) to make
-   one stand out, **drag the grip to reorder** (mouse or touch), **copy** any text/code note, and
-   **undo** an accidental delete.
+   one stand out, **reorder** via the grip (drag with mouse/touch, or focus it and use the **arrow
+   keys** — no mouse needed), **copy** any text/code note, and **undo** an accidental delete.
 4. **Share the link.** Anyone with the same URL sees and edits the same pad, live — the header shows
    how many people are **here now**.
 

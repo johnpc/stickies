@@ -17,6 +17,8 @@ interface StickyActionsProps {
   onDelete: () => void;
   /** Begin a pointer-drag from the grip handle (mouse + touch). */
   onDragHandle?: (e: React.PointerEvent) => void;
+  /** Keyboard reorder from the grip (arrow keys move the sticky one slot). */
+  onGripKeyDown?: (e: React.KeyboardEvent) => void;
 }
 
 /** The chrome row on a resting sticky: drag grip, color swatches, a resize
@@ -24,14 +26,17 @@ interface StickyActionsProps {
  * is a callback the parent card owns. */
 export function StickyActions(props: StickyActionsProps) {
   const { kind, color, size, onRecolor, onResize, onEdit, onDelete, onDragHandle } = props;
+  const { onGripKeyDown } = props;
   return (
     <div className="sticky__actions">
       {onDragHandle && (
         <button
           className="sticky__grip"
-          aria-label="Drag to reorder"
+          // Drag with a pointer, or focus + arrow keys to reorder without a mouse.
+          aria-label="Reorder sticky — drag, or use arrow keys"
           data-testid="sticky-grip"
           onPointerDown={onDragHandle}
+          onKeyDown={onGripKeyDown}
         >
           <IonIcon icon={reorderTwoOutline} />
         </button>

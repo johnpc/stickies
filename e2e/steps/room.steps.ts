@@ -182,6 +182,19 @@ When('they drag the last sticky onto the first', async ({ page }) => {
   await page.waitForTimeout(1500);
 });
 
+When('they move the first sticky right with the keyboard', async ({ page }) => {
+  // Keyboard reorder (a11y): focus the first grip, press ArrowRight to move it
+  // one slot toward the end — no mouse. Confirm the live region announced before
+  // the write settles.
+  const grip = page.getByTestId('sticky').first().getByTestId('sticky-grip');
+  await grip.focus();
+  await grip.press('ArrowRight');
+  await expect(page.getByTestId('reorder-live')).toContainText('Moved to position 2', {
+    timeout: 5_000,
+  });
+  await page.waitForTimeout(1500); // let the reorder write settle before a reload
+});
+
 Then('the stickies read {string} {string} {string}', async ({ page }, a, b, c) => {
   await expect(page.getByTestId('sticky').nth(0)).toContainText(a, { timeout: 15_000 });
   await expect(page.getByTestId('sticky').nth(1)).toContainText(b);

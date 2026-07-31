@@ -49,4 +49,45 @@ describe('StickyGrid', () => {
     fireEvent.pointerDown(screen.getByTestId('sticky-save'));
     expect(onEdit).toHaveBeenCalledWith('1', 'edited');
   });
+
+  it('reorders with the keyboard from the grip and announces the move (a11y)', () => {
+    const onReorder = vi.fn();
+    render(
+      <StickyGrid
+        stickies={stickies}
+        onAdd={vi.fn()}
+        onUpload={vi.fn()}
+        onEdit={vi.fn()}
+        onRecolor={vi.fn()}
+        onResize={vi.fn()}
+        onReorder={onReorder}
+        onDelete={vi.fn()}
+      />,
+    );
+    // Focus the first sticky's grip and press ArrowRight → it moves after #2.
+    fireEvent.keyDown(screen.getAllByTestId('sticky-grip')[0], { key: 'ArrowRight' });
+    expect(onReorder).toHaveBeenCalledTimes(1);
+    expect(onReorder.mock.calls[0][0]).toBe('1'); // moved sticky #1
+    expect(screen.getByTestId('reorder-live')).toHaveTextContent('Moved to position 2 of 2');
+  });
+
+  it('does not reorder past the start edge and says so', () => {
+    const onReorder = vi.fn();
+    render(
+      <StickyGrid
+        stickies={stickies}
+        onAdd={vi.fn()}
+        onUpload={vi.fn()}
+        onEdit={vi.fn()}
+        onRecolor={vi.fn()}
+        onResize={vi.fn()}
+        onReorder={onReorder}
+        onDelete={vi.fn()}
+      />,
+    );
+    // First sticky, ArrowLeft → already at the start, no persist.
+    fireEvent.keyDown(screen.getAllByTestId('sticky-grip')[0], { key: 'ArrowLeft' });
+    expect(onReorder).not.toHaveBeenCalled();
+    expect(screen.getByTestId('reorder-live')).toHaveTextContent('Already at the edge');
+  });
 });

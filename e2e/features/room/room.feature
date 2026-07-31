@@ -90,6 +90,13 @@ Feature: Room pad — share stickies at a URL
     And they reload the room
     Then the stickies read "three" "one" "two"
 
+  Scenario: Stickies can be reordered with the keyboard (no mouse) and it persists
+    Given a visitor opens a fresh room
+    When they add three stickies "one" "two" "three"
+    And they move the first sticky right with the keyboard
+    And they reload the room
+    Then the stickies read "two" "one" "three"
+
   Scenario: A dangerous javascript: URL is never rendered as a link
     Given a visitor opens a fresh room
     When they add a sticky that says "javascript:alert(1)"

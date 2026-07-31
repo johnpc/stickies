@@ -5,6 +5,7 @@ import { StickyCard } from './StickyCard';
 import { StickyComposer } from './StickyComposer';
 import { MediaUploadButton } from './MediaUploadButton';
 import { useDragReorder } from './useDragReorder';
+import { useKeyboardReorder } from './useKeyboardReorder';
 import './sticky.css';
 
 interface StickyGridProps {
@@ -27,9 +28,15 @@ export function StickyGrid(props: StickyGridProps) {
   const { stickies, onAdd, onUpload, onEdit, onRecolor, onResize, onReorder, onDelete, uploading } =
     props;
   const { gridRef, draggingId, insertLine, startDrag } = useDragReorder(stickies, onReorder);
+  const { announce, onGripKeyDown } = useKeyboardReorder(stickies, onReorder);
 
   return (
     <div className="sticky-grid" data-testid="sticky-grid" ref={gridRef}>
+      {/* Announces keyboard-reorder moves to assistive tech (the pointer drag is
+          visual; a keyboard user needs to hear the new position). */}
+      <span className="sr-only" role="status" aria-live="polite" data-testid="reorder-live">
+        {announce}
+      </span>
       {/* The insertion indicator is an ABSOLUTE OVERLAY positioned in the target
           gap — not a grid item — so it doesn't consume a track and reflow the pad
           mid-drag (which also shifted the card rects and destabilized hit-testing,
@@ -49,6 +56,7 @@ export function StickyGrid(props: StickyGridProps) {
           index={index}
           dragging={draggingId === sticky.id}
           onDragHandle={() => startDrag(sticky.id)}
+          onGripKeyDown={(e) => onGripKeyDown(sticky.id, e)}
           onEdit={(content) => onEdit(sticky.id, content)}
           onRecolor={(color) => onRecolor(sticky.id, color)}
           onResize={(size) => onResize(sticky.id, size)}
