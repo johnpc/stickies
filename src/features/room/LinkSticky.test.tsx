@@ -16,6 +16,15 @@ describe('LinkSticky', () => {
     expect(screen.queryByTestId('link-preview')).not.toBeInTheDocument();
   });
 
+  it('renders a bare email as a mailto link (not a broken https link)', () => {
+    render(<LinkSticky url="alex@example.com" />);
+    const link = screen.getByRole('link');
+    expect(link).toHaveAttribute('href', 'mailto:alex@example.com');
+    expect(link).toHaveTextContent('alex@example.com');
+    // No OG preview is fetched for a non-web scheme.
+    expect(useLinkPreview).toHaveBeenLastCalledWith('alex@example.com', false);
+  });
+
   it('renders a rich preview card when the resolver returns OG data', () => {
     useLinkPreview.mockReturnValue({
       preview: {
