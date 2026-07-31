@@ -101,6 +101,46 @@ describe('StickyEditor', () => {
     expect(onOrphan).toHaveBeenCalledWith('my edit in progress');
   });
 
+  it('does NOT orphan on a plain re-render while dirty (peer activity on a shared pad)', () => {
+    // Regression: the rescue effect was keyed on [initial, onOrphan]. onOrphan is
+    // a fresh inline arrow each render and StickyCard isn't memoized, so any
+    // re-render (e.g. a peer's observeQuery update) ran the cleanup while dirty —
+    // firing a FALSE "note was deleted" toast and clobbering the clipboard.
+    const onOrphan = vi.fn();
+    const { rerender } = render(
+      <StickyEditor
+        color="yellow"
+        initial="old"
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+        onOrphan={onOrphan}
+      />,
+    );
+    fireEvent.change(screen.getByTestId('sticky-input'), { target: { value: 'unsaved draft' } });
+    // Re-render with a NEW onOrphan reference (what happens on every parent render).
+    rerender(
+      <StickyEditor
+        color="pink"
+        initial="old"
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+        onOrphan={vi.fn()}
+      />,
+    );
+    rerender(
+      <StickyEditor
+        color="blue"
+        initial="old"
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+        onOrphan={vi.fn()}
+      />,
+    );
+    // The editor is still mounted — no rescue should have fired.
+    expect(onOrphan).not.toHaveBeenCalled();
+    expect(screen.getByTestId('sticky-input')).toBeInTheDocument();
+  });
+
   it('does NOT orphan when the editor is unmounted after a normal save', () => {
     const onOrphan = vi.fn();
     const { unmount } = render(
