@@ -26,6 +26,7 @@ describe('restoreSticky', () => {
       kind: 'IMAGE',
       content: 'rooms/room/1-a.png',
       color: 'pink',
+      size: 'L',
       ord: 3.5,
       fileName: 'a.png',
       mimeType: 'image/png',
@@ -37,11 +38,20 @@ describe('restoreSticky', () => {
         kind: 'IMAGE',
         content: 'rooms/room/1-a.png',
         color: 'pink',
+        // Regression: size was dropped, so undoing a Large note brought it back Medium.
+        size: 'L',
         ord: 3.5,
         fileName: 'a.png',
         mimeType: 'image/png',
       }),
     );
     expect(touchRoom).toHaveBeenCalledWith('room', 4);
+  });
+
+  it('preserves a Small size across the delete → undo round-trip (no silent shrink)', async () => {
+    create.mockResolvedValue({ data: {} });
+    const small = { id: 's', room: 'r', kind: 'TEXT', content: 'x', size: 'S' } as StickyRecord;
+    await restoreSticky(small, 'r', 1);
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({ size: 'S' }));
   });
 });
