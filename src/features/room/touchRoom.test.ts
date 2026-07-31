@@ -1,14 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { get, create, update, listStickyByRoom } = vi.hoisted(() => ({
+const { get, create, update, del, listStickyByRoom } = vi.hoisted(() => ({
   get: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
+  del: vi.fn(),
   listStickyByRoom: vi.fn(),
 }));
 
 vi.mock('../../lib/dataClient', () => ({
-  dataClient: { models: { Room: { get, create, update }, Sticky: { listStickyByRoom } } },
+  dataClient: {
+    models: { Room: { get, create, update, delete: del }, Sticky: { listStickyByRoom } },
+  },
   unwrap: (r: { data: unknown }) => r.data,
 }));
 
@@ -21,6 +24,7 @@ beforeEach(() => {
   get.mockReset();
   create.mockReset();
   update.mockReset();
+  del.mockReset();
   listStickyByRoom.mockReset();
 });
 
@@ -53,15 +57,26 @@ describe('touchRoom', () => {
     expect(create).not.toHaveBeenCalled();
   });
 
-  it('writes the ACTUAL count, ignoring a stale fallback (the burst-delete drift fix)', async () => {
+  it('DELETES the recents row when the room is emptied (ignoring a stale fallback)', async () => {
     // The caller froze a stale stickies.length of 2, but the pad is really empty
-    // now (burst delete). touchRoom must store 0 — so nonEmptyRooms filters the
-    // emptied room out of the feed instead of leaving it stuck at "2 stickies".
+    // now (burst delete). Rather than write a stickyCount:0 row that bumps to the
+    // top of the GSI and crowds the feed's over-fetch window, remove the row.
     listStickyByRoom.mockResolvedValue(rowsOf(0));
     get.mockResolvedValue({ data: { id: 'r', stickyCount: 3 } });
-    update.mockResolvedValue({ data: {} });
+    del.mockResolvedValue({ data: {} });
     await touchRoom('r', 2, '2026-03-03T00:00:00Z');
-    expect(update).toHaveBeenCalledWith(expect.objectContaining({ stickyCount: 0 }));
+    expect(del).toHaveBeenCalledWith({ id: 'r' });
+    expect(update).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('does nothing when an already-untracked room reads empty (no row to delete)', async () => {
+    listStickyByRoom.mockResolvedValue(rowsOf(0));
+    get.mockResolvedValue({ data: null });
+    await touchRoom('r', 0, '2026-03-03T00:00:00Z');
+    expect(del).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
   });
 
   it('falls back to the passed count when the count re-read fails', async () => {
