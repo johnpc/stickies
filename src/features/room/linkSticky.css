@@ -8,7 +8,10 @@
 }
 .link-preview__img {
   width: 100%;
-  max-height: 120px;
+  /* Reserve the slot with a FIXED height (object-fit:cover crops to fill it), so
+     the card doesn't grow from 0 → 120px when the async preview image loads and
+     reflow every card below it in the grid. */
+  height: 120px;
   object-fit: cover;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.4);
@@ -25,6 +28,9 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   opacity: 0.6;
+  /* og:site_name is attacker-controlled — a long no-space value would widen the
+     card past the sticky without this (title/desc already wrap/clamp). */
+  overflow-wrap: anywhere;
 }
 .link-preview__title {
   font-weight: 700;
