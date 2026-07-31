@@ -27,7 +27,8 @@ describe('linkPreview handler', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: true,
-        headers: { get: () => 'text/html; charset=utf-8' },
+        status: 200,
+        headers: { get: (h: string) => (h === 'content-type' ? 'text/html; charset=utf-8' : null) },
         text: () =>
           Promise.resolve(
             '<meta property="og:title" content="Hi"><meta property="og:image" content="/img.png">',
@@ -44,7 +45,8 @@ describe('linkPreview handler', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: true,
-        headers: { get: () => 'application/json' },
+        status: 200,
+        headers: { get: (h: string) => (h === 'content-type' ? 'application/json' : null) },
         text: () => Promise.resolve('{}'),
       }),
     );
@@ -54,5 +56,35 @@ describe('linkPreview handler', () => {
   it('returns empty (fails soft) when fetch throws', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network')));
     expect(await invoke('https://example.com')).toEqual(EMPTY);
+  });
+
+  it('follows a redirect to a PUBLIC host and previews the final page', async () => {
+    const fetchSpy = vi
+      .fn()
+      .mockResolvedValueOnce({
+        status: 302,
+        headers: { get: (h: string) => (h === 'location' ? 'https://dest.example/final' : null) },
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: { get: (h: string) => (h === 'content-type' ? 'text/html' : null) },
+        text: () => Promise.resolve('<meta property="og:title" content="Final">'),
+      });
+    vi.stubGlobal('fetch', fetchSpy);
+    const out = await invoke('https://start.example/go');
+    expect(out.title).toBe('Final');
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('refuses a redirect to an INTERNAL host (SSRF-via-redirect) and stops fetching', async () => {
+    const fetchSpy = vi.fn().mockResolvedValueOnce({
+      status: 302,
+      headers: { get: (h: string) => (h === 'location' ? 'http://169.254.169.254/' : null) },
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+    expect(await invoke('https://evil.example/redirect')).toEqual(EMPTY);
+    // Only the first (public) hop was fetched; the internal target was never hit.
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });
