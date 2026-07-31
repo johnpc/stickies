@@ -66,10 +66,17 @@ export function Lightbox({ title, onClose, children }: LightboxProps) {
         className="lightbox__panel"
         role="dialog"
         aria-modal="true"
+        // Give the dialog an accessible name: point at its title when there is
+        // one (room/file name), else a generic label — otherwise a screen reader
+        // just announces a nameless "dialog".
+        aria-labelledby={title ? 'lightbox-title' : undefined}
+        aria-label={title ? undefined : 'Preview'}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="lightbox__bar">
-          <span className="lightbox__title">{title}</span>
+          <span className="lightbox__title" id="lightbox-title">
+            {title}
+          </span>
           <button
             ref={closeRef}
             className="lightbox__close"
