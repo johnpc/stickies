@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { useLinkPreview } = vi.hoisted(() => ({ useLinkPreview: vi.fn() }));
@@ -32,6 +32,39 @@ describe('LinkSticky', () => {
     expect(card).toHaveTextContent('Cool Page');
     expect(card).toHaveTextContent('Example');
     expect(card.querySelector('img')).toHaveAttribute('src', 'https://x/i.png');
+  });
+
+  it('hides a preview image that fails to load but keeps the text card', () => {
+    useLinkPreview.mockReturnValue({
+      preview: {
+        title: 'Cool Page',
+        description: 'desc',
+        image: 'https://x/dead.png',
+        siteName: 'Example',
+      },
+      isLoading: false,
+    });
+    render(<LinkSticky url="https://example.com" />);
+    const img = screen.getByTestId('link-preview').querySelector('img')!;
+    fireEvent.error(img);
+    // Image gone (no broken glyph), but the rich card with title/site survives.
+    const card = screen.getByTestId('link-preview');
+    expect(card.querySelector('img')).toBeNull();
+    expect(card).toHaveTextContent('Cool Page');
+  });
+
+  it('falls back to the plain link when an image-only preview fails to load', () => {
+    useLinkPreview.mockReturnValue({
+      preview: { title: null, description: null, image: 'https://x/dead.png', siteName: null },
+      isLoading: false,
+    });
+    render(<LinkSticky url="https://example.com" />);
+    fireEvent.error(screen.getByTestId('link-preview').querySelector('img')!);
+    // Nothing left worth carding → degrade to the plain safe link.
+    expect(screen.queryByTestId('link-preview')).not.toBeInTheDocument();
+    const link = screen.getByRole('link');
+    expect(link).toHaveAttribute('href', 'https://example.com/');
+    expect(link).toHaveTextContent('https://example.com');
   });
 
   it('never renders a javascript: URL as a live link', () => {
