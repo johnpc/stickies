@@ -1,7 +1,8 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { IonIcon } from '@ionic/react';
 import { closeOutline } from 'ionicons/icons';
+import { useScrollLock } from './useScrollLock';
 import './lightbox.css';
 
 interface LightboxProps {
@@ -15,12 +16,22 @@ interface LightboxProps {
  * `position: fixed` escapes the sticky card's transform (which would otherwise
  * trap it). Presentation only — the caller owns the open/closed state. */
 export function Lightbox({ title, onClose, children }: LightboxProps) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useScrollLock();
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    // Move focus into the dialog so Escape/Tab act on it (not a background card)
+    // and screen-reader focus lands on the overlay, not the pad behind it.
+    const restoreTo = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      restoreTo?.focus?.();
+    };
   }, [onClose]);
 
   return createPortal(
@@ -34,6 +45,7 @@ export function Lightbox({ title, onClose, children }: LightboxProps) {
         <div className="lightbox__bar">
           <span className="lightbox__title">{title}</span>
           <button
+            ref={closeRef}
             className="lightbox__close"
             aria-label="Close"
             data-testid="lightbox-close"
