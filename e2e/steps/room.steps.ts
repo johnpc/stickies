@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import { createBdd } from 'playwright-bdd';
 import { test } from './fixtures';
+import { prettifyRoomSlug } from '../../src/features/room/roomSlug';
 
 const { Given, When, Then } = createBdd(test);
 
@@ -238,6 +239,18 @@ When('they go back to the home page', async ({ page }) => {
 Given('a visitor opens the room {string} directly by URL', async ({ page }, name: string) => {
   await page.goto(`/${name}`);
   await expect(page.getByTestId('sticky-add')).toBeVisible({ timeout: 15_000 });
+});
+
+Given('a visitor opens the path {string} directly', async ({ page }, path: string) => {
+  await page.goto(`/${path}`);
+});
+
+// A multi-segment URL keeps its slashes in the address bar, but the pad's slug
+// (heading) collapses them — so assert the pad rendered with the collapsed slug,
+// not the raw URL.
+Then('they land on a pad titled {string}', async ({ page }, slug: string) => {
+  await expect(page.getByTestId('sticky-add')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('room-heading')).toHaveText(prettifyRoomSlug(slug));
 });
 
 Then('the app-association file is served at {string}', async ({ page }, path: string) => {

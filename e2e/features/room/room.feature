@@ -115,3 +115,10 @@ Feature: Room pad — share stickies at a URL
     Given a visitor opens the room "shared-link-demo" directly by URL
     Then they land on the "shared-link-demo" room pad
     And the app-association file is served at ".well-known/apple-app-site-association"
+
+  # A URL with more than one path segment (a hierarchical name, or a mangled
+  # link) used to render a blank screen — no route matched. It now resolves to a
+  # pad, with the slashes collapsed into a single room slug.
+  Scenario: A multi-segment room URL still opens a pad (no blank screen)
+    Given a visitor opens the path "team/standup" directly
+    Then they land on a pad titled "teamstandup"

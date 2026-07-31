@@ -22,11 +22,11 @@ const addMedia = { mutate: vi.fn() };
 const edit = { mutate: vi.fn() };
 const remove = { mutate: vi.fn() };
 
-const renderRoom = (path = '/grocery-list') =>
+const renderRoom = (path = '/grocery-list', routePath = '/:room') =>
   render(
     <ThemeProvider>
       <MemoryRouter initialEntries={[path]}>
-        <Route path="/:room">
+        <Route path={routePath}>
           <RoomPage />
         </Route>
       </MemoryRouter>
@@ -57,6 +57,23 @@ describe('RoomPage', () => {
     // The room has a real <h1> for AT orientation (not just the toolbar title).
     const heading = screen.getByRole('heading', { level: 1, name: 'Grocery List' });
     expect(heading).toHaveClass('sr-only');
+  });
+
+  it('resolves a MULTI-SEGMENT url to a pad (no blank screen), collapsing the slashes', () => {
+    // Regression: <Route exact path="/:room"> matched only one segment and there
+    // was no catch-all, so /team/standup rendered a blank screen. The `:room+`
+    // route matches the whole path and RoomPage normalizes the slashes away.
+    useRoomStickies.mockReturnValue({
+      stickies: [],
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+    renderRoom('/team/standup', '/:room+');
+    // Renders the pad (not InvalidRoom / blank), with the slashes collapsed.
+    expect(screen.getByTestId('sticky-add')).toBeInTheDocument();
+    expect(screen.getByTestId('room-title')).toHaveTextContent('Teamstandup');
+    expect(screen.queryByTestId('invalid-room')).not.toBeInTheDocument();
   });
 
   it('adds a sticky through the composer', async () => {

@@ -38,7 +38,12 @@ const App: React.FC = () => (
               <Route exact path="/">
                 <HomePage />
               </Route>
-              <Route exact path="/:room">
+              {/* `:room+` matches one OR MORE path segments so a multi-segment
+                  URL (a mangled/shared link like /team/standup, or an external
+                  link with a path) still resolves to a pad instead of a blank
+                  screen — RoomPage normalizes the slashes away (team/standup →
+                  teamstandup), keeping the "any URL is a pad" model. */}
+              <Route exact path="/:room+">
                 <RoomPage />
               </Route>
             </IonRouterOutlet>
