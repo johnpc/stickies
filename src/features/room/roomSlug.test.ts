@@ -23,6 +23,17 @@ describe('normalizeRoomSlug', () => {
   it('returns empty string for input with no usable characters', () => {
     expect(normalizeRoomSlug('!!!')).toBe('');
     expect(normalizeRoomSlug('   ')).toBe('');
+    expect(normalizeRoomSlug('🎉🎉')).toBe(''); // emoji-only → nothing usable
+  });
+
+  it('folds accented Latin to ASCII (Café → cafe)', () => {
+    expect(normalizeRoomSlug('Café')).toBe('cafe');
+    expect(normalizeRoomSlug('Ünïcode Straße')).toBe('unicode-straße');
+  });
+
+  it('keeps non-Latin letters/digits instead of erasing them', () => {
+    expect(normalizeRoomSlug('日本語')).toBe('日本語');
+    expect(normalizeRoomSlug('Café 日本語 🎉')).toBe('cafe-日本語');
   });
 
   it('caps length and never ends on a dangling hyphen', () => {
