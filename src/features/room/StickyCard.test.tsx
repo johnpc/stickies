@@ -29,6 +29,7 @@ describe('StickyCard', () => {
         index={0}
         onEdit={vi.fn()}
         onRecolor={vi.fn()}
+        onResize={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
@@ -43,6 +44,7 @@ describe('StickyCard', () => {
         index={0}
         onEdit={vi.fn()}
         onRecolor={vi.fn()}
+        onResize={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
@@ -56,6 +58,7 @@ describe('StickyCard', () => {
         index={0}
         onEdit={vi.fn()}
         onRecolor={vi.fn()}
+        onResize={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
@@ -71,6 +74,7 @@ describe('StickyCard', () => {
         index={0}
         onEdit={onEdit}
         onRecolor={vi.fn()}
+        onResize={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
@@ -90,6 +94,7 @@ describe('StickyCard', () => {
         index={0}
         onEdit={onEdit}
         onRecolor={vi.fn()}
+        onResize={vi.fn()}
         onDelete={onDelete}
       />,
     );
@@ -109,6 +114,7 @@ describe('StickyCard', () => {
         index={0}
         onEdit={onEdit}
         onRecolor={vi.fn()}
+        onResize={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
@@ -129,6 +135,7 @@ describe('StickyCard', () => {
         index={0}
         onEdit={vi.fn()}
         onRecolor={vi.fn()}
+        onResize={vi.fn()}
         onDelete={onDelete}
       />,
     );
@@ -144,11 +151,42 @@ describe('StickyCard', () => {
         index={0}
         onEdit={vi.fn()}
         onRecolor={onRecolor}
+        onResize={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
     fireEvent.click(screen.getByTestId('color-blue'));
     expect(onRecolor).toHaveBeenCalledWith('blue');
+  });
+
+  it('resizes via the resize control (cycles to the next size)', () => {
+    const onResize = vi.fn();
+    render(
+      <StickyCard
+        sticky={make({ size: 'M' })}
+        index={0}
+        onEdit={vi.fn()}
+        onRecolor={vi.fn()}
+        onResize={onResize}
+        onDelete={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('sticky-resize'));
+    expect(onResize).toHaveBeenCalledWith('L');
+  });
+
+  it('applies the stored size class so a large note is visually prominent', () => {
+    render(
+      <StickyCard
+        sticky={make({ size: 'L' })}
+        index={0}
+        onEdit={vi.fn()}
+        onRecolor={vi.fn()}
+        onResize={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId('sticky')).toHaveClass('sticky--size-L');
   });
 
   it('offers Edit for a text sticky', () => {
@@ -158,6 +196,7 @@ describe('StickyCard', () => {
         index={0}
         onEdit={vi.fn()}
         onRecolor={vi.fn()}
+        onResize={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
@@ -171,6 +210,7 @@ describe('StickyCard', () => {
         index={0}
         onEdit={vi.fn()}
         onRecolor={vi.fn()}
+        onResize={vi.fn()}
         onDelete={vi.fn()}
       />,
     );

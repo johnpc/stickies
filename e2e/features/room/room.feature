@@ -76,6 +76,13 @@ Feature: Room pad — share stickies at a URL
     And they reload the room
     Then the first sticky is blue
 
+  Scenario: A sticky can be made larger and the size persists
+    Given a visitor opens a fresh room
+    When they add a sticky that says "make me big"
+    And they enlarge the first sticky to large
+    And they reload the room
+    Then the first sticky is large
+
   Scenario: Stickies can be reordered by dragging and the order persists
     Given a visitor opens a fresh room
     When they add three stickies "one" "two" "three"

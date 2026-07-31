@@ -21,7 +21,7 @@ export function RoomPage() {
   const room = normalizeRoomSlug(rawRoom);
   const { stickies, isLoading, isError, refetch } = useRoomStickies(room);
   const { add, addMedia, edit, remove } = useStickyMutations(room, stickies.length);
-  const { recolor, reorder } = useStickyArrange(room, stickies.length);
+  const { recolor, resize, reorder } = useStickyArrange(room, stickies.length);
   // Distinguish this room in the tab / history / bookmarks (all rooms otherwise
   // shared the static index.html title). Falls back to the default for an
   // invalid slug — call it unconditionally to respect the rules of hooks.
@@ -53,6 +53,7 @@ export function RoomPage() {
             uploading={addMedia.isPending}
             onEdit={(id, content) => edit.mutate({ id, content })}
             onRecolor={(id, color) => recolor.mutate({ id, color })}
+            onResize={(id, size) => resize.mutate({ id, size })}
             onReorder={(id, ord) => reorder.mutate({ id, ord })}
             onDelete={(sticky) => remove.mutate(sticky)}
           />

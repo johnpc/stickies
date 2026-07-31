@@ -8,7 +8,7 @@ vi.mock('../../lib/dataClient', () => ({
 }));
 vi.mock('./touchRoom', () => ({ touchRoom }));
 
-import { setStickyColor, setStickyOrder } from './stickyArrangeApi';
+import { setStickyColor, setStickySize, setStickyOrder } from './stickyArrangeApi';
 
 beforeEach(() => {
   update.mockReset();
@@ -21,6 +21,15 @@ describe('setStickyColor', () => {
     update.mockResolvedValue({ data: { id: 'x' } });
     await setStickyColor('x', 'room', 'blue', 5);
     expect(update).toHaveBeenCalledWith({ id: 'x', color: 'blue' });
+    expect(touchRoom).toHaveBeenCalledWith('room', 5);
+  });
+});
+
+describe('setStickySize', () => {
+  it('updates only the size and re-touches the room', async () => {
+    update.mockResolvedValue({ data: { id: 'x' } });
+    await setStickySize('x', 'room', 'L', 5);
+    expect(update).toHaveBeenCalledWith({ id: 'x', size: 'L' });
     expect(touchRoom).toHaveBeenCalledWith('room', 5);
   });
 });

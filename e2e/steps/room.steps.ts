@@ -136,6 +136,22 @@ Then('the first sticky is blue', async ({ page }) => {
   await expect(page.getByTestId('sticky').first()).toHaveClass(/sticky--blue/, { timeout: 15_000 });
 });
 
+When('they enlarge the first sticky to large', async ({ page }) => {
+  // A fresh sticky is medium; the resize control cycles S → M → L, so one tap on
+  // a medium note lands on large.
+  await page.getByTestId('sticky').first().getByTestId('sticky-resize').click();
+  await expect(page.getByTestId('sticky').first()).toHaveClass(/sticky--size-L/, {
+    timeout: 15_000,
+  });
+  await page.waitForTimeout(1200); // let the resize write settle before a reload
+});
+
+Then('the first sticky is large', async ({ page }) => {
+  await expect(page.getByTestId('sticky').first()).toHaveClass(/sticky--size-L/, {
+    timeout: 15_000,
+  });
+});
+
 When('they add three stickies {string} {string} {string}', async ({ page }, a, b, c) => {
   for (const t of [a, b, c]) {
     await page.getByTestId('sticky-add').click();

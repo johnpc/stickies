@@ -39,6 +39,29 @@
 .sticky--dragging {
   opacity: 0.4;
 }
+
+/* Per-note size (S/M/L) so one sticky can be made larger/more prominent on the
+   pad. Medium is the default (no extra rule needed). Large spans TWO grid
+   columns + rows with a bigger body font so it reads as a headline; small is
+   compact for quick one-liners. A single-column (narrow phone) pad can't honour
+   a 2-col span, so the note just keeps its taller min-height there. */
+.sticky--size-S {
+  min-height: 96px;
+  padding: 10px;
+}
+.sticky--size-S .sticky__body {
+  font-size: 0.85rem;
+}
+.sticky--size-L {
+  grid-column: span 2;
+  grid-row: span 2;
+  min-height: 220px;
+}
+.sticky--size-L .sticky__body {
+  font-size: 1.3rem;
+  line-height: 1.4;
+}
+
 /* Drag grip handle (touch + mouse). touch-action:none so a touch-drag doesn't
    scroll the page instead of reordering. */
 .sticky__grip {

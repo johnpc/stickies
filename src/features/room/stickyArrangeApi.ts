@@ -1,6 +1,6 @@
-/** Arrange writes for a sticky (recolor + reorder) — split from stickiesApi to
- * keep each module focused + within the line limit. Both are metadata edits that
- * re-touch the room (count unchanged). */
+/** Arrange writes for a sticky (recolor, resize + reorder) — split from
+ * stickiesApi to keep each module focused + within the line limit. All are
+ * metadata edits that re-touch the room (count unchanged). */
 import { dataClient, unwrapWrite, type StickyRecord } from '../../lib/dataClient';
 import { withTimeout } from '../../lib/withTimeout';
 import { touchRoom } from './touchRoom';
@@ -13,6 +13,18 @@ export async function setStickyColor(
   count: number,
 ): Promise<StickyRecord> {
   const updated = unwrapWrite(await withTimeout(dataClient.models.Sticky.update({ id, color })));
+  await touchRoom(room, count);
+  return updated as StickyRecord;
+}
+
+/** Resize a sticky (S/M/L) for visual prominence on the pad. */
+export async function setStickySize(
+  id: string,
+  room: string,
+  size: string,
+  count: number,
+): Promise<StickyRecord> {
+  const updated = unwrapWrite(await withTimeout(dataClient.models.Sticky.update({ id, size })));
   await touchRoom(room, count);
   return updated as StickyRecord;
 }

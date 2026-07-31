@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { setStickyColor, setStickyOrder } from './stickyArrangeApi';
+import { setStickyColor, setStickySize, setStickyOrder } from './stickyArrangeApi';
 import { notifyWriteError } from './notifyWriteError';
 import { roomStickiesKey } from './roomStickiesKey';
 
 /**
- * "Arrange" mutations for a room's stickies — recolor and reorder. Split out of
+ * "Arrange" mutations for a room's stickies — recolor, resize and reorder. Split out of
  * useStickyMutations to keep each hook small + single-purpose. Like the others,
  * each success invalidates the room query so the pad refreshes even if the live
  * observeQuery subscription is momentarily slow. `count` keeps the recents row
@@ -21,6 +21,13 @@ export function useStickyArrange(room: string, count: number) {
     onError: (error, vars) => notifyWriteError(error, () => recolor.mutate(vars)),
   });
 
+  const resize = useMutation({
+    mutationFn: (vars: { id: string; size: string }) =>
+      setStickySize(vars.id, room, vars.size, count),
+    onSuccess: settle,
+    onError: (error, vars) => notifyWriteError(error, () => resize.mutate(vars)),
+  });
+
   const reorder = useMutation({
     mutationFn: (vars: { id: string; ord: number }) =>
       setStickyOrder(vars.id, room, vars.ord, count),
@@ -28,5 +35,5 @@ export function useStickyArrange(room: string, count: number) {
     onError: (error, vars) => notifyWriteError(error, () => reorder.mutate(vars)),
   });
 
-  return { recolor, reorder };
+  return { recolor, resize, reorder };
 }
