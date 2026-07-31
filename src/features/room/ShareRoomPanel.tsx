@@ -3,6 +3,7 @@ import { copyOutline } from 'ionicons/icons';
 import { Lightbox } from './Lightbox';
 import { useQrCode } from './useQrCode';
 import { useCopyAction } from './useCopyAction';
+import { readableUrl } from './readableUrl';
 import './shareRoom.css';
 
 interface ShareRoomPanelProps {
@@ -11,10 +12,14 @@ interface ShareRoomPanelProps {
 }
 
 /** The share panel: the room URL (copyable) + a QR code of it so anyone can scan
- * to join the same pad from their phone. Rendered in the full-page Lightbox. */
+ * to join the same pad from their phone. Rendered in the full-page Lightbox. The
+ * QR encodes the RAW (canonical, percent-encoded) URL — what scanners expect —
+ * while the shown + copied link is the human-readable decoded form (a unicode
+ * room otherwise displayed as a wall of %XX). */
 export function ShareRoomPanel({ url, onClose }: ShareRoomPanelProps) {
   const qr = useQrCode(url);
   const copy = useCopyAction();
+  const pretty = readableUrl(url);
   return (
     <Lightbox title="Share this room" onClose={onClose}>
       <div className="share-room" data-testid="share-panel">
@@ -37,14 +42,14 @@ export function ShareRoomPanel({ url, onClose }: ShareRoomPanelProps) {
         <p className="share-room__hint sk-muted">Scan to open this room, or copy the link:</p>
         <div className="share-room__url">
           <span className="share-room__link" data-testid="share-url">
-            {url}
+            {pretty}
           </span>
           <button
             className="share-room__copy"
             data-testid="share-copy"
-            // Copy the URL shown in the panel; useCopyAction toasts on BOTH
-            // success and failure (a blocked clipboard used to be silent here).
-            onClick={() => copy(url)}
+            // Copy the human-readable URL shown in the panel; useCopyAction toasts
+            // on BOTH success and failure (a blocked clipboard used to be silent).
+            onClick={() => copy(pretty)}
           >
             <IonIcon icon={copyOutline} /> Copy
           </button>
