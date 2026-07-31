@@ -71,6 +71,14 @@
 .sticky--size-L .media-sticky__video {
   max-height: 420px;
 }
+/* Same for a Large TEXT/linkified or CODE/DOC body: the scroll cap (320px) is
+   sized for a small tile, so a long note/snippet in a 2×2 card scrolled inside
+   320px with the lower half empty. Raise the cap so more content is visible
+   before it scrolls, using the extra height the Large tile provides. */
+.sticky--size-L .sticky__text,
+.sticky--size-L .code-sticky__scroll {
+  max-height: 460px;
+}
 
 /* Drag grip handle (touch + mouse). touch-action:none so a touch-drag doesn't
    scroll the page instead of reordering. */
