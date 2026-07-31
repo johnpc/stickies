@@ -12,6 +12,9 @@ export function RoomEntry() {
   const history = useHistory();
   const [value, setValue] = useState('');
   const slug = normalizeRoomSlug(value);
+  // The user typed something, but it's all punctuation/emoji → no usable slug.
+  // Say so, rather than leaving the Go button silently dead with no explanation.
+  const invalid = value.trim() !== '' && slug === '';
 
   const go = () => {
     if (slug) history.push(`/${slug}`);
@@ -51,6 +54,11 @@ export function RoomEntry() {
       >
         <IonIcon icon={arrowForwardOutline} />
       </button>
+      {invalid && (
+        <p className="room-entry__hint" role="alert" data-testid="room-entry-hint">
+          Use letters or numbers for a room name.
+        </p>
+      )}
     </form>
   );
 }

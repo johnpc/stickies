@@ -17,8 +17,16 @@
 
 .room-entry {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 1.75rem;
+}
+/* Invalid-input hint — sits on its own line under the input + Go button. */
+.room-entry__hint {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--sk-text-muted);
+  font-size: 0.85rem;
 }
 .room-entry__input {
   flex: 1;

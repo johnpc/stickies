@@ -36,6 +36,18 @@ describe('RoomEntry', () => {
     expect(screen.getByTestId('room-entry-go')).toBeDisabled();
   });
 
+  it('shows a hint when typed input normalizes to no usable slug', () => {
+    renderEntry();
+    // Empty field: no hint (just the disabled button).
+    expect(screen.queryByTestId('room-entry-hint')).not.toBeInTheDocument();
+    // All-punctuation → empty slug → explain why nothing happens.
+    fireEvent.change(screen.getByTestId('room-entry-input'), { target: { value: '!!! ???' } });
+    expect(screen.getByTestId('room-entry-hint')).toHaveTextContent(/letters or numbers/i);
+    // A valid name clears the hint.
+    fireEvent.change(screen.getByTestId('room-entry-input'), { target: { value: 'Ideas' } });
+    expect(screen.queryByTestId('room-entry-hint')).not.toBeInTheDocument();
+  });
+
   it('does not navigate for empty input on submit', () => {
     renderEntry();
     fireEvent.submit(screen.getByTestId('room-entry'));
