@@ -1,6 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { StickyEditor } from './StickyEditor';
+import { onToast } from '../shell/toastBus';
+import { MAX_CONTENT_BYTES } from './contentLimit';
 
 describe('StickyEditor', () => {
   it('does NOT save on a plain Enter (Enter inserts a newline for multi-line notes)', () => {
@@ -17,6 +19,24 @@ describe('StickyEditor', () => {
     // pointerDown (not click) so the commit beats the textarea's blur.
     fireEvent.pointerDown(screen.getByTestId('sticky-save'));
     expect(onSave).toHaveBeenCalledWith('buy milk');
+  });
+
+  it('refuses to save an over-length note: toasts, keeps the draft, does not call onSave', () => {
+    // Regression: an over-cap note failed the DynamoDB item-size limit with a
+    // cryptic error whose Retry re-fired the same oversized write (infinite loop).
+    const onSave = vi.fn();
+    let toastMsg = '';
+    const off = onToast((t) => (toastMsg = t.message));
+    render(<StickyEditor color="yellow" initial="" onSave={onSave} onCancel={vi.fn()} />);
+    const input = screen.getByTestId('sticky-input') as HTMLTextAreaElement;
+    fireEvent.change(input, { target: { value: 'a'.repeat(MAX_CONTENT_BYTES + 1) } });
+    fireEvent.pointerDown(screen.getByTestId('sticky-save'));
+    off();
+    expect(onSave).not.toHaveBeenCalled(); // blocked before any write
+    expect(toastMsg).toMatch(/too long/);
+    // The editor stays open with the draft intact so the user can trim it.
+    expect(screen.getByTestId('sticky-input')).toBeInTheDocument();
+    expect(input.value).toHaveLength(MAX_CONTENT_BYTES + 1);
   });
 
   it('saves on Cmd/Ctrl+Enter (desktop quick-save)', () => {

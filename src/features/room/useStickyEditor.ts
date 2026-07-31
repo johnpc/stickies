@@ -1,5 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { autoGrow } from './autoGrow';
+import { contentLengthError } from './contentLimit';
+import { showToast } from '../shell/toastBus';
 
 interface UseStickyEditorArgs {
   initial: string;
@@ -57,8 +59,19 @@ export function useStickyEditor({
   }, []);
 
   const commit = () => {
-    settledRef.current = true;
     const trimmed = value.trim();
+    // Guard the length BEFORE saving: an over-cap note would fail the DynamoDB
+    // item-size limit with a cryptic error whose Retry just re-fires the same
+    // oversized write. Keep the editor OPEN (don't settle) so the draft isn't
+    // lost — the user can trim it and save again.
+    if (trimmed) {
+      const tooLong = contentLengthError(trimmed);
+      if (tooLong) {
+        showToast(tooLong);
+        return;
+      }
+    }
+    settledRef.current = true;
     if (trimmed) onSave(trimmed);
     else if (onEmpty) onEmpty();
     else onCancel();
