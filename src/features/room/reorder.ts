@@ -24,18 +24,29 @@ export interface CardRect {
   bottom: number;
 }
 
+/** Distance from a point to a rectangle (0 when the point is inside it). */
+function distToRect(c: CardRect, x: number, y: number): number {
+  const dx = Math.max(c.left - x, 0, x - c.right);
+  const dy = Math.max(c.top - y, 0, y - c.bottom);
+  return Math.hypot(dx, dy);
+}
+
 /**
  * Which GAP the pointer is over, as an insert index in 0..cards.length ("place
- * before the card at this index", or at the end when === length). Picks the
- * nearest card by center, then before/after by which horizontal half the pointer
- * is in — robust for a wrapping grid. Pure (takes rects, no DOM) so it's tested.
+ * before the card at this index", or at the end when === length). Picks the card
+ * nearest the pointer BY ITS RECTANGLE (0 when the pointer is inside it), then
+ * before/after by that card's horizontal midpoint. Distance-to-rect (not
+ * distance-to-center) is what makes this correct for VARIABLE-size tiles: a Large
+ * 2×2 tile's center is far from a point in its lower corner, so center-distance
+ * would wrongly pick a small neighbour in the next row and drop there; rect-
+ * distance keeps the pointer on the tile it's actually over. Pure + tested.
  */
 export function insertIndexFromPoint(cards: CardRect[], x: number, y: number): number {
   if (cards.length === 0) return 0;
   let best = cards[0];
   let bestDist = Infinity;
   for (const c of cards) {
-    const dist = Math.hypot(x - (c.left + c.right) / 2, y - (c.top + c.bottom) / 2);
+    const dist = distToRect(c, x, y);
     if (dist < bestDist) {
       bestDist = dist;
       best = c;

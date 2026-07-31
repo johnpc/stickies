@@ -43,6 +43,43 @@ describe('insertIndexFromPoint', () => {
   it('returns 0 for an empty grid', () => {
     expect(insertIndexFromPoint([], 5, 5)).toBe(0);
   });
+
+  it('picks the right gap in a MULTI-ROW grid (uses vertical position, not just x)', () => {
+    // Two rows of three 100px cells. A pointer in row 2 must resolve to a row-2
+    // gap, not a row-1 one at the same x.
+    const grid: CardRect[] = [];
+    [0, 1].forEach((r) =>
+      [0, 1, 2].forEach((c) =>
+        grid.push({
+          index: r * 3 + c,
+          left: c * 100,
+          right: c * 100 + 100,
+          top: r * 100,
+          bottom: r * 100 + 100,
+        }),
+      ),
+    );
+    expect(insertIndexFromPoint(grid, 95, 150)).toBe(4); // row2, before card 4
+    expect(insertIndexFromPoint(grid, 10, 150)).toBe(3); // row2, before card 3
+  });
+
+  it('does not jump to the next row when the pointer is inside a Large 2×2 tile', () => {
+    // Regression: nearest-by-CENTER made a point in the Large tile's lower corner
+    // closer to a small next-row card's center than to the Large tile's center,
+    // so a drop there wrongly landed a row down. Nearest-by-RECT keeps it on the
+    // tile the pointer is actually over.
+    const withLarge: CardRect[] = [
+      { index: 0, left: 0, right: 200, top: 0, bottom: 200 }, // Large 2×2
+      { index: 1, left: 200, right: 300, top: 0, bottom: 100 },
+      { index: 2, left: 200, right: 300, top: 100, bottom: 200 },
+      { index: 3, left: 0, right: 100, top: 200, bottom: 300 }, // row below
+      { index: 4, left: 100, right: 200, top: 200, bottom: 300 },
+    ];
+    // Lower-left INSIDE the Large tile → before it (0), not a row-2 gap (4).
+    expect(insertIndexFromPoint(withLarge, 50, 180)).toBe(0);
+    // A genuine row-2 point still resolves in row 2.
+    expect(insertIndexFromPoint(withLarge, 40, 250)).toBe(3);
+  });
 });
 
 describe('computeReorder', () => {
