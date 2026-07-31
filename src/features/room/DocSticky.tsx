@@ -8,7 +8,7 @@ import { docPreview } from './docPreview';
 import { docLanguage } from './docLanguage';
 import { CodeSticky } from './CodeSticky';
 import { Lightbox } from './Lightbox';
-import { copyText } from './copyText';
+import { useCopyAction } from './useCopyAction';
 import './mediaSticky.css';
 
 /** A DOC sticky: an uploaded text/code file shown as a highlighted preview (first
@@ -16,6 +16,7 @@ import './mediaSticky.css';
  * for the body; language is inferred from the filename extension. */
 export function DocSticky({ sticky }: { sticky: StickyRecord }) {
   const [expanded, setExpanded] = useState(false);
+  const copy = useCopyAction();
   const { text, isLoading, isError } = useDocText(sticky.content);
   const { url } = useMediaUrl(sticky.content);
   const name = sticky.fileName ?? 'file.txt';
@@ -38,7 +39,7 @@ export function DocSticky({ sticky }: { sticky: StickyRecord }) {
             <IonIcon icon={expandOutline} /> Expand
           </button>
         )}
-        <button data-testid="doc-copy" onClick={() => copyText(text)}>
+        <button data-testid="doc-copy" onClick={() => copy(text)}>
           <IonIcon icon={copyOutline} /> Copy
         </button>
         {url && (
