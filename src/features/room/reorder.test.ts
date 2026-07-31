@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { orderKey, insertIndexFromPoint, computeReorder, type CardRect } from './reorder';
+import { effectiveOrd, insertIndexFromPoint, computeReorder, type CardRect } from './reorder';
 import type { StickyRecord } from '../../lib/dataClient';
 
 const s = (over: Partial<StickyRecord>) => ({ id: 'x', ...over }) as StickyRecord;
@@ -11,10 +11,18 @@ const cards: CardRect[] = [
   { index: 2, left: 200, right: 300, top: 0, bottom: 100 },
 ];
 
-describe('orderKey', () => {
-  it('uses ord when set, else the index fallback', () => {
-    expect(orderKey(s({ ord: 3.5 }), 0)).toBe(3.5);
-    expect(orderKey(s({}), 7)).toBe(7);
+describe('effectiveOrd', () => {
+  it('uses a numeric ord when set', () => {
+    expect(effectiveOrd(s({ ord: 3.5 }))).toBe(3.5);
+  });
+
+  it('falls back a null ord to createdAt-as-epoch-millis (same scale as app ords)', () => {
+    const t = '2026-01-02T03:04:05.000Z';
+    expect(effectiveOrd(s({ createdAt: t }))).toBe(Date.parse(t));
+  });
+
+  it('falls back to 0 when neither ord nor a parseable createdAt exists', () => {
+    expect(effectiveOrd(s({}))).toBe(0);
   });
 });
 
@@ -59,5 +67,21 @@ describe('computeReorder', () => {
 
   it('returns null for an unknown id', () => {
     expect(computeReorder(list, 'zzz', 0)).toBeNull();
+  });
+
+  // Regression: seed/demo rooms have null ords (ordered by createdAt). Dragging
+  // a null-ord sticky to the end must write an ord that sorts it AFTER its
+  // null-ord neighbours (whose effectiveOrd is their createdAt), not before —
+  // previously the index fallback produced a tiny ord that snapped it to front.
+  it('reorders a null-ord (seed) list so the moved sticky lands after its neighbours', () => {
+    const seeded = [
+      { id: 'a', createdAt: '2026-01-01T00:00:00.000Z' },
+      { id: 'b', createdAt: '2026-01-01T00:00:01.000Z' },
+      { id: 'c', createdAt: '2026-01-01T00:00:02.000Z' },
+    ] as StickyRecord[];
+    const change = computeReorder(seeded, 'a', 3); // drag first → end
+    expect(change).not.toBeNull();
+    // The new ord must exceed c's effectiveOrd (its createdAt) so it sorts last.
+    expect(change!.ord).toBeGreaterThan(Date.parse('2026-01-01T00:00:02.000Z'));
   });
 });

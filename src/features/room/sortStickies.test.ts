@@ -23,9 +23,17 @@ describe('sortStickies', () => {
     expect(out.map((s) => s.id)).toEqual(['b', 'c', 'a']);
   });
 
-  it('sorts null-ord (legacy) notes last, after any ord-carrying note', () => {
-    const out = sortStickies([sticky('plain', '2026-01-01Z'), sticky('moved', '2026-01-02Z', 5)]);
-    expect(out.map((s) => s.id)).toEqual(['moved', 'plain']);
+  it('places a null-ord note by its createdAt on the same scale as real ords', () => {
+    // A null ord falls back to createdAt-as-epoch-millis, so a note reordered to
+    // sit AFTER a null-ord neighbour needs an ord past that neighbour's createdAt
+    // — mirrors what computeReorder writes. (Old behaviour parked null ords at
+    // Infinity, which snapped a freshly-reordered seed sticky to the front.)
+    const plainMs = Date.parse('2026-01-01T00:00:00.000Z');
+    const out = sortStickies([
+      sticky('plain', '2026-01-01T00:00:00.000Z'), // effectiveOrd ≈ plainMs
+      sticky('moved', '2026-01-02T00:00:00.000Z', plainMs + 1), // reordered just after plain
+    ]);
+    expect(out.map((s) => s.id)).toEqual(['plain', 'moved']);
   });
 
   it('does not mutate the input array', () => {
