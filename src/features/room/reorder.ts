@@ -1,9 +1,18 @@
 import type { StickyRecord } from '../../lib/dataClient';
 
-/** A sticky's effective order key: its manual `ord` if set, else a big fallback
- * so un-ordered (older) stickies keep their created-order tail position. */
-export function orderKey(s: StickyRecord, index: number): number {
-  return typeof s.ord === 'number' ? s.ord : index;
+/**
+ * A sticky's effective numeric order. App-written ords are `Date.now()` epoch
+ * millis (see createSticky), so a null ord (seed rows, legacy data) falls back to
+ * its createdAt as epoch millis — the SAME scale — which keeps un-ordered stickies
+ * in created order AND lets a reordered one slot among them. Using the index or
+ * Infinity instead put null and numeric ords on different scales, so a dragged
+ * seed sticky (now finite) jumped to the front past its still-null neighbours.
+ * sortStickies + computeReorder MUST share this so the drop lands where shown.
+ */
+export function effectiveOrd(s: StickyRecord): number {
+  if (typeof s.ord === 'number') return s.ord;
+  const t = s.createdAt ? Date.parse(s.createdAt) : NaN;
+  return Number.isFinite(t) ? t : 0;
 }
 
 /** Rectangle of a rendered sticky card (subset of DOMRect) + its list index. */
@@ -52,7 +61,7 @@ export function computeReorder(
 
   const others = stickies.filter((s) => s.id !== fromId);
   const target = insertIndex > fromIndex ? insertIndex - 1 : insertIndex;
-  const ords = others.map((s, i) => orderKey(s, i));
+  const ords = others.map(effectiveOrd);
   const STEP = 1;
   let ord: number;
   if (target <= 0) ord = (ords[0] ?? 0) - STEP;
