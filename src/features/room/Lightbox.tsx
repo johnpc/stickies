@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { IonIcon } from '@ionic/react';
 import { closeOutline } from 'ionicons/icons';
 import { useScrollLock } from './useScrollLock';
+import { restoreFocus } from './restoreFocus';
 import './lightbox.css';
 
 interface LightboxProps {
@@ -51,7 +52,10 @@ export function Lightbox({ title, onClose, children }: LightboxProps) {
     closeRef.current?.focus();
     return () => {
       document.removeEventListener('keydown', onKey);
-      restoreTo?.focus?.();
+      // Return focus to the opener. restoreFocus handles the case where it's an
+      // Ionic host (e.g. the share <ion-button>) whose own .focus() is a no-op —
+      // previously that dropped focus to <body> on close.
+      restoreFocus(restoreTo);
     };
   }, [onClose]);
 
