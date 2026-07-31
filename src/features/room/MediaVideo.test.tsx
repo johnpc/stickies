@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { MediaVideo } from './MediaVideo';
 
 describe('MediaVideo', () => {
@@ -29,5 +29,26 @@ describe('MediaVideo', () => {
   it('renders a bare video (no list class) in the large/lightbox variant', () => {
     render(<MediaVideo url="https://s3/c.mp4" name="c.mp4" large />);
     expect(screen.getByTestId('media-video')).not.toHaveClass('media-sticky__video');
+  });
+
+  it('restores the playback position after a signed-URL refresh (no reset to 0)', () => {
+    // Regression: the ~10-min re-sign gave the <video> a new src, reloading it to
+    // 0:00 mid-watch. Track position/play-state and restore on the reload.
+    const { rerender } = render(<MediaVideo url="https://s3/c.mp4?sig=1" name="c.mp4" />);
+    const video = screen.getByTestId('media-video') as HTMLVideoElement;
+    const playSpy = vi.spyOn(video, 'play').mockResolvedValue(undefined);
+
+    // Simulate the user playing and reaching 0:37.
+    fireEvent.play(video);
+    video.currentTime = 37;
+    fireEvent.timeUpdate(video);
+
+    // The URL is re-signed (same object, new signature) → new src → reload to 0.
+    rerender(<MediaVideo url="https://s3/c.mp4?sig=2" name="c.mp4" />);
+    video.currentTime = 0; // the reload resets it...
+    fireEvent.loadedMetadata(video); // ...and our handler puts it back.
+
+    expect(video.currentTime).toBe(37);
+    expect(playSpy).toHaveBeenCalled(); // it was playing → resume
   });
 });
