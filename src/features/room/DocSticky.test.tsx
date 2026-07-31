@@ -46,6 +46,27 @@ describe('DocSticky', () => {
     expect(box.querySelector('[data-testid="code"]')?.textContent?.split('\n')).toHaveLength(20);
   });
 
+  it('shows a "preview truncated — download" notice in the lightbox for a capped file', () => {
+    // Regression: a file over the 256KB read cap was shown truncated with no hint
+    // — the user thought the cut-off preview was the whole document.
+    useDocText.mockReturnValue({ text: long, truncated: true, isLoading: false, isError: false });
+    render(<DocSticky sticky={sticky} />);
+    // Not shown on the inline preview…
+    expect(screen.queryByTestId('doc-truncated')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('doc-expand'));
+    // …but present in the expanded view, pointing at Download.
+    const notice = screen.getByTestId('doc-truncated');
+    expect(notice).toHaveTextContent(/truncated/i);
+    expect(notice).toHaveTextContent(/download/i);
+  });
+
+  it('does NOT show the truncated notice for a fully-loaded file', () => {
+    useDocText.mockReturnValue({ text: long, truncated: false, isLoading: false, isError: false });
+    render(<DocSticky sticky={sticky} />);
+    fireEvent.click(screen.getByTestId('doc-expand'));
+    expect(screen.queryByTestId('doc-truncated')).not.toBeInTheDocument();
+  });
+
   it('copies the full text (not just the preview)', () => {
     useDocText.mockReturnValue({ text: long, isLoading: false, isError: false });
     render(<DocSticky sticky={sticky} />);

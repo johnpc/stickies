@@ -18,7 +18,7 @@ import './mediaSticky.css';
 export function DocSticky({ sticky }: { sticky: StickyRecord }) {
   const [expanded, setExpanded] = useState(false);
   const copy = useCopyAction();
-  const { text, isLoading, isError } = useDocText(sticky.content);
+  const { text, truncated: capped, isLoading, isError } = useDocText(sticky.content);
   const { url } = useMediaUrl(sticky.content);
   const name = sticky.fileName ?? 'file.txt';
 
@@ -65,6 +65,11 @@ export function DocSticky({ sticky }: { sticky: StickyRecord }) {
       </div>
       {expanded && (
         <Lightbox title={name} onClose={() => setExpanded(false)}>
+          {capped && (
+            <p className="doc-sticky__truncated sk-muted" data-testid="doc-truncated">
+              Preview truncated — Download for the full file.
+            </p>
+          )}
           <CodeSticky code={text} language={language} />
         </Lightbox>
       )}

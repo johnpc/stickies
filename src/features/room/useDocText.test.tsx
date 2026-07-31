@@ -30,6 +30,18 @@ describe('useDocText', () => {
     await waitFor(() => expect(result.current.text).toBe('hello world'));
   });
 
+  it('flags truncated when the file exceeds the read cap', async () => {
+    resolveMediaUrl.mockResolvedValue('https://s3.example/doc');
+    // No `body` stream → readCappedText uses res.text(); a >256KB string is capped.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, text: () => Promise.resolve('a'.repeat(300 * 1024)) }),
+    );
+    const { result } = renderHook(() => useDocText('rooms/r/1-big.log'), { wrapper });
+    await waitFor(() => expect(result.current.truncated).toBe(true));
+    expect(result.current.text?.length).toBe(256 * 1024);
+  });
+
   it('surfaces an error when the fetch is not ok', async () => {
     resolveMediaUrl.mockResolvedValue('https://s3.example/doc');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }));

@@ -22,5 +22,11 @@ export function useDocText(path: string) {
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
-  return { text: query.data, isLoading: query.isLoading, isError: query.isError };
+  return {
+    text: query.data?.text,
+    // True when the file exceeded the read cap, so the preview is only a prefix.
+    truncated: query.data?.truncated ?? false,
+    isLoading: query.isLoading,
+    isError: query.isError,
+  };
 }
