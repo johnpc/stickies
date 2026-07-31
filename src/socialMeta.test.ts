@@ -39,4 +39,15 @@ describe('social meta (index.html)', () => {
       doc.querySelector('meta[name="apple-mobile-web-app-capable"]')?.getAttribute('content'),
     ).toBe('yes');
   });
+
+  it('sets a per-scheme theme-color so the browser chrome matches light/dark', () => {
+    const themeColors = [...doc.querySelectorAll('meta[name="theme-color"]')].map((m) => ({
+      content: m.getAttribute('content'),
+      media: m.getAttribute('media'),
+    }));
+    const light = themeColors.find((t) => t.media?.includes('light'));
+    const dark = themeColors.find((t) => t.media?.includes('dark'));
+    expect(light?.content).toBe('#f6f3ea'); // --sk-bg light
+    expect(dark?.content).toBe('#14130f'); // --sk-bg dark
+  });
 });
