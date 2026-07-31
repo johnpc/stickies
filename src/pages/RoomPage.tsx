@@ -38,6 +38,7 @@ export function RoomPage() {
             stickies={stickies}
             onAdd={(content) => add.mutate(content)}
             onUpload={(file) => addMedia.mutate({ file, seed: Date.now() })}
+            uploading={addMedia.isPending}
             onEdit={(id, content) => edit.mutate({ id, content })}
             onRecolor={(id, color) => recolor.mutate({ id, color })}
             onReorder={(id, ord) => reorder.mutate({ id, ord })}

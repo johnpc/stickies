@@ -17,4 +17,20 @@ describe('MediaUploadButton', () => {
     fireEvent.change(screen.getByTestId('sticky-file-input'), { target: { files: [] } });
     expect(onUpload).not.toHaveBeenCalled();
   });
+
+  it('shows an uploading state and disables the tile while pending', () => {
+    render(<MediaUploadButton onUpload={vi.fn()} pending />);
+    const button = screen.getByTestId('sticky-upload');
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByTestId('upload-spinner')).toBeInTheDocument();
+    expect(button).toHaveTextContent(/uploading/i);
+  });
+
+  it('shows the normal prompt (no spinner) when not pending', () => {
+    render(<MediaUploadButton onUpload={vi.fn()} />);
+    expect(screen.getByTestId('sticky-upload')).not.toBeDisabled();
+    expect(screen.queryByTestId('upload-spinner')).not.toBeInTheDocument();
+    expect(screen.getByTestId('sticky-upload')).toHaveTextContent(/upload a file/i);
+  });
 });
