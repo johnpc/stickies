@@ -46,4 +46,24 @@ describe('Lightbox', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(onClose).toHaveBeenCalledOnce();
   });
+
+  it('moves focus to the close button on open (so Escape/Tab act on the dialog)', () => {
+    render(
+      <Lightbox onClose={vi.fn()}>
+        <div />
+      </Lightbox>,
+    );
+    expect(document.activeElement).toBe(screen.getByTestId('lightbox-close'));
+  });
+
+  it('locks body scroll while open and restores it on close', () => {
+    const { unmount } = render(
+      <Lightbox onClose={vi.fn()}>
+        <div />
+      </Lightbox>,
+    );
+    expect(document.body.style.overflow).toBe('hidden');
+    unmount();
+    expect(document.body.style.overflow).toBe('');
+  });
 });
