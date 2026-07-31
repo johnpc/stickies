@@ -18,13 +18,19 @@ export function ShareRoomPanel({ url, onClose }: ShareRoomPanelProps) {
   return (
     <Lightbox title="Share this room" onClose={onClose}>
       <div className="share-room" data-testid="share-panel">
-        {qr ? (
+        {qr.status === 'ready' && qr.dataUrl ? (
           <img
             className="share-room__qr"
-            src={qr}
+            src={qr.dataUrl}
             alt="QR code for this room"
             data-testid="share-qr"
           />
+        ) : qr.status === 'error' ? (
+          // A real failure (e.g. the URL exceeds QR capacity) — say so instead of
+          // an eternal loading skeleton. The copy-link path below still works.
+          <div className="share-room__qr share-room__qr--error" data-testid="share-qr-error">
+            QR code unavailable — copy the link below instead.
+          </div>
         ) : (
           <div className="share-room__qr share-room__qr--pending" aria-hidden="true" />
         )}
