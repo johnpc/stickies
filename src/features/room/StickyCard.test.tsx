@@ -10,6 +10,11 @@ vi.mock('./useLinkPreview', () => ({
 // Media bodies pull the storage client; stub the renderer so a media StickyCard
 // test can focus on the card chrome (e.g. whether Edit is offered).
 vi.mock('./MediaSticky', () => ({ MediaSticky: () => <div data-testid="media-body" /> }));
+// CODE bodies lazy-load highlight.js; stub the renderer so we can focus on the
+// card's edit round-trip without pulling in the highlighter.
+vi.mock('./ExpandableCode', () => ({
+  ExpandableCode: ({ code }: { code: string }) => <div data-testid="code-body">{code}</div>,
+}));
 
 import { StickyCard } from './StickyCard';
 
@@ -94,6 +99,26 @@ describe('StickyCard', () => {
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onDelete).toHaveBeenCalledOnce();
     expect(onEdit).not.toHaveBeenCalled();
+  });
+
+  it('seeds the editor with a fenced snippet for a CODE sticky so an edit stays CODE', () => {
+    const onEdit = vi.fn();
+    render(
+      <StickyCard
+        sticky={make({ kind: 'CODE', content: 'const a = 1;', language: 'ts' })}
+        index={0}
+        onEdit={onEdit}
+        onRecolor={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('sticky-edit'));
+    const input = screen.getByTestId('sticky-input') as HTMLTextAreaElement;
+    // The editor shows the RECONSTRUCTED fence, not the bare stripped body — so
+    // saving unchanged re-classifies back to CODE (the regression this guards).
+    expect(input.value).toBe('```ts\nconst a = 1;\n```');
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onEdit).toHaveBeenCalledWith('```ts\nconst a = 1;\n```');
   });
 
   it('fires onDelete', () => {
