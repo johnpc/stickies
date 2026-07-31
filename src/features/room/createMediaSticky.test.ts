@@ -8,6 +8,7 @@ const { create, touchRoom, uploadMedia } = vi.hoisted(() => ({
 vi.mock('../../lib/dataClient', () => ({
   dataClient: { models: { Sticky: { create } } },
   unwrap: (r: { data: unknown }) => r.data,
+  unwrapWrite: (r: { data: unknown }) => r.data,
 }));
 vi.mock('./touchRoom', () => ({ touchRoom }));
 vi.mock('./mediaApi', () => ({

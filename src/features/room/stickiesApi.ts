@@ -4,7 +4,8 @@
  * client directly). Each write also touches the room's recents row, passing the
  * post-write sticky count so the recents index stays accurate.
  */
-import { dataClient, unwrap, type StickyRecord } from '../../lib/dataClient';
+import { dataClient, unwrap, unwrapWrite, type StickyRecord } from '../../lib/dataClient';
+import { withTimeout } from '../../lib/withTimeout';
 import { touchRoom } from './touchRoom';
 import { colorForIndex } from './stickyPalette';
 import { sortStickies } from './sortStickies';
@@ -32,15 +33,17 @@ export async function createSticky(input: {
   seq: number;
   existingCount: number;
 }): Promise<StickyRecord> {
-  const created = unwrap(
-    await dataClient.models.Sticky.create({
-      room: input.room,
-      kind: input.kind,
-      content: input.content,
-      language: input.language,
-      color: colorForIndex(input.seq),
-      ord: input.seq, // monotonic append; distinct per add so order is stable
-    }),
+  const created = unwrapWrite(
+    await withTimeout(
+      dataClient.models.Sticky.create({
+        room: input.room,
+        kind: input.kind,
+        content: input.content,
+        language: input.language,
+        color: colorForIndex(input.seq),
+        ord: input.seq, // monotonic append; distinct per add so order is stable
+      }),
+    ),
   );
   await touchRoom(input.room, input.existingCount + 1);
   return created as StickyRecord;
@@ -56,13 +59,15 @@ export async function updateStickyContent(
   input: { kind: StickyKind; content: string; language?: string },
   count: number,
 ): Promise<StickyRecord> {
-  const updated = unwrap(
-    await dataClient.models.Sticky.update({
-      id,
-      kind: input.kind,
-      content: input.content,
-      language: input.language ?? null,
-    }),
+  const updated = unwrapWrite(
+    await withTimeout(
+      dataClient.models.Sticky.update({
+        id,
+        kind: input.kind,
+        content: input.content,
+        language: input.language ?? null,
+      }),
+    ),
   );
   await touchRoom(room, count);
   return updated as StickyRecord;

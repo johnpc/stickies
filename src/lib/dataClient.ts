@@ -24,6 +24,23 @@ export function unwrap<T>(result: { data: T; errors?: readonly { message: string
   return result.data;
 }
 
+/**
+ * Like unwrap, but for WRITES (create/update) — also throws when `data` is null.
+ * Offline (or on a transient failure) Amplify's mutate resolves `{ data: null }`
+ * WITHOUT an `errors` array, so plain unwrap would return null and the mutation
+ * would "succeed" silently — the user's sticky vanishes with no feedback. A
+ * write that produced no row is a failure; throwing lets react-query's onError
+ * surface the "something went wrong" toast. Pure over its input.
+ */
+export function unwrapWrite<T>(result: {
+  data: T | null;
+  errors?: readonly { message: string }[];
+}): T {
+  const data = unwrap(result);
+  if (data == null) throw new Error('Write failed (no data returned — likely offline).');
+  return data;
+}
+
 export type StickyRecord = Schema['Sticky']['type'];
 export type RoomRecord = Schema['Room']['type'];
 export type PresenceRecord = Schema['Presence']['type'];

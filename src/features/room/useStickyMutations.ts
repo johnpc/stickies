@@ -5,6 +5,7 @@ import { restoreSticky } from './restoreSticky';
 import { createMediaSticky } from './createMediaSticky';
 import { classifyContent } from './classifyContent';
 import { showToast } from '../shell/toastBus';
+import { notifyWriteError } from './notifyWriteError';
 import { roomStickiesKey } from './roomStickiesKey';
 
 /**
@@ -27,6 +28,7 @@ export function useStickyMutations(room: string, count: number) {
       return createSticky({ room, kind, content, language, seq: Date.now(), existingCount: count });
     },
     onSuccess: settle,
+    onError: (error, raw) => notifyWriteError(error, () => add.mutate(raw)),
   });
 
   const addMedia = useMutation({
@@ -34,6 +36,7 @@ export function useStickyMutations(room: string, count: number) {
     mutationFn: (input: { file: File; seed: number }) =>
       createMediaSticky({ room, file: input.file, existingCount: count, seed: input.seed }),
     onSuccess: settle,
+    onError: (error, input) => notifyWriteError(error, () => addMedia.mutate(input)),
   });
 
   const edit = useMutation({
@@ -44,11 +47,13 @@ export function useStickyMutations(room: string, count: number) {
       return updateStickyContent(vars.id, room, { kind, content, language }, count);
     },
     onSuccess: settle,
+    onError: (error, vars) => notifyWriteError(error, () => edit.mutate(vars)),
   });
 
   const restore = useMutation({
     mutationFn: (sticky: StickyRecord) => restoreSticky(sticky, room, count + 1),
     onSuccess: settle,
+    onError: (error, sticky) => notifyWriteError(error, () => restore.mutate(sticky)),
   });
 
   const remove = useMutation({
@@ -59,6 +64,7 @@ export function useStickyMutations(room: string, count: number) {
       // (by anyone) should be recoverable. Re-creates the sticky as it was.
       showToast('Sticky deleted', { label: 'Undo', run: () => restore.mutate(sticky) });
     },
+    onError: (error, sticky) => notifyWriteError(error, () => remove.mutate(sticky)),
   });
 
   return { add, addMedia, edit, remove };
