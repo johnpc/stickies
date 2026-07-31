@@ -26,6 +26,43 @@ describe('Toast', () => {
     expect(screen.queryByTestId('app-toast')).not.toBeInTheDocument();
   });
 
+  describe('a11y', () => {
+    it('moves focus to the action button of an actionable toast (reachable + announced)', () => {
+      // Regression: the Undo button was unreachable (end of the DOM) and its
+      // presence was never announced, so an accidental delete was unrecoverable
+      // for keyboard/AT users. Focusing it makes it reachable and read out.
+      render(<Toast />);
+      act(() => showToast('Sticky deleted', { label: 'Undo', run: vi.fn() }));
+      const action = screen.getByTestId('app-toast-action');
+      expect(document.activeElement).toBe(action);
+      // Assertive so AT surfaces it promptly.
+      expect(screen.getByTestId('app-toast')).toHaveAttribute('role', 'alert');
+    });
+
+    it('restores focus to the prior element when the actionable toast closes', () => {
+      const opener = document.createElement('button');
+      document.body.appendChild(opener);
+      opener.focus();
+      render(<Toast />);
+      act(() => showToast('Sticky deleted', { label: 'Undo', run: vi.fn() }));
+      expect(document.activeElement).toBe(screen.getByTestId('app-toast-action'));
+      fireEvent.click(screen.getByTestId('app-toast-action')); // acts + dismisses
+      expect(document.activeElement).toBe(opener); // focus handed back
+      opener.remove();
+    });
+
+    it('a plain toast is a polite status and does NOT steal focus', () => {
+      const opener = document.createElement('button');
+      document.body.appendChild(opener);
+      opener.focus();
+      render(<Toast />);
+      act(() => showToast('Copied to clipboard'));
+      expect(screen.getByTestId('app-toast')).toHaveAttribute('role', 'status');
+      expect(document.activeElement).toBe(opener); // focus untouched
+      opener.remove();
+    });
+  });
+
   describe('queueing', () => {
     beforeEach(() => {
       vi.useFakeTimers();
