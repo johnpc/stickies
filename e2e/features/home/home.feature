@@ -13,6 +13,12 @@ Feature: Home — understand Stickies and jump into a room
     When they open the room "Trip Ideas" by name
     Then they land on the "trip-ideas" room pad
 
+  Scenario: A room edited in-session shows up in recents on returning home
+    Given a visitor opens the Stickies home page
+    When they open a fresh room by name and add a sticky "back to recents"
+    And they navigate back to the home page
+    Then that fresh room is listed in the recent rooms
+
   Scenario: A failed recents read shows a retry, not a false empty
     Given a visitor opens the home page with the recents read failing
     Then the home page shows a retry, not a "no rooms" message
