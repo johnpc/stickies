@@ -9,7 +9,7 @@ describe('StickyComposer', () => {
     fireEvent.click(screen.getByTestId('sticky-add'));
     const input = screen.getByTestId('sticky-input');
     fireEvent.change(input, { target: { value: 'first note' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.pointerDown(screen.getByTestId('sticky-save'));
     expect(onAdd).toHaveBeenCalledWith('first note');
   });
 

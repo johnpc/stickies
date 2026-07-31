@@ -63,7 +63,7 @@ describe('RoomPage', () => {
     fireEvent.click(screen.getByTestId('sticky-add'));
     const input = screen.getByTestId('sticky-input');
     fireEvent.change(input, { target: { value: 'buy milk' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.pointerDown(screen.getByTestId('sticky-save'));
     await waitFor(() => expect(add.mutate).toHaveBeenCalledWith('buy milk'));
   });
 

@@ -134,6 +134,31 @@
   color: rgba(34, 32, 26, 0.5);
 }
 
+/* Save affordance for the editor — Enter now inserts a newline, so an explicit
+   commit control is needed (esp. on mobile, where blur isn't obvious). */
+.sticky__editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.sticky__save {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--sk-note-ink);
+  color: var(--sk-surface);
+  border: none;
+  border-radius: var(--sk-radius-sm);
+  padding: 6px 12px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.sticky__save:hover {
+  opacity: 0.88;
+}
+
 .sticky--add {
   align-items: center;
   justify-content: center;
