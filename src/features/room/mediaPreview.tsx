@@ -1,4 +1,5 @@
 import type { MediaKind } from './mediaKind';
+import { MediaImage } from './MediaImage';
 
 /** The preview element for a media kind at a given URL. `large` swaps the small
  * list-view classes for lightbox sizing (the lightbox CSS targets bare tags).
@@ -6,11 +7,7 @@ import type { MediaKind } from './mediaKind';
  * Kept as a pure factory so MediaSticky + the lightbox share one source. */
 export function mediaPreview(kind: MediaKind, url: string, name: string, large = false) {
   if (kind === 'IMAGE') {
-    return large ? (
-      <img src={url} alt={name} />
-    ) : (
-      <img className="media-sticky__image" src={url} alt={name} data-testid="media-image" />
-    );
+    return <MediaImage url={url} name={name} large={large} />;
   }
   if (kind === 'VIDEO') {
     // playsInline: iOS otherwise hijacks playback into the native fullscreen
