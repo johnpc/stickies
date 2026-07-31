@@ -8,6 +8,27 @@
       content="Visit any room name and share text, links, and notes with anyone at the same URL. No account, no setup."
     />
 
+    <!-- Social unfurl (OpenGraph + Twitter). Sharing a room link is the app's
+         whole invite loop, so a link pasted into Slack/iMessage/Discord/Twitter
+         should preview cleanly. SPA served statically → app-level (not per-room)
+         tags with absolute URLs so crawlers resolve them without running JS. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Stickies" />
+    <meta property="og:title" content="Stickies — a shared sticky-note pad at any URL" />
+    <meta
+      property="og:description"
+      content="Visit any room name and share text, links, and notes with anyone at the same URL. No account, no setup."
+    />
+    <meta property="og:url" content="https://stickies.jpc.io/" />
+    <meta property="og:image" content="https://stickies.jpc.io/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Stickies — a shared sticky-note pad at any URL" />
+    <meta
+      name="twitter:description"
+      content="Visit any room name and share text, links, and notes with anyone at the same URL. No account, no setup."
+    />
+    <meta name="twitter:image" content="https://stickies.jpc.io/og-image.png" />
+
     <base href="/" />
 
     <meta name="color-scheme" content="light dark" />
