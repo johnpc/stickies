@@ -7,6 +7,7 @@ import { StickyBody } from './StickyBody';
 import { StickyEditor } from './StickyEditor';
 import { ColorPicker } from './ColorPicker';
 import { isEditableKind } from './isEditableKind';
+import { editableContent } from './editableContent';
 import './sticky.css';
 
 interface StickyCardProps {
@@ -33,7 +34,7 @@ export function StickyCard(props: StickyCardProps) {
     return (
       <StickyEditor
         color={color}
-        initial={sticky.content}
+        initial={editableContent(sticky)}
         onCancel={() => setEditing(false)}
         onSave={(content) => {
           onEdit(content);
