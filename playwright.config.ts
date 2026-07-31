@@ -25,6 +25,9 @@ const testDir = defineBddConfig({
 
 export default defineConfig({
   testDir,
+  // Purge the e2e-prefixed rooms this run created from the shared backend so they
+  // don't accumulate (and never surface on the live recents feed).
+  globalTeardown: './e2e/globalTeardown.ts',
   fullyParallel: true,
   // Every worker hits the SAME shared sandbox backend; a small pool trades a
   // little wall-clock for stability against shared state.

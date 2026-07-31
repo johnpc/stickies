@@ -1,5 +1,10 @@
 import { test as base } from 'playwright-bdd';
 
+/** Prefix every e2e-created room slug carries. The acceptance suite runs against
+ * the SAME shared backend prod serves from, so globalTeardown deletes rooms with
+ * this prefix after the run to stop them accumulating. */
+export const TEST_ROOM_PREFIX = 'e2e-';
+
 /**
  * Per-scenario test fixtures. `roomSlug` is a fresh, unique room name for each
  * scenario so parallel workers hitting the same shared backend never collide on
@@ -28,7 +33,9 @@ export const test = base.extend<StickiesFixtures>({
   // eslint-disable-next-line no-empty-pattern
   roomSlug: async ({}, provide, testInfo) => {
     counter += 1;
-    await provide(`e2e-${RUN}-${testInfo.workerIndex}-${counter}`);
+    // Prefix is shared with the app so these rooms are filtered out of the live
+    // recents feed (the e2e suite hits the same backend prod serves from).
+    await provide(`${TEST_ROOM_PREFIX}${RUN}-${testInfo.workerIndex}-${counter}`);
   },
   // eslint-disable-next-line no-empty-pattern
   state: async ({}, provide) => {
