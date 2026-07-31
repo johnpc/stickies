@@ -81,4 +81,21 @@ describe('deleteSticky', () => {
     expect(touchRoom).toHaveBeenCalledWith('room', 1);
     expect(removeMedia).not.toHaveBeenCalled();
   });
+
+  it('rejects (does not hang) when the delete never settles — offline', async () => {
+    // Regression: delete was the one write not raced against withTimeout, so an
+    // offline delete hung forever with no error/undo toast and the sticky stuck
+    // on screen. It must time out like the other writes.
+    vi.useFakeTimers();
+    try {
+      del.mockReturnValue(new Promise(() => {})); // never resolves
+      const p = deleteSticky('m', 'room', 1);
+      const assertion = expect(p).rejects.toThrow(/timed out/i);
+      await vi.advanceTimersByTimeAsync(12_001);
+      await assertion;
+      expect(touchRoom).not.toHaveBeenCalled(); // never reached the recents bump
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

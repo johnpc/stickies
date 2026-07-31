@@ -83,6 +83,10 @@ export async function deleteSticky(
   room: string,
   remainingCount: number,
 ): Promise<void> {
-  unwrap(await dataClient.models.Sticky.delete({ id }));
+  // Race against a timeout like every other write: Amplify mutate calls retry
+  // internally and hang (never reject) when offline, so an un-timed delete would
+  // sit pending forever — no error toast, no "Sticky deleted · Undo" toast (it's
+  // in onSuccess), and the sticky stuck on screen. This surfaces the failure.
+  unwrap(await withTimeout(dataClient.models.Sticky.delete({ id })));
   await touchRoom(room, remainingCount);
 }
