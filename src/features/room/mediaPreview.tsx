@@ -1,5 +1,6 @@
 import type { MediaKind } from './mediaKind';
 import { MediaImage } from './MediaImage';
+import { MediaVideo } from './MediaVideo';
 
 /** The preview element for a media kind at a given URL. `large` swaps the small
  * list-view classes for lightbox sizing (the lightbox CSS targets bare tags).
@@ -10,25 +11,7 @@ export function mediaPreview(kind: MediaKind, url: string, name: string, large =
     return <MediaImage url={url} name={name} large={large} />;
   }
   if (kind === 'VIDEO') {
-    // playsInline: iOS otherwise hijacks playback into the native fullscreen
-    // player instead of playing in-card. preload=metadata: dimensions without
-    // eagerly pulling the whole clip on a media-heavy pad.
-    return large ? (
-      <video src={url} controls playsInline preload="metadata">
-        <track kind="captions" />
-      </video>
-    ) : (
-      <video
-        className="media-sticky__video"
-        src={url}
-        controls
-        playsInline
-        preload="metadata"
-        data-testid="media-video"
-      >
-        <track kind="captions" />
-      </video>
-    );
+    return <MediaVideo url={url} name={name} large={large} />;
   }
   if (kind === 'PDF') {
     // iOS Safari + WKWebView (the published app's platform) won't render a PDF in
