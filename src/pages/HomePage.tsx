@@ -1,4 +1,12 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButtons } from '@ionic/react';
+import {
+  IonContent,
+  IonHeader,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  IonButtons,
+  useIonViewWillEnter,
+} from '@ionic/react';
 import { useRecentRooms } from '../features/room/useRecentRooms';
 import { LoadState } from '../features/shell/LoadState';
 import { ThemeToggle } from '../features/shell/ThemeToggle';
@@ -11,6 +19,15 @@ import '../features/home/home.css';
  * open any room by name, and lists the most-recently-edited rooms to jump into. */
 export function HomePage() {
   const { rooms, isLoading, isError, refetch } = useRecentRooms(10);
+
+  // Ionic keeps this page MOUNTED in the router-outlet stack while you're in a
+  // room (that's how the back-swipe transition works), so react-query's
+  // refetchOnMount never re-fires on return and the feed would show a stale
+  // snapshot — the room you just edited missing, order/counts frozen. Refetch
+  // whenever the cached Home view becomes active again (incl. back navigation).
+  useIonViewWillEnter(() => {
+    void refetch();
+  });
 
   return (
     <IonPage>
