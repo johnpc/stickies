@@ -17,11 +17,32 @@ interface LightboxProps {
  * trap it). Presentation only — the caller owns the open/closed state. */
 export function Lightbox({ title, onClose, children }: LightboxProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   useScrollLock();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+      } else if (e.key === 'Tab') {
+        // Focus trap: Tab/Shift+Tab must cycle WITHIN the dialog, not escape to
+        // the pad behind it (aria-modal alone doesn't stop the browser). Wrap
+        // from last→first (and first→last on Shift+Tab).
+        const focusables = panelRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
+        );
+        if (!focusables || focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement;
+        if (e.shiftKey && active === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener('keydown', onKey);
     // Move focus into the dialog so Escape/Tab act on it (not a background card)
@@ -37,6 +58,7 @@ export function Lightbox({ title, onClose, children }: LightboxProps) {
   return createPortal(
     <div className="lightbox" data-testid="lightbox" onClick={onClose}>
       <div
+        ref={panelRef}
         className="lightbox__panel"
         role="dialog"
         aria-modal="true"
