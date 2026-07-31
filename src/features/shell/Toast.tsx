@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { onToast, type ToastPayload } from './toastBus';
 import './Toast.css';
 
@@ -6,40 +6,45 @@ const TOAST_MS = 6000;
 
 /** A single transient toast, bottom-center, for app-level messages (a failed
  * load, or a note with an action like Undo/Retry). Subscribes to the toast bus.
- * Messages are QUEUED and shown one at a time for 6s each — so a follow-up toast
- * (e.g. "Copied") can't clobber an actionable one (e.g. "Sticky deleted · Undo")
- * before the user acts on it. role=alert so assistive tech announces it. */
+ * Messages are QUEUED and shown one at a time — a follow-up toast (e.g. "Copied")
+ * can't clobber an actionable one before the user acts on it. Plain toasts
+ * auto-expire after 6s; ACTIONABLE toasts (Undo/Retry) do NOT — they stay until
+ * the user acts or dismisses, so an Undo can't silently vanish (which, on a
+ * world-writable pad, would make an accidental delete permanently unrecoverable).
+ * role=alert so assistive tech announces it. */
 export function Toast() {
   const [toast, setToast] = useState<ToastPayload | null>(null);
   const queue = useRef<ToastPayload[]>([]);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const showing = useRef(false);
+
+  // Show the next queued toast (or clear). Arm the auto-expire timer ONLY for a
+  // toast with no action; an actionable toast waits for the user. Also used as
+  // the dismiss/advance handler. Stable identity so the subscription effect
+  // doesn't re-run.
+  const advance = useCallback(() => {
+    clearTimeout(timer.current);
+    const next = queue.current.shift() ?? null;
+    showing.current = !!next;
+    setToast(next);
+    timer.current = next && !next.action ? setTimeout(advance, TOAST_MS) : undefined;
+  }, []);
 
   useEffect(() => {
-    // Show the next queued toast; when it expires, advance the queue. Reset the
-    // timer marker to undefined when the queue drains so the next push re-pumps.
-    const advance = () => {
-      const next = queue.current.shift();
-      setToast(next ?? null);
-      timer.current = next ? setTimeout(advance, TOAST_MS) : undefined;
-    };
     const off = onToast((t) => {
       queue.current.push(t);
-      // Kick the pump only when idle; otherwise the current toast finishes first.
-      if (!timer.current) advance();
+      // Pump only when nothing is currently showing; otherwise the visible toast
+      // (which may be an actionable one with no timer) must finish/be acted on
+      // first, so it isn't clobbered.
+      if (!showing.current) advance();
     });
     return () => {
       off();
       clearTimeout(timer.current);
-      timer.current = undefined;
     };
-  }, []);
+  }, [advance]);
 
-  const dismiss = () => {
-    clearTimeout(timer.current);
-    const next = queue.current.shift();
-    setToast(next ?? null);
-    timer.current = next ? setTimeout(dismiss, TOAST_MS) : undefined;
-  };
+  const dismiss = advance;
 
   if (!toast) return null;
   return (
