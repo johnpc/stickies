@@ -13,7 +13,9 @@ export function useDocText(path: string) {
   const query = useQuery({
     queryKey: ['doc-text', path],
     queryFn: async () => {
-      const url = await resolveMediaUrl(path);
+      // Bound BOTH network steps: signing (getUrl) can hang too, so wrapping only
+      // the fetch left an infinite-"Loading…" path via a stalled sign.
+      const url = await withTimeout(resolveMediaUrl(path), 15_000);
       const res = await withTimeout(fetch(url), 15_000);
       if (!res.ok) throw new Error(`Failed to load (${res.status})`);
       return readCappedText(res);
@@ -28,5 +30,14 @@ export function useDocText(path: string) {
     truncated: query.data?.truncated ?? false,
     isLoading: query.isLoading,
     isError: query.isError,
+    // Force a re-fetch (re-signs the S3 URL). A doc preview reads its text through
+    // a signed URL that expires; with retry:false and no refetchInterval, a
+    // transient error/403 (tab open past expiry, short guest session, network blip)
+    // had NO recovery — the preview stayed broken until a full page reload. The
+    // error UI wires this to a Retry button (the doc analogue of the image sticky's
+    // on-error re-sign, which has no <img onError> hook to lean on here).
+    retry: () => {
+      void query.refetch();
+    },
   };
 }
