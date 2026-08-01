@@ -91,11 +91,27 @@ describe('RoomPage', () => {
     await waitFor(() => expect(add.mutate).toHaveBeenCalledWith('buy milk'));
   });
 
-  it('shows a retryable error state when the pad fails to load', () => {
+  it('shows a retryable error state when the pad fails to load (nothing cached)', () => {
     const refetch = vi.fn();
     useRoomStickies.mockReturnValue({ stickies: [], isLoading: false, isError: true, refetch });
     renderRoom();
     expect(screen.getByTestId('load-error')).toBeInTheDocument();
+  });
+
+  it('keeps showing cached stickies when a BACKGROUND refetch errors (no full-screen blank)', () => {
+    // Regression: a mutation's settle() invalidate triggers a background refetch;
+    // on a spotty connection react-query flips the query to error while still
+    // holding data. LoadState gated on isError alone → the populated, still-valid
+    // pad was replaced by "Something went wrong" over a working write.
+    useRoomStickies.mockReturnValue({
+      stickies: [{ id: '1', room: 'grocery-list', kind: 'TEXT', content: 'milk', color: 'yellow' }],
+      isLoading: false,
+      isError: true, // background refetch failed, but data is cached
+      refetch: vi.fn(),
+    });
+    renderRoom();
+    expect(screen.getByText('milk')).toBeInTheDocument(); // pad still shown
+    expect(screen.queryByTestId('load-error')).not.toBeInTheDocument(); // no error screen
   });
 
   it('shows an invalid-room state (not the pad) for an all-punctuation slug', () => {
