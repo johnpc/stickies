@@ -54,6 +54,18 @@ describe('safeHref', () => {
     expect(safeHref('vbscript:msgbox(1)')).toBeNull();
   });
 
+  it('rejects an http(s) URL with embedded credentials (userinfo phishing)', () => {
+    // `https://apple.com@evil.com` reads as apple.com but NAVIGATES to evil.com —
+    // a deceptive link on a world-writable pad. Drop it rather than render a live
+    // anchor whose text lies about its destination.
+    expect(safeHref('https://apple.com@evil.com')).toBeNull();
+    expect(safeHref('https://apple.com@evil.com/login')).toBeNull();
+    expect(safeHref('http://paypal.com@192.168.1.1')).toBeNull();
+    expect(safeHref('https://user@example.com')).toBeNull();
+    // A legit URL to the same host (no userinfo) still links.
+    expect(safeHref('https://example.com')).toBe('https://example.com/');
+  });
+
   it('returns null for empty or unparseable input', () => {
     expect(safeHref('   ')).toBeNull();
     expect(safeHref('http://')).toBeNull();
