@@ -2,10 +2,25 @@ import { describe, expect, it } from 'vitest';
 import { mediaKind } from './mediaKind';
 
 describe('mediaKind', () => {
-  it('classifies images by mime or extension', () => {
+  it('classifies web-renderable images by mime or extension', () => {
     expect(mediaKind('image/png', 'a.png')).toBe('IMAGE');
     expect(mediaKind('', 'photo.JPG')).toBe('IMAGE');
     expect(mediaKind('image/svg+xml', 'i.svg')).toBe('IMAGE');
+    expect(mediaKind('image/webp', 'c.webp')).toBe('IMAGE');
+    expect(mediaKind('image/avif', 'd.avif')).toBe('IMAGE');
+    expect(mediaKind('', 'icon.ico')).toBe('IMAGE');
+  });
+
+  it('treats non-web images (HEIC/HEIF/TIFF) as downloadable FILE, not a broken preview', () => {
+    // Regression: `mime.startsWith('image/')` classified these as IMAGE, but only
+    // Apple browsers decode them — so an iPhone photo (HEIC is the default) showed
+    // "Couldn't load" to every Android/Chrome/Firefox viewer of the shared pad.
+    // They must be a FILE (download card) instead.
+    expect(mediaKind('image/heic', 'IMG_1234.HEIC')).toBe('FILE');
+    expect(mediaKind('image/heif', 'photo.heif')).toBe('FILE');
+    expect(mediaKind('image/tiff', 'scan.tiff')).toBe('FILE');
+    expect(mediaKind('', 'IMG_1234.heic')).toBe('FILE');
+    expect(mediaKind('', 'scan.tif')).toBe('FILE');
   });
 
   it('classifies PDFs', () => {
