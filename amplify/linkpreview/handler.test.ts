@@ -40,6 +40,45 @@ describe('linkPreview handler', () => {
     expect(out.image).toBe('https://example.com/img.png');
   });
 
+  it('streams the body and STOPS at the cap (never buffers a huge/hostile page)', async () => {
+    // Regression: `res.text()` downloaded the ENTIRE body before slicing, so a
+    // fast server streaming hundreds of MB could OOM the Lambda. The reader must
+    // pull at most ~MAX_BYTES then cancel. We assert it does NOT read unbounded
+    // chunks, and text() is never used when a streamable body is present.
+    let pulled = 0;
+    const enc = new TextEncoder();
+    const head = enc.encode('<meta property="og:title" content="Streamed">' + 'x'.repeat(50_000));
+    const chunk = enc.encode('y'.repeat(50_000));
+    let sentHead = false;
+    const body = {
+      getReader: () => ({
+        read: async () => {
+          if (!sentHead) {
+            sentHead = true;
+            pulled += head.byteLength;
+            return { done: false, value: head };
+          }
+          pulled += chunk.byteLength;
+          return { done: false, value: chunk }; // "infinite" stream
+        },
+        cancel: async () => undefined,
+      }),
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: { get: (h: string) => (h === 'content-type' ? 'text/html' : null) },
+        body,
+        text: () => Promise.reject(new Error('must not buffer the whole body via text()')),
+      }),
+    );
+    const out = await invoke('https://example.com/huge');
+    expect(out.title).toBe('Streamed'); // still parsed from the head
+    expect(pulled).toBeLessThanOrEqual(300_000); // bounded, not the whole infinite stream
+  });
+
   it('drops a non-http(s) og:image (data:/javascript:) but keeps the rest of the card', async () => {
     // og:image is attacker-controlled and lands in the client's <img src> on a
     // world-writable pad — a data:/javascript:/file: scheme must never pass through.
