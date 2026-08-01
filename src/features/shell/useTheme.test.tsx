@@ -16,8 +16,15 @@ function Probe() {
 beforeEach(() => {
   localStorage.clear();
   document.documentElement.removeAttribute('data-theme');
+  document.querySelector('meta#theme-color-override')?.remove();
 });
-afterEach(() => localStorage.clear());
+afterEach(() => {
+  localStorage.clear();
+  document.querySelector('meta#theme-color-override')?.remove();
+});
+
+const overrideColor = () =>
+  document.querySelector('meta#theme-color-override')?.getAttribute('content') ?? null;
 
 describe('applyThemeMode', () => {
   it('sets data-theme for explicit modes and clears it for system', () => {
@@ -25,6 +32,18 @@ describe('applyThemeMode', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     applyThemeMode('system');
     expect(document.documentElement.getAttribute('data-theme')).toBeNull();
+  });
+
+  it('syncs the browser-chrome theme-color to an explicit choice, and removes it for system', () => {
+    // Regression: the static index.html theme-color metas are keyed to
+    // prefers-color-scheme, so an in-app override on a device whose OS scheme
+    // differs left the chrome the wrong colour (Dark app + light OS → light bar).
+    applyThemeMode('dark');
+    expect(overrideColor()).toBe('#14130f'); // dark --sk-bg
+    applyThemeMode('light');
+    expect(overrideColor()).toBe('#f6f3ea'); // light --sk-bg
+    applyThemeMode('system');
+    expect(overrideColor()).toBeNull(); // removed → OS-driven media metas win
   });
 });
 
