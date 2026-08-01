@@ -13,8 +13,13 @@ vi.mock('./useMediaUrl', () => ({ useMediaUrl }));
 vi.mock('./copyText', () => ({ copyText }));
 vi.mock('./downloadFile', () => ({ downloadFile }));
 // CodeSticky highlights via hljs; stub it to keep this a focused DOC test.
+// Expose hideTruncationNote so we can assert DocSticky owns the truncation message.
 vi.mock('./CodeSticky', () => ({
-  CodeSticky: ({ code }: { code: string }) => <pre data-testid="code">{code}</pre>,
+  CodeSticky: ({ code, hideTruncationNote }: { code: string; hideTruncationNote?: boolean }) => (
+    <pre data-testid="code" data-hide-truncation={hideTruncationNote ? 'true' : 'false'}>
+      {code}
+    </pre>
+  ),
 }));
 
 import { DocSticky } from './DocSticky';
@@ -58,6 +63,19 @@ describe('DocSticky', () => {
     const notice = screen.getByTestId('doc-truncated');
     expect(notice).toHaveTextContent(/truncated/i);
     expect(notice).toHaveTextContent(/download/i);
+  });
+
+  it('a capped file tells CodeSticky to hide its "use Copy" note (Download is the truth)', () => {
+    // Regression: for a >256KB file, the lightbox showed BOTH "Download for the
+    // full file" (correct) AND CodeSticky's "use Copy for the full snippet" — but
+    // Copy only holds the 256KB prefix. DocSticky owns the message, so CodeSticky
+    // must suppress its own note when the file was capped.
+    useDocText.mockReturnValue({ text: long, truncated: true, isLoading: false, isError: false });
+    render(<DocSticky sticky={sticky} />);
+    fireEvent.click(screen.getByTestId('doc-expand'));
+    const codes = screen.getAllByTestId('code');
+    // The lightbox CodeSticky (full variant) is told to hide its truncation note.
+    expect(codes.some((c) => c.getAttribute('data-hide-truncation') === 'true')).toBe(true);
   });
 
   it('does NOT show the truncated notice for a fully-loaded file', () => {

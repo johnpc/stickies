@@ -33,4 +33,16 @@ describe('CodeSticky', () => {
     expect(gutter).toHaveLength(n); // all shown (n < the expanded cap), not clipped to 400
     expect(screen.queryByTestId('code-truncated')).not.toBeInTheDocument();
   });
+
+  it('hideTruncationNote suppresses the "use Copy" note even when capped', () => {
+    // DocSticky embeds CodeSticky for a FILE whose text was already capped at 256KB,
+    // so Copy would NOT yield the full file — DocSticky owns the truncation message
+    // ("Download for the full file"). CodeSticky must not also claim "use Copy".
+    const huge = Array.from({ length: CODE_MAX_LINES + 500 }, (_, i) => `line ${i}`).join('\n');
+    render(<CodeSticky code={huge} language="javascript" hideTruncationNote />);
+    // Still capped (bounded gutter) but no contradictory note.
+    const gutter = screen.getByTestId('code-sticky').querySelectorAll('.code-sticky__gutter span');
+    expect(gutter).toHaveLength(CODE_MAX_LINES);
+    expect(screen.queryByTestId('code-truncated')).not.toBeInTheDocument();
+  });
 });

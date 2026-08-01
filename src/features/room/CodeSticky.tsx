@@ -11,6 +11,12 @@ interface CodeStickyProps {
    * actually shows far more than the small on-pad preview (only one snippet
    * renders full-screen, so the "freeze every viewer" risk doesn't apply). */
   full?: boolean;
+  /** Suppress the "use Copy for the full snippet" note. DocSticky embeds this to
+   * render a FILE whose text was already capped at 256KB before it got here — so
+   * Copy would NOT yield the full file, and DocSticky shows its own accurate
+   * "Download for the full file" note instead. Owning that message avoids two
+   * contradictory truncation notes in the same view. */
+  hideTruncationNote?: boolean;
 }
 
 /** Renders a CODE sticky's body: a language tag, a line-number gutter, and the
@@ -19,7 +25,7 @@ interface CodeStickyProps {
  * every viewer's main thread via synchronous highlight.js; the full source stays
  * available via Copy (ExpandableCode). The `full` (lightbox) variant uses much
  * higher caps so Expand reveals more. */
-export function CodeSticky({ code, language, full }: CodeStickyProps) {
+export function CodeSticky({ code, language, full, hideTruncationNote }: CodeStickyProps) {
   const { code: shown, truncated } = useMemo(
     () => (full ? capCode(code, CODE_EXPANDED_MAX_LINES, CODE_EXPANDED_MAX_CHARS) : capCode(code)),
     [code, full],
@@ -47,7 +53,7 @@ export function CodeSticky({ code, language, full }: CodeStickyProps) {
           <code className="hljs code-sticky__code" dangerouslySetInnerHTML={{ __html: html }} />
         </pre>
       </div>
-      {truncated && (
+      {truncated && !hideTruncationNote && (
         <p className="code-sticky__truncated" data-testid="code-truncated">
           Preview truncated — use Copy for the full snippet.
         </p>
