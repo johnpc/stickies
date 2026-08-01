@@ -70,7 +70,15 @@ export function safeHref(raw: string): string | null {
   const candidate = hasScheme ? trimmed : `https://${trimmed}`;
   try {
     const url = new URL(candidate);
-    return SAFE_SCHEMES.has(url.protocol) ? url.href : null;
+    if (!SAFE_SCHEMES.has(url.protocol)) return null;
+    // Reject embedded credentials on an http(s) URL: `https://apple.com@evil.com`
+    // reads as apple.com in the link text but NAVIGATES to evil.com — the classic
+    // userinfo phishing/obfuscation trick. On a world-writable pad there's no
+    // legitimate reason to link a `user:pass@host` URL, so drop it entirely.
+    if ((url.protocol === 'http:' || url.protocol === 'https:') && (url.username || url.password)) {
+      return null;
+    }
+    return url.href;
   } catch {
     return null;
   }
