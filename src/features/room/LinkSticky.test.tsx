@@ -24,8 +24,18 @@ describe('LinkSticky', () => {
     const link = screen.getByRole('link');
     expect(link).toHaveAttribute('href', 'mailto:alex@example.com');
     expect(link).toHaveTextContent('alex@example.com');
-    // No OG preview is fetched for a non-web scheme.
-    expect(useLinkPreview).toHaveBeenLastCalledWith('alex@example.com', false);
+    // No OG preview is fetched for a non-web scheme (enabled=false), and it's
+    // asked about the normalized href, not the raw input.
+    expect(useLinkPreview).toHaveBeenLastCalledWith('mailto:alex@example.com', false);
+  });
+
+  it('scrapes the NORMALIZED href for a scheme-less host so it still gets a preview', () => {
+    // Regression: LinkSticky fetched with the RAW url. A bare host ("github.com/x")
+    // links fine (safeHref adds https://) but the resolver's new URL(raw) threw on
+    // the scheme-less string, so it silently got no card — while a full-scheme paste
+    // of the same destination did. Fetch the href the anchor actually points to.
+    render(<LinkSticky url="github.com/foo" />);
+    expect(useLinkPreview).toHaveBeenLastCalledWith('https://github.com/foo', true);
   });
 
   it('renders a rich preview card when the resolver returns OG data', () => {
