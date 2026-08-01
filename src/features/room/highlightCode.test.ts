@@ -37,6 +37,20 @@ describe('highlightCode', () => {
     const out = highlightCode('x'.repeat(20_000), 'javascript');
     expect(out.language).toBe('javascript');
   });
+
+  // Regression: the gutter numbers each line via codeLines, while the <code>
+  // renders the HTML verbatim under white-space: pre. If highlightCode kept a
+  // trailing newline that codeLines strips, the source rendered ONE extra empty
+  // line with no gutter number — shifting every number below out of alignment.
+  // Both must derive the same line count for EVERY input, trailing \n or not.
+  it.each(['a\nb\nc', 'a\nb\n', 'a\nb\n\n\n', 'x', 'x\n', 'const a = 1;\n'])(
+    'renders exactly as many lines as the gutter numbers (%j)',
+    (code) => {
+      const gutter = codeLines(code).length;
+      const rendered = highlightCode(code, 'plaintext').html.split('\n').length;
+      expect(rendered).toBe(gutter);
+    },
+  );
 });
 
 describe('codeLines', () => {
