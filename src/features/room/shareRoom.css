@@ -65,3 +65,23 @@
 .share-room__copy:hover {
   text-decoration: underline;
 }
+/* Native share sheet button (shown only on devices that support it). A filled
+   primary action since it's the preferred path on mobile. */
+.share-room__native {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: center;
+  margin-top: 4px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--sk-radius-sm);
+  background: var(--sk-accent-strong);
+  color: var(--sk-accent-contrast);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.share-room__native:hover {
+  opacity: 0.9;
+}
