@@ -29,9 +29,13 @@ export function useToastQueue(onLeaveActionable?: () => void): {
     wasActionable.current = !!next?.action;
     setToast(next);
     timer.current = next && !next.action ? setTimeout(advance, TOAST_MS) : undefined;
-    // When an actionable toast closes and nothing replaces it, let the component
-    // put focus back where it was (don't strand a keyboard user on <body>).
-    if (leftActionable && !next) onLeaveActionable?.();
+    // When we leave an actionable toast, hand focus back to where it was — so a
+    // keyboard/AT user who deleted a sticky and hit Undo isn't stranded. This must
+    // fire whether the queue is now empty OR a PLAIN toast follows (a plain toast
+    // doesn't take focus, so nothing else will restore it). The only case we skip
+    // is when the next toast is itself ACTIONABLE: it legitimately grabs focus and
+    // records its own return target, so restoring here would fight it.
+    if (leftActionable && !next?.action) onLeaveActionable?.();
   }, [onLeaveActionable]);
 
   useEffect(() => {
