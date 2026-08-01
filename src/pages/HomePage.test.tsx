@@ -62,4 +62,30 @@ describe('HomePage', () => {
     renderHome();
     expect(screen.getByTestId('load-empty')).toHaveTextContent('No rooms yet');
   });
+
+  it('shows a retryable error when the feed fails to load with nothing cached', () => {
+    useRecentRooms.mockReturnValue({
+      rooms: [],
+      isLoading: false,
+      isError: true,
+      refetch: vi.fn(),
+    });
+    renderHome();
+    expect(screen.getByTestId('load-error')).toBeInTheDocument();
+  });
+
+  it('keeps showing cached rooms when a BACKGROUND refetch errors (no full-screen blank)', () => {
+    // Regression: returning home refetches the feed (useIonViewWillEnter); if that
+    // background refetch flakes, react-query flips to error while still holding the
+    // rooms. Gating LoadState on isError alone blanked a populated, still-valid feed.
+    useRecentRooms.mockReturnValue({
+      rooms: [{ id: 'a', slug: 'grocery-list', stickyCount: 2 }],
+      isLoading: false,
+      isError: true, // background refetch failed, but rooms are cached
+      refetch: vi.fn(),
+    });
+    renderHome();
+    expect(screen.getByText('Grocery List')).toBeInTheDocument(); // feed still shown
+    expect(screen.queryByTestId('load-error')).not.toBeInTheDocument(); // no error screen
+  });
 });
