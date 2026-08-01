@@ -30,6 +30,15 @@ describe('link-preview CSS layout', () => {
     expect(block('.link-preview__site')).toMatch(/overflow-wrap:\s*anywhere/);
   });
 
+  it('line-clamps the title so a long og:title cannot balloon the card height', () => {
+    // The description was already clamped; the title was not, so an attacker-set
+    // long og:title grew the card and shoved the grid. Clamp it too (the resolver
+    // also length-caps at the source; this bounds the on-card height).
+    const title = block('.link-preview__title');
+    expect(title).toMatch(/-webkit-line-clamp:\s*\d/);
+    expect(title).toMatch(/overflow:\s*hidden/);
+  });
+
   it('height-caps the whole-card plain-link fallback (a long URL scrolls, not balloons)', () => {
     // The LinkSticky preview-failed fallback uses .sticky__link--block; it must
     // cap + scroll like TEXT so a giant URL can't balloon the card.

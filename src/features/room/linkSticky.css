@@ -37,6 +37,12 @@
   font-size: 0.9rem;
   line-height: 1.25;
   overflow-wrap: anywhere;
+  /* Clamp to 3 lines so a long title can't dominate the card (the source also
+     caps its length; this bounds the on-card height regardless). */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .link-preview__desc {
   font-size: 0.78rem;

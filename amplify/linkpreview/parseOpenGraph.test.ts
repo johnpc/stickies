@@ -33,4 +33,26 @@ describe('parseOpenGraph', () => {
       siteName: null,
     });
   });
+
+  it('length-caps attacker-influenced scraped fields (no megabyte title on every viewer)', () => {
+    // og:*/meta content is set by whatever page a user links, cached, and sent to
+    // EVERY viewer; the title has no CSS line-clamp, so an unbounded one would
+    // balloon the card. Cap title/description/siteName at the source.
+    const html =
+      `<meta property="og:title" content="${'A'.repeat(5000)}">` +
+      `<meta property="og:description" content="${'B'.repeat(5000)}">` +
+      `<meta property="og:site_name" content="${'C'.repeat(5000)}">`;
+    const out = parseOpenGraph(html);
+    expect(out.title).toHaveLength(300);
+    expect(out.description).toHaveLength(1000);
+    expect(out.siteName).toHaveLength(100);
+  });
+
+  it('leaves normal-length fields untouched', () => {
+    const out = parseOpenGraph(
+      '<meta property="og:title" content="GitHub - johnpc"><meta property="og:description" content="A short bio.">',
+    );
+    expect(out.title).toBe('GitHub - johnpc');
+    expect(out.description).toBe('A short bio.');
+  });
 });
