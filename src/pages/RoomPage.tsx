@@ -41,8 +41,14 @@ export function RoomPage() {
           {prettifyRoomSlug(room)}
         </h1>
         <LoadState
-          isLoading={isLoading}
-          isError={isError}
+          isLoading={isLoading && stickies.length === 0}
+          // Only surface the full-screen error when there's nothing cached to show.
+          // A mutation's settle() invalidate triggers a BACKGROUND refetch; if that
+          // flakes on a spotty connection react-query flips the query to error while
+          // still holding the prior data — blanking a populated, still-valid pad
+          // over a working write. Keep rendering the cached stickies (the live
+          // observeQuery keeps them fresh) and only error out on a truly empty load.
+          isError={isError && stickies.length === 0}
           onRetry={refetch}
           skeleton={<div className="ion-padding sk-muted">Loading the pad…</div>}
         >
