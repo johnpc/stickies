@@ -17,8 +17,11 @@ const SAFE_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:']);
 const BARE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const WRAP_PAIRS: Record<string, string> = { '(': ')', '[': ']', '<': '>', '"': '"', "'": "'" };
-// Sentence punctuation that clings to a URL pasted from prose.
-const TRAILING_PUNCT = /[.,;:!?]+$/;
+// Sentence punctuation that clings to a URL pasted from prose. Includes `>` so a
+// URL in angle-bracket / Markdown-autolink style (<https://x.com>) whose leading
+// `<` a tokenizer already split off doesn't keep a dangling `>` (a real URL never
+// ends in a literal `>` — it'd be percent-encoded as %3E).
+const TRAILING_PUNCT = /[.,;:!?>]+$/;
 
 /**
  * Trim punctuation a URL picks up from surrounding prose so it doesn't become a

@@ -38,6 +38,15 @@ describe('linkifyText', () => {
     expect(show('(see https://x.com)')).toBe('(see |[https://x.com](https://x.com/)|)');
   });
 
+  it('links an angle-bracket / Markdown-autolink URL, keeping the > as text', () => {
+    // Regression: <https://x.com> (a very common way to write a URL) was left as
+    // DEAD TEXT — the run kept a trailing > that safeHref rejected, so nothing
+    // linkified. The > should peel like other trailing punctuation.
+    expect(show('see <https://x.com> for info')).toBe(
+      'see <|[https://x.com](https://x.com/)|>| for info',
+    );
+  });
+
   it('links multiple URLs in one note', () => {
     const runs = linkifyText('a https://one.com b https://two.com/x c');
     expect(runs.filter((r) => r.href)).toHaveLength(2);

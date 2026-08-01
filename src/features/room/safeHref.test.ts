@@ -20,6 +20,10 @@ describe('safeHref', () => {
     expect(safeHref('https://example.com.')).toBe('https://example.com/');
     // A dangling close-paren with no opener (the tail of "(see https://x.com/a)").
     expect(safeHref('https://example.com/a).')).toBe('https://example.com/a');
+    // A dangling `>` from an angle-bracket URL whose leading `<` was split off
+    // (<https://example.com> tokenized to https://example.com>). A real URL never
+    // ends in a literal `>`, so strip it rather than reject the whole link.
+    expect(safeHref('https://example.com>')).toBe('https://example.com/');
   });
 
   it('keeps parentheses that are part of the URL (e.g. a Wikipedia path)', () => {

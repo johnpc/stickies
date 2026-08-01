@@ -22,7 +22,9 @@ export interface TextRun {
 
 const URL_RUN = /((?:https?:\/\/|www\.)[^\s]+)/gi;
 // Trailing punctuation a URL picks up from prose (sentence enders, closing pairs).
-const TRAILING = /[.,;:!?)\]}'"]$/;
+// `>` is here for angle-bracket / Markdown-autolink URLs (<https://x.com>): the
+// leading `<` is split off by the whitespace-bounded run, leaving a trailing `>`.
+const TRAILING = /[.,;:!?)\]}'">]$/;
 
 export function linkifyText(text: string): TextRun[] {
   const runs: TextRun[] = [];
