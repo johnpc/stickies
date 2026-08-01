@@ -2,9 +2,14 @@ import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 
-const { addListener, remove } = vi.hoisted(() => ({ addListener: vi.fn(), remove: vi.fn() }));
-vi.mock('@capacitor/app', () => ({ App: { addListener } }));
+const { addListener, remove, getLaunchUrl } = vi.hoisted(() => ({
+  addListener: vi.fn(),
+  remove: vi.fn(),
+  getLaunchUrl: vi.fn(),
+}));
+vi.mock('@capacitor/app', () => ({ App: { addListener, getLaunchUrl } }));
 addListener.mockResolvedValue({ remove });
+getLaunchUrl.mockResolvedValue(undefined); // no cold-start launch URL in this test
 
 import { DeepLinks } from './DeepLinks';
 
