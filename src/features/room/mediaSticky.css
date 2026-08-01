@@ -120,6 +120,13 @@
   font-size: 0.7rem;
   font-weight: 700;
   overflow-wrap: anywhere;
+  /* The filename sits on the sticky's PASTEL note background, so it must use the
+     note ink (which every pastel is tuned to clear AA against — 11:1+), NOT
+     --sk-text-muted, which is tuned for the app bg and failed on the pastels
+     (3.98:1 light / 1.89:1 dark — nearly invisible on a blue note in dark mode).
+     Slight transparency keeps the secondary/muted feel while staying well over AA. */
+  color: var(--sk-note-ink);
+  opacity: 0.75;
 }
 /* Shown in the expanded view when the preview was capped at the read limit. */
 .doc-sticky__truncated {

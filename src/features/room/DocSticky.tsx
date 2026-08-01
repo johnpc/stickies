@@ -49,7 +49,7 @@ export function DocSticky({ sticky }: { sticky: StickyRecord }) {
 
   return (
     <div className="doc-sticky" data-testid="doc-sticky">
-      <div className="doc-sticky__name sk-muted">{name}</div>
+      <div className="doc-sticky__name">{name}</div>
       <CodeSticky code={shown} language={language} hideTruncationNote={capped} />
       <div className="doc-sticky__actions">
         {truncated && (
