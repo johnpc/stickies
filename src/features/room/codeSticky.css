@@ -31,6 +31,11 @@
 
 .code-sticky__pre {
   display: flex;
+  /* max-content so the flex row spans the FULL code width, not just the visible
+     container — otherwise the sticky gutter's containing block is only as wide as
+     the viewport and `left: 0` still scrolls away with the row. */
+  width: max-content;
+  min-width: 100%;
   margin: 0;
   padding: 8px 6px;
   font-size: 0.72rem;
@@ -42,8 +47,17 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  padding-right: 8px;
-  margin-right: 8px;
+  /* Pin the line numbers to the left edge so they stay visible when a long line
+     scrolls the code horizontally (an unpinned gutter slides off-screen — the
+     one thing a gutter must not do). Opaque background + z-index so the scrolled
+     code passes UNDER the numbers instead of showing through; the gap that used
+     to be margin-right is now padding-right so no transparent strip is left for
+     code to bleed into beside the border. */
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--sk-surface);
+  padding-right: 10px;
   border-right: 1px solid rgba(34, 32, 26, 0.15);
   text-align: right;
   color: rgba(34, 32, 26, 0.4);
@@ -53,7 +67,9 @@
 
 .code-sticky__code {
   background: transparent;
-  padding: 0;
+  /* Left gap belongs to the code (not a gutter margin) so it scrolls cleanly
+     under the pinned, opaque gutter instead of leaving a see-through strip. */
+  padding: 0 0 0 8px;
   white-space: pre;
   font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
 }
