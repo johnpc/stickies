@@ -26,7 +26,13 @@
   max-height: 320px;
   overflow-y: auto;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.55);
+  /* SOLID white in both themes: the hljs 'github' token colors are tuned for a
+     white page, and its keyword (#d73a49) only clears AA (4.57:1) on pure white.
+     The old translucent rgba(255,255,255,.55) composited to a muddy off-white in
+     light (keyword 4.14:1, under AA) and a dark-gray over the dark surface (1.62:1,
+     nearly illegible). A fixed white panel keeps the highlighted code readable
+     regardless of the surrounding light/dark theme. */
+  background: #ffffff;
 }
 
 .code-sticky__pre {
@@ -56,7 +62,10 @@
   position: sticky;
   left: 0;
   z-index: 1;
-  background: var(--sk-surface);
+  /* White to match the (fixed-white) code panel in both themes — the gutter's
+     dark numbers + border are tuned for a light background; --sk-surface would go
+     dark in dark mode and hide them. */
+  background: #ffffff;
   padding-right: 10px;
   border-right: 1px solid rgba(34, 32, 26, 0.15);
   text-align: right;

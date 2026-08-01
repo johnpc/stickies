@@ -28,8 +28,11 @@ describe('code-sticky gutter CSS', () => {
 
   it('gives the pinned gutter an opaque background so scrolled code passes under it', () => {
     const gutter = blockOf(css, '.code-sticky__gutter');
-    // A transparent gutter would show the scrolled code bleeding through the numbers.
-    expect(gutter).toMatch(/background:\s*var\(--sk-surface\)/);
+    // A transparent gutter would show the scrolled code bleeding through the
+    // numbers. Its BACKGROUND is solid white (matching the fixed-white code panel
+    // — the hljs github theme needs white in both themes; see codeContrast.test.ts).
+    const bg = gutter.match(/background:\s*([^;]+);/)?.[1].trim() ?? '';
+    expect(bg).toMatch(/^#(?:fff|ffffff)$/i); // opaque, not rgba/transparent/token
     expect(gutter).toMatch(/z-index:/);
   });
 
