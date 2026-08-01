@@ -40,6 +40,42 @@ describe('linkPreview handler', () => {
     expect(out.image).toBe('https://example.com/img.png');
   });
 
+  it('drops a non-http(s) og:image (data:/javascript:) but keeps the rest of the card', async () => {
+    // og:image is attacker-controlled and lands in the client's <img src> on a
+    // world-writable pad — a data:/javascript:/file: scheme must never pass through.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: { get: (h: string) => (h === 'content-type' ? 'text/html' : null) },
+        text: () =>
+          Promise.resolve(
+            '<meta property="og:title" content="Hi">' +
+              '<meta property="og:image" content="javascript:alert(1)">',
+          ),
+      }),
+    );
+    const out = await invoke('https://example.com/page');
+    expect(out.title).toBe('Hi'); // card still renders
+    expect(out.image).toBeNull(); // dangerous image scheme stripped
+  });
+
+  it('keeps an absolute http(s) og:image', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: { get: (h: string) => (h === 'content-type' ? 'text/html' : null) },
+        text: () =>
+          Promise.resolve('<meta property="og:image" content="https://cdn.example/pic.png">'),
+      }),
+    );
+    const out = await invoke('https://example.com/page');
+    expect(out.image).toBe('https://cdn.example/pic.png');
+  });
+
   it('returns empty when the response is not HTML', async () => {
     vi.stubGlobal(
       'fetch',
