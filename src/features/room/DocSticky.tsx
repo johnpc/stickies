@@ -50,7 +50,7 @@ export function DocSticky({ sticky }: { sticky: StickyRecord }) {
   return (
     <div className="doc-sticky" data-testid="doc-sticky">
       <div className="doc-sticky__name sk-muted">{name}</div>
-      <CodeSticky code={shown} language={language} />
+      <CodeSticky code={shown} language={language} hideTruncationNote={capped} />
       <div className="doc-sticky__actions">
         {truncated && (
           <button data-testid="doc-expand" onClick={() => setExpanded(true)}>
@@ -73,7 +73,10 @@ export function DocSticky({ sticky }: { sticky: StickyRecord }) {
               Preview truncated — Download for the full file.
             </p>
           )}
-          <CodeSticky code={text} language={language} full />
+          {/* When the file was capped at 256KB, the DOC "Download for the full
+              file" note above is the accurate source of truth — suppress CodeSticky's
+              own "use Copy for the full snippet", since Copy only holds that prefix. */}
+          <CodeSticky code={text} language={language} full hideTruncationNote={capped} />
         </Lightbox>
       )}
     </div>
