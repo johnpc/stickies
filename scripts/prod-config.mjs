@@ -2,11 +2,13 @@
  * Pull amplify_outputs.json from the deployed backend, waiting out an in-progress
  * deployment.
  *
- * This project's backend is a self-managed CloudFormation **stack** (the same one
- * web CI + prod use via `e2e-config`), NOT an Amplify-Hosting branch backend — so
- * we generate outputs with `--stack`, not `--app-id/--branch`. (The old app-id
- * path used a literal PROD_APP_ID_PLACEHOLDER and hard-failed with
- * StackDoesNotExist, which broke the iOS/Android deploy workflows.)
+ * The backend that serves stickies.jpc.io is the Amplify-Hosting BRANCH backend
+ * (app d24w01u3ylemi2, branch main) — the one the Hosting build's
+ * `ampx pipeline-deploy` provisions. iOS/Android, CI, local dev and seed ALL
+ * pull from it (via this script + `e2e-config`) so the app and the website read
+ * and write the SAME data. (Previously mobile/CI used a separate sandbox stack,
+ * so the same room showed different notes in the app vs the website.) Override
+ * the app id / branch with STICKIES_APP_ID / STICKIES_BRANCH.
  *
  * A deploy can be mid-flight (or queued) when CI / a local run calls
  * `ampx generate outputs` — which hard-fails with DeploymentInProgressError.
@@ -17,11 +19,22 @@ import { promisify } from 'node:util';
 
 const run = promisify(execFile);
 
-// The backend stack that serves stickies.jpc.io (override with STICKIES_STACK).
-const STACK = process.env.STICKIES_STACK || 'amplify-stickies-xss-sandbox-d7f764fcf6';
+// The Amplify-Hosting app + branch whose backend serves stickies.jpc.io.
+const APP_ID = process.env.STICKIES_APP_ID || 'd24w01u3ylemi2';
+const BRANCH = process.env.STICKIES_BRANCH || 'main';
 const PROFILE = 'personal';
 
-const GENERATE_ARGS = ['ampx', 'generate', 'outputs', '--stack', STACK, '--profile', PROFILE];
+const GENERATE_ARGS = [
+  'ampx',
+  'generate',
+  'outputs',
+  '--app-id',
+  APP_ID,
+  '--branch',
+  BRANCH,
+  '--profile',
+  PROFILE,
+];
 
 const MAX_ATTEMPTS = 40; // ~20 min at 30s — deep enough for a few stacked deploys
 const DELAY_MS = 30_000;

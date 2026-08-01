@@ -190,7 +190,12 @@ npx ampx sandbox       # personal cloud backend sandbox
   "Stickies — a shared sticky pad at any URL", SKU `stickies`). Note for future apps: `POST /v1/apps`
   is forbidden via the ASC API (403 FORBIDDEN_ERROR — GET/UPDATE only), so the app record must be made
   by hand in ASC → My Apps → **+** (the bundle id appears in the dropdown once created via API).
-- **Sandbox stack:** `amplify-stickies-xss-sandbox-d7f764fcf6` (wired into `package.json` `e2e-config`).
+- **Backend = the Amplify-Hosting branch backend.** app `d24w01u3ylemi2`, branch `main` (AppSync
+  `c6ouw2vmzfa6zgzdslfxeyrcpy`) — provisioned by the Hosting build's `ampx pipeline-deploy`. The
+  website, iOS/Android, CI, local dev and `seed` ALL point here so the app and the site read/write the
+  SAME data. (There is also an old `amplify-stickies-xss-sandbox-d7f764fcf6` sandbox stack, AppSync
+  `twfkpzd7…`, now UNUSED — mobile/CI used to pull from it, which is why the same room showed different
+  notes in the app vs the website; converged 2026-07-31.)
 - **DNS:** `stickies.jpc.io` is a Cloudflare CNAME → `dkayuh63j40ch.cloudfront.net` (DNS-only, NOT
   proxied, so CloudFront/Amplify Hosting serves its own TLS). jpc.io zone
   `40035c6af46b0d10bafb6d7ae37de567`. Created 2026-07-30.
@@ -215,12 +220,14 @@ npx ampx sandbox       # personal cloud backend sandbox
   `</^[^.]+$|\.(?!(css|gif|ico|jpg|jpeg|js|png|txt|svg|woff|woff2|ttf|map|json|xml|webmanifest)$)([^.]+$)/>`
   → `/index.html` status `200`. Verify after any re-provision:
   `curl -so/dev/null -w '%{http_code}' https://stickies.jpc.io/some-room` → 200.
-- **Backend config for builds = the sandbox STACK, not an Amplify-Hosting branch.** Both `e2e-config`
-  and `prod-config` pull `amplify_outputs.json` via `ampx generate outputs --stack
-amplify-stickies-xss-sandbox-d7f764fcf6` (override the stack with `STICKIES_STACK`). `prod-config`
-  adds retry-on-`DeploymentInProgressError`. It used to use an `--app-id/--branch main` model with a
-  literal `PROD_APP_ID_PLACEHOLDER`, which hard-failed `StackDoesNotExist` and broke the iOS/Android
-  deploy workflows — don't reintroduce that.
+- **Backend config for builds = the Amplify-Hosting branch backend.** Both `e2e-config` and
+  `prod-config` pull `amplify_outputs.json` via `ampx generate outputs --app-id d24w01u3ylemi2
+--branch main` (override with `STICKIES_APP_ID` / `STICKIES_BRANCH`). `prod-config` adds
+  retry-on-`DeploymentInProgressError`. This is the backend the Hosting build itself deploys, so the
+  website and every native/CI build share ONE dataset. (Historically mobile/CI pulled from a separate
+  `--stack` sandbox, which split the data — see the backend note above; converged 2026-07-31. And
+  don't reintroduce the even-older literal `PROD_APP_ID_PLACEHOLDER`, which hard-failed
+  `StackDoesNotExist`.)
 - **CI:** `.github/workflows/ci.yml` (quality + seed + Gherkin acceptance matrix: `home`, `room`).
   `ios-deploy.yml` / `android-deploy.yml` publish after CI on `main`. Secrets: `AWS_ACCESS_KEY_ID`,
   `AWS_SECRET_ACCESS_KEY`, `TEST_USERNAME`, `TEST_PASSWORD`, `ASC_KEY_ID`, `ASC_ISSUER_ID`,
