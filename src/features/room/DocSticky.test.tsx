@@ -75,7 +75,7 @@ describe('DocSticky', () => {
   });
 
   it('shows an error when the text fails to load, still offering download of the intact file', () => {
-    useDocText.mockReturnValue({ text: null, isLoading: false, isError: true });
+    useDocText.mockReturnValue({ text: null, isLoading: false, isError: true, retry: vi.fn() });
     render(<DocSticky sticky={sticky} />);
     expect(screen.getByText(/Couldn.t load a preview of a.txt/)).toBeInTheDocument();
     // The preview failed, but the uploaded file is intact — download must remain.
@@ -83,11 +83,23 @@ describe('DocSticky', () => {
     expect(downloadFile).toHaveBeenCalledWith('https://s3.example/x', 'a.txt');
   });
 
-  it('omits the download button in the error state when no URL is available', () => {
-    useDocText.mockReturnValue({ text: null, isLoading: false, isError: true });
+  it('offers a Retry that re-runs the preview fetch (recovers an expired signed URL)', () => {
+    // Regression: a transient error/403 (expired signed URL, network blip) left the
+    // preview permanently broken until a full page reload — there was no retry.
+    const retry = vi.fn();
+    useDocText.mockReturnValue({ text: null, isLoading: false, isError: true, retry });
+    render(<DocSticky sticky={sticky} />);
+    fireEvent.click(screen.getByTestId('doc-retry'));
+    expect(retry).toHaveBeenCalledOnce();
+  });
+
+  it('omits the download button in the error state when no URL is available, but keeps Retry', () => {
+    useDocText.mockReturnValue({ text: null, isLoading: false, isError: true, retry: vi.fn() });
     useMediaUrl.mockReturnValue({ url: undefined });
     render(<DocSticky sticky={sticky} />);
     expect(screen.getByText(/Couldn.t load a preview/)).toBeInTheDocument();
     expect(screen.queryByTestId('doc-download')).not.toBeInTheDocument();
+    // The preview is still recoverable even without a download URL.
+    expect(screen.getByTestId('doc-retry')).toBeInTheDocument();
   });
 });

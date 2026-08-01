@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { IonIcon } from '@ionic/react';
-import { copyOutline, downloadOutline, expandOutline } from 'ionicons/icons';
+import { copyOutline, downloadOutline, expandOutline, refreshOutline } from 'ionicons/icons';
 import type { StickyRecord } from '../../lib/dataClient';
 import { useDocText } from './useDocText';
 import { useMediaUrl } from './useMediaUrl';
@@ -18,25 +18,28 @@ import './mediaSticky.css';
 export function DocSticky({ sticky }: { sticky: StickyRecord }) {
   const [expanded, setExpanded] = useState(false);
   const copy = useCopyAction();
-  const { text, truncated: capped, isLoading, isError } = useDocText(sticky.content);
+  const { text, truncated: capped, isLoading, isError, retry } = useDocText(sticky.content);
   const { url } = useMediaUrl(sticky.content);
   const name = sticky.fileName ?? 'file.txt';
 
   if (isLoading) return <span className="sticky__text media-sticky__status">Loading…</span>;
   if (isError || text == null) {
-    // The text PREVIEW failed, but the uploaded file itself is intact — still
-    // offer a download so the sticky isn't a dead end (useMediaUrl is separate
-    // from the doc-text fetch).
+    // The text PREVIEW failed, but the uploaded file itself is intact. The signed
+    // URL may simply have expired (there's no auto-retry here), so offer Retry to
+    // re-sign + re-fetch, plus Download so the sticky is never a dead end.
     return (
       <div className="doc-sticky" data-testid="doc-sticky">
         <span className="sticky__text media-sticky__status">Couldn’t load a preview of {name}</span>
-        {url && (
-          <div className="doc-sticky__actions">
+        <div className="doc-sticky__actions">
+          <button data-testid="doc-retry" onClick={retry}>
+            <IonIcon icon={refreshOutline} /> Retry
+          </button>
+          {url && (
             <button data-testid="doc-download" onClick={() => downloadFile(url, name)}>
               <IonIcon icon={downloadOutline} /> Download
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     );
   }

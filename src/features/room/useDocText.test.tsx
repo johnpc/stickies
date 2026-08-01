@@ -49,6 +49,23 @@ describe('useDocText', () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
   });
 
+  it('recovers via retry() after a transient failure (re-signs + re-fetches)', async () => {
+    // A doc preview reads its text through a signed S3 URL that expires; with
+    // retry:false there was no recovery, so a transient 403 stayed broken until a
+    // full reload. retry() must re-run the query and pick up a now-good response.
+    resolveMediaUrl.mockResolvedValue('https://s3.example/doc');
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 403 }) // expired URL
+      .mockResolvedValueOnce({ ok: true, text: () => Promise.resolve('recovered text') });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result } = renderHook(() => useDocText('rooms/r/1-a.txt'), { wrapper });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    result.current.retry();
+    await waitFor(() => expect(result.current.text).toBe('recovered text'));
+    expect(result.current.isError).toBe(false);
+  });
+
   it('errors out instead of hanging forever when the fetch never settles', async () => {
     vi.useFakeTimers();
     try {
