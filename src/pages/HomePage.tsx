@@ -50,8 +50,14 @@ export function HomePage() {
 
           <h2 className="sk-kicker home__recent-heading">Recently edited rooms</h2>
           <LoadState
-            isLoading={isLoading}
-            isError={isError}
+            // Only show the loading/error state when there's nothing cached to
+            // show. Returning home re-fetches the feed (useIonViewWillEnter); if
+            // that background refetch flakes, react-query flips to error while
+            // still holding the prior rooms — without this gate a populated,
+            // still-valid recents feed would blank to a full-screen error. Keep
+            // showing the cached rooms; Retry stays available on a true empty load.
+            isLoading={isLoading && rooms.length === 0}
+            isError={isError && rooms.length === 0}
             isEmpty={rooms.length === 0}
             onRetry={refetch}
             emptyTitle="No rooms yet"
