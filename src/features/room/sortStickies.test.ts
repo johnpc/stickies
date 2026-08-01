@@ -46,4 +46,19 @@ describe('sortStickies', () => {
     const out = sortStickies([sticky('b', '2026-01-01Z'), sticky('a')]);
     expect(out[0].id).toBe('a');
   });
+
+  it('is a TOTAL order — two adds in the same millisecond sort identically on every device', () => {
+    // App-written ord IS the createdAt-ms, so two rapid adds collide on BOTH ord
+    // and createdAt. Without an id tiebreak, JS's stable sort keeps each device's
+    // own input order, so a fetch and a live snapshot (delivered in different
+    // sequence) show the pair flipped for different viewers. The id tiebreak pins
+    // one order regardless of input sequence.
+    const ms = Date.parse('2026-01-01T00:00:00.000Z');
+    const x = sticky('x', '2026-01-01T00:00:00.000Z', ms);
+    const y = sticky('y', '2026-01-01T00:00:00.000Z', ms);
+    const deviceA = sortStickies([x, y]).map((s) => s.id);
+    const deviceB = sortStickies([y, x]).map((s) => s.id);
+    expect(deviceA).toEqual(deviceB);
+    expect(deviceA).toEqual(['x', 'y']); // ascending by id, deterministic everywhere
+  });
 });
