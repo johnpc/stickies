@@ -18,7 +18,10 @@ export async function createMediaSticky(input: {
   seed: number;
 }): Promise<StickyRecord> {
   const { room, file, existingCount, seed } = input;
-  const key = await uploadMedia(mediaKey(room, file.name, seed), file);
+  // A short random token so two clients uploading a same-named file in the same
+  // millisecond don't collide on the S3 key (world-writable pad → silent overwrite).
+  const nonce = Math.random().toString(36).slice(2, 8);
+  const key = await uploadMedia(mediaKey(room, file.name, seed, nonce), file);
   const created = unwrapWrite(
     await withTimeout(
       dataClient.models.Sticky.create({
