@@ -44,10 +44,10 @@
          light/dark --sk-bg tokens from theme/variables.css. -->
     <meta name="theme-color" content="#f6f3ea" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#14130f" media="(prefers-color-scheme: dark)" />
-    <meta
-      name="viewport"
-      content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
+    <!-- Allow pinch-zoom: `maximum-scale=1, user-scalable=no` (the Ionic starter
+         default) disables zooming, a WCAG 2.1 AA failure (1.4.4 Resize Text) that
+         blocks low-vision users. Keep viewport-fit=cover for safe-area insets. -->
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0" />
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
 

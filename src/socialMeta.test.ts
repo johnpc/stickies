@@ -48,6 +48,16 @@ describe('social meta (index.html)', () => {
     expect(png.readUInt32BE(20)).toBe(Number(og('og:image:height')));
   });
 
+  it('keeps the viewport zoomable (WCAG 1.4.4) while retaining viewport-fit=cover', () => {
+    // Regression: the Ionic starter's `maximum-scale=1, user-scalable=no` disabled
+    // pinch-zoom — a WCAG 2.1 AA failure that blocks low-vision users. Must NOT
+    // return, and must keep viewport-fit=cover for safe-area insets.
+    const vp = doc.querySelector('meta[name="viewport"]')?.getAttribute('content') ?? '';
+    expect(vp).toContain('viewport-fit=cover');
+    expect(vp).not.toMatch(/user-scalable\s*=\s*no/);
+    expect(vp).not.toMatch(/maximum-scale/);
+  });
+
   it('uses a translucent iOS status bar so an installed light app has no black band', () => {
     // `black` painted a solid band above the cream toolbar; translucent lets the
     // app background show through the safe-area padding.
