@@ -15,6 +15,11 @@ export function Toast() {
   const actionRef = useRef<HTMLButtonElement>(null);
   // Where focus was before an actionable toast grabbed it, to restore on close.
   const returnFocus = useRef<HTMLElement | null>(null);
+  // Guards against a rapid double-activation of the action button firing run()
+  // twice before the toast unmounts. run() is often non-idempotent — e.g. Undo
+  // re-CREATES the sticky, so a double-tap made TWO copies — so fire it at most
+  // once per toast. Reset when a new toast appears.
+  const fired = useRef(false);
 
   const restoreFocus = useCallback(() => {
     const el = returnFocus.current;
@@ -27,6 +32,7 @@ export function Toast() {
   // When an actionable toast appears, pull focus to its action so it's reachable
   // and announced; remember where focus was so restoreFocus can put it back.
   useEffect(() => {
+    fired.current = false; // fresh toast → its action is armed again
     if (toast?.action && actionRef.current) {
       // Capture the return target only if we don't already have one. Across a
       // CHAIN of actionable toasts (A→B→…) focus is on the previous action button
@@ -54,6 +60,8 @@ export function Toast() {
           className="sk-toast__action"
           data-testid="app-toast-action"
           onClick={() => {
+            if (fired.current) return; // ignore a rapid second click
+            fired.current = true;
             toast.action?.run();
             advance();
           }}
