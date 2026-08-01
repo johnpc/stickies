@@ -229,7 +229,11 @@
   align-items: center;
   gap: 4px;
   background: var(--sk-note-ink);
-  color: var(--sk-surface);
+  /* Fixed-white text (16:1 on the dark ink), NOT --sk-surface: that token is white
+     in light mode but near-black (#201e18) in DARK mode, which rendered the Save
+     label dark-on-dark (1.02:1 — invisible). The button bg is a fixed dark ink in
+     both themes, so its text must be a fixed light color. */
+  color: var(--sk-accent-contrast);
   border: none;
   border-radius: var(--sk-radius-sm);
   padding: 6px 12px;
