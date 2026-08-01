@@ -20,7 +20,11 @@ export function LinkSticky({ url }: { url: string }) {
   const href = safeHref(url);
   // Only http(s) links have an OG preview to scrape — skip it for mailto:/tel:.
   const isWeb = !!href && /^https?:/.test(href);
-  const { preview } = useLinkPreview(url, isWeb);
+  // Scrape the NORMALIZED href, not the raw url: a scheme-less host ("github.com/x")
+  // links fine (safeHref adds https://) but the resolver's `new URL(raw)` throws on
+  // it, so the raw url silently yielded no card while a full-scheme paste of the
+  // same destination did — an inconsistent, missing preview.
+  const { preview } = useLinkPreview(href ?? url, isWeb);
   const [imgFailed, setImgFailed] = useState(false);
   // Re-arm the image if the sticky's URL changes (edited to a different link).
   useEffect(() => setImgFailed(false), [url]);
