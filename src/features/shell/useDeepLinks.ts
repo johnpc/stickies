@@ -17,6 +17,16 @@ export function useDeepLinks(): void {
       const path = deepLinkPath(event.url);
       if (path) history.push(path);
     });
+    // COLD START: when the app is launched by tapping a shared link (not already
+    // running), the OS delivers the URL via getLaunchUrl — the `appUrlOpen` event
+    // fires before this listener is attached, so a listener-only hook drops it and
+    // boots to the home page instead of the shared room. Resolve the launch URL
+    // once and route it. Only navigate to a real ROOM path (not "/"), so a normal
+    // launch (no link, or the bare domain) doesn't clobber the default route.
+    void App.getLaunchUrl().then((launch) => {
+      const path = launch?.url ? deepLinkPath(launch.url) : null;
+      if (path && path !== '/') history.push(path);
+    });
     return () => {
       void handle.then((h) => h.remove());
     };
