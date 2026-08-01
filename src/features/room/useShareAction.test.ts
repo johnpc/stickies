@@ -63,4 +63,19 @@ describe('useShareAction', () => {
     expect(copyText).toHaveBeenCalledWith(url);
     expect(msg).toMatch(/manually/i);
   });
+
+  it('shares the RAW url but the copy fallback copies the readable (decoded) form', async () => {
+    // Regression: the fallback copied the raw percent-encoded url, so a unicode
+    // room pasted as %XX from the share-fallback but readable from the Copy button
+    // (same panel, same room). The fallback now matches the Copy button.
+    const encoded = 'https://stickies.jpc.io/%E6%97%A5%E6%9C%AC%E8%AA%9E'; // 日本語
+    shareUrl.mockResolvedValue('failed');
+    copyText.mockResolvedValue(true);
+    const { result } = renderHook(() => useShareAction());
+    await result.current(encoded);
+    // Native share got the raw canonical url…
+    expect(shareUrl).toHaveBeenCalledWith(encoded);
+    // …but the copy fallback got the decoded, human-readable form.
+    expect(copyText).toHaveBeenCalledWith('https://stickies.jpc.io/日本語');
+  });
 });
