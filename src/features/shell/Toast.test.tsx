@@ -26,6 +26,22 @@ describe('Toast', () => {
     expect(screen.queryByTestId('app-toast')).not.toBeInTheDocument();
   });
 
+  it('runs the action ONCE even on a rapid double-click (no duplicate Undo/restore)', () => {
+    // Regression: run() is often non-idempotent (Undo re-CREATES the sticky), so
+    // two clicks landing before the toast unmounts made TWO copies. The action
+    // must fire at most once per toast.
+    const run = vi.fn();
+    render(<Toast />);
+    act(() => showToast('Sticky deleted', { label: 'Undo', run }));
+    const action = screen.getByTestId('app-toast-action');
+    // Two clicks in the same tick (both dispatched before React re-renders).
+    act(() => {
+      fireEvent.click(action);
+      fireEvent.click(action);
+    });
+    expect(run).toHaveBeenCalledOnce();
+  });
+
   describe('a11y', () => {
     it('moves focus to the action button of an actionable toast (reachable + announced)', () => {
       // Regression: the Undo button was unreachable (end of the DOM) and its
