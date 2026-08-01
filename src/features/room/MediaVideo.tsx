@@ -6,6 +6,9 @@ interface MediaVideoProps {
   name: string;
   /** Lightbox variant renders a bare <video> (lightbox CSS targets the tag). */
   large?: boolean;
+  /** Re-sign the S3 URL (useMediaUrl.refresh). Called ONCE on a load error before
+   * giving up — recovers an expired signed URL on the spot. */
+  onError?: () => void;
 }
 
 /** An uploaded VIDEO sticky's player. If the media fails to load (deleted,
@@ -19,13 +22,29 @@ interface MediaVideoProps {
  * + play-state and restore them once the re-signed source loads, so playback
  * isn't interrupted mid-watch (the media object never changes, only the
  * signature). */
-export function MediaVideo({ url, name, large }: MediaVideoProps) {
+export function MediaVideo({ url, name, large, onError }: MediaVideoProps) {
   const [failed, setFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const posRef = useRef(0);
   const playingRef = useRef(false);
-  // Re-arm if the sticky's underlying URL changes (e.g. signed-URL refresh).
-  useEffect(() => setFailed(false), [url]);
+  // Whether we've already spent our one re-sign attempt for the CURRENT url.
+  const retried = useRef(false);
+  // Re-arm if the sticky's underlying URL changes (e.g. signed-URL refresh): a new
+  // url gets a fresh chance to load AND a fresh re-sign attempt.
+  useEffect(() => {
+    setFailed(false);
+    retried.current = false;
+  }, [url]);
+
+  const handleError = () => {
+    // First failure on this url: try a re-sign (likely expired) before giving up.
+    if (!retried.current && onError) {
+      retried.current = true;
+      onError();
+      return;
+    }
+    setFailed(true);
+  };
 
   if (failed) {
     return (
@@ -50,7 +69,7 @@ export function MediaVideo({ url, name, large }: MediaVideoProps) {
       // Fires after the (re-signed) source loads — put playback back where it was
       // so a background URL refresh doesn't snap the video to the start.
       onLoadedMetadata={() => restorePlayback(videoRef.current, posRef.current, playingRef.current)}
-      onError={() => setFailed(true)}
+      onError={handleError}
     >
       <track kind="captions" />
     </video>

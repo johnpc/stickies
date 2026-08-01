@@ -18,6 +18,18 @@ describe('MediaVideo', () => {
     expect(screen.getByTestId('media-broken')).toHaveTextContent('Couldn’t load clip.mp4');
   });
 
+  it('re-signs the URL once on the first error, then shows broken on a repeat failure', () => {
+    // Same expired-signed-URL recovery as MediaImage: one re-sign attempt, no loop.
+    const onError = vi.fn();
+    render(<MediaVideo url="https://s3/expired.mp4" name="clip.mp4" onError={onError} />);
+    fireEvent.error(screen.getByTestId('media-video')); // 1st → re-sign
+    expect(onError).toHaveBeenCalledOnce();
+    expect(screen.getByTestId('media-video')).toBeInTheDocument(); // not broken yet
+    fireEvent.error(screen.getByTestId('media-video')); // 2nd on same url → give up
+    expect(onError).toHaveBeenCalledOnce();
+    expect(screen.getByTestId('media-broken')).toHaveTextContent('Couldn’t load clip.mp4');
+  });
+
   it('re-arms (shows the player again) when the url changes', () => {
     const { rerender } = render(<MediaVideo url="https://s3/dead.mp4" name="c.mp4" />);
     fireEvent.error(screen.getByTestId('media-video'));

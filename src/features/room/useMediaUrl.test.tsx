@@ -28,6 +28,14 @@ describe('useMediaUrl', () => {
     expect(resolveMediaUrl).not.toHaveBeenCalled();
   });
 
+  it('refresh() forces an immediate re-sign (recovers an expired URL on error)', async () => {
+    resolveMediaUrl.mockResolvedValue('https://s3.example/x');
+    const { result } = renderHook(() => useMediaUrl('rooms/r/1-a.png'), { wrapper });
+    await waitFor(() => expect(resolveMediaUrl).toHaveBeenCalledTimes(1));
+    result.current.refresh();
+    await waitFor(() => expect(resolveMediaUrl.mock.calls.length).toBeGreaterThanOrEqual(2));
+  });
+
   it('re-signs the URL on an interval so it never rots past S3 expiry', async () => {
     vi.useFakeTimers();
     try {

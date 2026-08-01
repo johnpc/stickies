@@ -16,7 +16,7 @@ import './mediaSticky.css';
  * mimeType/fileName so a bad `kind` still renders sensibly. */
 export function MediaSticky({ sticky }: { sticky: StickyRecord }) {
   const [expanded, setExpanded] = useState(false);
-  const { url, isLoading, isError } = useMediaUrl(sticky.content);
+  const { url, isLoading, isError, refresh } = useMediaUrl(sticky.content);
   const name = sticky.fileName ?? 'file';
   const kind = mediaKind(sticky.mimeType, name);
 
@@ -42,11 +42,11 @@ export function MediaSticky({ sticky }: { sticky: StickyRecord }) {
 
   return (
     <div className="media-sticky" data-testid={`media-${kind.toLowerCase()}-wrap`}>
-      {mediaPreview(kind, url, name)}
+      {mediaPreview(kind, url, name, false, refresh)}
       <MediaActions url={url} fileName={name} onExpand={() => setExpanded(true)} />
       {expanded && (
         <Lightbox title={name} onClose={() => setExpanded(false)}>
-          {mediaPreview(kind, url, name, true)}
+          {mediaPreview(kind, url, name, true, refresh)}
         </Lightbox>
       )}
     </div>

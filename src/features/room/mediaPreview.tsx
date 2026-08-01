@@ -5,13 +5,21 @@ import { MediaVideo } from './MediaVideo';
 /** The preview element for a media kind at a given URL. `large` swaps the small
  * list-view classes for lightbox sizing (the lightbox CSS targets bare tags).
  * IMAGE/VIDEO/PDF have visual previews; FILE/DOC have none (rendered elsewhere).
- * Kept as a pure factory so MediaSticky + the lightbox share one source. */
-export function mediaPreview(kind: MediaKind, url: string, name: string, large = false) {
+ * `onExpired` re-signs the URL when an image/video 403s (expired signature), so a
+ * preview left open past expiry recovers on the spot. Kept as a pure factory so
+ * MediaSticky + the lightbox share one source. */
+export function mediaPreview(
+  kind: MediaKind,
+  url: string,
+  name: string,
+  large = false,
+  onExpired?: () => void,
+) {
   if (kind === 'IMAGE') {
-    return <MediaImage url={url} name={name} large={large} />;
+    return <MediaImage url={url} name={name} large={large} onError={onExpired} />;
   }
   if (kind === 'VIDEO') {
-    return <MediaVideo url={url} name={name} large={large} />;
+    return <MediaVideo url={url} name={name} large={large} onError={onExpired} />;
   }
   if (kind === 'PDF') {
     // iOS Safari + WKWebView (the published app's platform) won't render a PDF in

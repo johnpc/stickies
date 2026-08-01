@@ -19,5 +19,15 @@ export function useMediaUrl(key: string) {
     refetchInterval: REFRESH_MS,
     refetchIntervalInBackground: true,
   });
-  return { url: query.data, isLoading: query.isLoading, isError: query.isError };
+  return {
+    url: query.data,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    // Force a re-sign now (bypasses staleTime) — used when a preview 403s off the
+    // refresh cycle (tab suspended past expiry, or a short-lived guest session) so
+    // it recovers on the spot instead of waiting for the next background tick.
+    refresh: () => {
+      void query.refetch();
+    },
+  };
 }
