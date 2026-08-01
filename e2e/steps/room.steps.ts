@@ -64,7 +64,12 @@ Then('a QR code for the room is shown', async ({ page }) => {
 
 Then('the room URL is copied to their clipboard', async ({ page }) => {
   const clip = await page.evaluate(() => navigator.clipboard.readText());
-  expect(clip).toBe(page.url());
+  // The app shares the CANONICAL web URL (https://stickies.jpc.io/<room>), not
+  // the current origin — so a link shared from the native app (where the origin
+  // is capacitor://localhost) still opens for the recipient. Same room path,
+  // canonical host.
+  const path = new URL(page.url()).pathname;
+  expect(clip).toBe(`https://stickies.jpc.io${path}`);
 });
 
 When('they upload an image file', async ({ page }) => {
