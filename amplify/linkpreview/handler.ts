@@ -13,11 +13,16 @@ const MAX_BYTES = 200_000;
 const MAX_REDIRECTS = 5;
 const HEADERS = { 'user-agent': 'StickiesLinkPreview/1.0', accept: 'text/html' };
 
-/** Resolve a possibly-relative image URL against the page URL. */
+/** Resolve a possibly-relative image URL against the page URL, keeping ONLY
+ * http(s). og:image is attacker-controlled (any page can set it) and flows
+ * straight into the client's <img src> on a world-writable pad — so a hostile
+ * page could otherwise inject a `data:`/`javascript:`/`file:`/other-scheme URL.
+ * Restrict to http(s) so only a normal remote image can ever reach the DOM. */
 function absolutize(image: string | null, base: string): string | null {
   if (!image) return null;
   try {
-    return new URL(image, base).toString();
+    const url = new URL(image, base);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.toString() : null;
   } catch {
     return null;
   }
