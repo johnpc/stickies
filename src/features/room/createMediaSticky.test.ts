@@ -14,7 +14,8 @@ vi.mock('./touchRoom', () => ({ touchRoom }));
 vi.mock('./mediaApi', () => ({
   touchRoom,
   uploadMedia,
-  mediaKey: (room: string, name: string, seed: number) => `rooms/${room}/${seed}-${name}`,
+  mediaKey: (room: string, name: string, seed: number, nonce: string) =>
+    `rooms/${room}/${seed}-${nonce}-${name}`,
 }));
 
 import { createMediaSticky } from './createMediaSticky';
@@ -33,7 +34,12 @@ describe('createMediaSticky', () => {
 
     await createMediaSticky({ room: 'r', file, existingCount: 1, seed: 7 });
 
-    expect(uploadMedia).toHaveBeenCalledWith('rooms/r/7-a.png', file);
+    // The upload key embeds a random nonce (collision guard), so match the shape:
+    // rooms/<room>/<seed>-<nonce>-<name>. content comes from uploadMedia's return.
+    expect(uploadMedia).toHaveBeenCalledWith(
+      expect.stringMatching(/^rooms\/r\/7-[a-z0-9]+-a\.png$/),
+      file,
+    );
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({
         room: 'r',

@@ -31,14 +31,24 @@ beforeEach(() => {
 });
 
 describe('mediaKey', () => {
-  it('namespaces by room and sanitizes the filename', () => {
-    expect(mediaKey('grocery', 'my file (1).png', 42)).toBe('rooms/grocery/42-my_file_1_.png');
+  it('namespaces by room, stamps seed+nonce, and sanitizes the filename', () => {
+    expect(mediaKey('grocery', 'my file (1).png', 42, 'ab12cd')).toBe(
+      'rooms/grocery/42-ab12cd-my_file_1_.png',
+    );
   });
 
   it('truncates very long names to the last 80 chars', () => {
-    const key = mediaKey('r', `${'a'.repeat(200)}.png`, 1);
-    expect(key.startsWith('rooms/r/1-')).toBe(true);
-    expect(key.length).toBeLessThan('rooms/r/1-'.length + 81);
+    const key = mediaKey('r', `${'a'.repeat(200)}.png`, 1, 'xy99zz');
+    expect(key.startsWith('rooms/r/1-xy99zz-')).toBe(true);
+    expect(key.length).toBeLessThan('rooms/r/1-xy99zz-'.length + 81);
+  });
+
+  it('a distinct nonce makes the key unique for a same-ms, same-name upload (no overwrite)', () => {
+    // Two clients uploading "photo.png" in the same millisecond (same seed) must
+    // NOT produce the same S3 key, or the second write silently overwrites the first.
+    const a = mediaKey('r', 'photo.png', 1000, 'aaaaaa');
+    const b = mediaKey('r', 'photo.png', 1000, 'bbbbbb');
+    expect(a).not.toBe(b);
   });
 });
 

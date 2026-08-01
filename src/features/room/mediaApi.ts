@@ -36,11 +36,15 @@ export function uploadSizeError(file: File): string | null {
   return null;
 }
 
-/** A stable-ish S3 path for a room upload. `seed` (e.g. a timestamp passed by
- * the caller) keeps paths unique without Math.random here. */
-export function mediaKey(room: string, fileName: string, seed: number): string {
+/** A unique S3 path for a room upload. A room is world-writable, so `seed` (a
+ * ms timestamp) alone is NOT collision-proof: two different people uploading a
+ * same-named file in the same millisecond would produce the same key and the
+ * second upload would silently OVERWRITE the first. The caller-supplied `nonce`
+ * (a short random token) makes the key unique across clients. Kept pure — the
+ * randomness is injected — so it stays unit-testable. */
+export function mediaKey(room: string, fileName: string, seed: number, nonce: string): string {
   const safeName = fileName.replace(/[^\w.-]+/g, '_').slice(-80);
-  return `rooms/${room}/${seed}-${safeName}`;
+  return `rooms/${room}/${seed}-${nonce}-${safeName}`;
 }
 
 /** Upload a file to S3 and return its stored path. Rejects an over-cap file up
