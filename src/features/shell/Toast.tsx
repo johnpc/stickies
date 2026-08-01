@@ -28,7 +28,12 @@ export function Toast() {
   // and announced; remember where focus was so restoreFocus can put it back.
   useEffect(() => {
     if (toast?.action && actionRef.current) {
-      returnFocus.current = document.activeElement as HTMLElement | null;
+      // Capture the return target only if we don't already have one. Across a
+      // CHAIN of actionable toasts (A→B→…) focus is on the previous action button
+      // when the next appears; capturing that would restore to a detached node and
+      // lose the real opener. returnFocus is cleared only by restoreFocus (when the
+      // chain ends), so keeping the first-captured element anchors the whole chain.
+      if (!returnFocus.current) returnFocus.current = document.activeElement as HTMLElement | null;
       actionRef.current.focus();
     }
   }, [toast]);

@@ -61,6 +61,53 @@ describe('Toast', () => {
       expect(document.activeElement).toBe(opener); // focus untouched
       opener.remove();
     });
+
+    describe('with fake timers (queued restore)', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+      });
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('restores focus to the opener even when a PLAIN toast is queued behind the Undo', () => {
+        // Regression: restore only fired on actionable→EMPTY. If any toast was
+        // queued behind the Undo (trivially common — "Copied", a Retry, etc.), the
+        // guard `&& !next` was false, so a keyboard/AT user who deleted a sticky was
+        // stranded on <body> forever. Restore must survive a plain toast following.
+        const opener = document.createElement('button');
+        document.body.appendChild(opener);
+        opener.focus();
+        render(<Toast />);
+        act(() => showToast('Sticky deleted', { label: 'Undo', run: vi.fn() }));
+        act(() => showToast('Copied to clipboard')); // queued behind the Undo
+        fireEvent.click(screen.getByLabelText('Dismiss')); // leave the Undo → plain shows
+        // Focus is handed back as soon as we leave the actionable toast (the plain
+        // one doesn't take focus), not only once the queue drains.
+        expect(document.activeElement).toBe(opener);
+        act(() => vi.advanceTimersByTime(6000)); // plain toast expires
+        expect(document.activeElement).toBe(opener);
+        opener.remove();
+      });
+
+      it('across a chain of actionable toasts, restores to the ORIGINAL opener (not a stale action button)', () => {
+        const opener = document.createElement('button');
+        document.body.appendChild(opener);
+        opener.focus();
+        render(<Toast />);
+        act(() => showToast('Sticky deleted', { label: 'Undo', run: vi.fn() }));
+        act(() => showToast('Write failed', { label: 'Retry', run: vi.fn() })); // 2nd actionable, queued
+        // Leave the first actionable → the second (actionable) takes focus; the
+        // original opener must still be the recorded return target, not the now-gone
+        // first Undo button.
+        fireEvent.click(screen.getByLabelText('Dismiss'));
+        expect(screen.getByTestId('app-toast')).toHaveTextContent('Write failed');
+        expect(document.activeElement).toBe(screen.getByTestId('app-toast-action'));
+        fireEvent.click(screen.getByLabelText('Dismiss')); // leave the chain
+        expect(document.activeElement).toBe(opener); // back to the real opener
+        opener.remove();
+      });
+    });
   });
 
   describe('queueing', () => {
