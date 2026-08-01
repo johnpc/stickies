@@ -8,9 +8,11 @@
   --sk-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   /* A warm amber accent (the classic sticky-note yellow), darkened enough to
-     clear WCAG AA 4.5:1 under white button text. */
+     clear WCAG AA 4.5:1 BOTH as text on the cream bg (the .sk-kicker heading /
+     home links) AND under white button text. #9c6f08 was only 4.03:1 as text on
+     cream (AA fail); #8a6207 is 4.94:1 on cream and 5.48:1 under white. */
   --sk-accent: #b5820a;
-  --sk-accent-strong: #9c6f08;
+  --sk-accent-strong: #8a6207;
   --sk-accent-contrast: #ffffff;
   --sk-accent-soft: #fdf3d3;
   --sk-accent-gradient: linear-gradient(135deg, #f7c948 0%, #e0a70f 100%);
