@@ -10,7 +10,12 @@ export interface ClassifiedContent {
 }
 
 // Multi-line fence: ```lang\n<body>\n``` — the first line's word is the language.
-const FENCE_MULTILINE = /^```([a-z0-9+#-]*)\n([\s\S]*?)\n?```$/i;
+// The language class includes `.` (hljs names like `asp.net`), and trailing
+// whitespace on the info line is tolerated (```js␠\n) — otherwise a stray space
+// or a dotted name made the whole info line fail to match here and fall through
+// to FENCE_INLINE, which folded "js " / "asp.net" into the code body as line 1
+// and dropped the language tag + highlighting.
+const FENCE_MULTILINE = /^```([a-z0-9+#.-]*)[ \t]*\n([\s\S]*?)\n?```$/i;
 // Inline fence: ```<body>``` on one line (no newline). Everything between the
 // backticks is code; there's no language tag (a leading word here is ambiguous
 // with code, so we don't guess one).
