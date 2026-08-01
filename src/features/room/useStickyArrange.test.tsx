@@ -76,4 +76,27 @@ describe('useStickyArrange', () => {
     // On failure the cache reverts to the prior size (no wrong size left showing).
     await waitFor(() => expect(cache()?.find((s) => s.id === 'x')?.size).toBe('M'));
   });
+
+  it('optimistically re-sorts on reorder so a rapid follow-up move sees the new order', () => {
+    // The keyboard reorder computes each move from the CURRENT order; without an
+    // optimistic re-sort a second press before the write lands recomputes from the
+    // stale order, so 3 quick presses moved a sticky only ONE slot.
+    seed([
+      { id: 'a', ord: 1 } as StickyRecord,
+      { id: 'b', ord: 2 } as StickyRecord,
+      { id: 'c', ord: 3 } as StickyRecord,
+    ]);
+    const { result } = renderHook(() => useStickyArrange('room', 3), { wrapper });
+    act(() => result.current.reorder.mutate({ id: 'a', ord: 2.5 })); // move A between B and C
+    expect(cache()?.map((s) => s.id)).toEqual(['b', 'a', 'c']); // re-sorted into place
+  });
+
+  it('reorder rolls back to the prior order when the write fails', async () => {
+    setStickyOrder.mockRejectedValueOnce(new Error('offline'));
+    seed([{ id: 'a', ord: 1 } as StickyRecord, { id: 'b', ord: 2 } as StickyRecord]);
+    const { result } = renderHook(() => useStickyArrange('room', 2), { wrapper });
+    act(() => result.current.reorder.mutate({ id: 'a', ord: 3 })); // move A after B
+    expect(cache()?.map((s) => s.id)).toEqual(['b', 'a']); // optimistic
+    await waitFor(() => expect(cache()?.map((s) => s.id)).toEqual(['a', 'b'])); // reverted
+  });
 });
