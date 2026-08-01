@@ -7,6 +7,7 @@
 import type { Schema } from '../data/resource';
 import { safeFetchUrl } from './safeFetchUrl';
 import { parseOpenGraph, type LinkPreviewData } from './parseOpenGraph';
+import { readCappedHtml } from './readCappedHtml';
 
 const EMPTY: LinkPreviewData = { title: null, description: null, image: null, siteName: null };
 const MAX_BYTES = 200_000;
@@ -62,7 +63,7 @@ export const handler: Schema['linkPreview']['functionHandler'] = async (event) =
     if (!hit) return EMPTY;
     const type = hit.res.headers.get('content-type') ?? '';
     if (!hit.res.ok || !type.includes('text/html')) return EMPTY;
-    const html = (await hit.res.text()).slice(0, MAX_BYTES);
+    const html = await readCappedHtml(hit.res, MAX_BYTES);
     const data = parseOpenGraph(html);
     return { ...data, image: absolutize(data.image, hit.url) };
   } catch {
