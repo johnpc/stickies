@@ -1,8 +1,10 @@
 import { IonIcon } from '@ionic/react';
-import { copyOutline } from 'ionicons/icons';
+import { copyOutline, shareOutline } from 'ionicons/icons';
 import { Lightbox } from './Lightbox';
 import { useQrCode } from './useQrCode';
 import { useCopyAction } from './useCopyAction';
+import { useShareAction } from './useShareAction';
+import { canShare } from './shareUrl';
 import { readableUrl } from './readableUrl';
 import './shareRoom.css';
 
@@ -19,6 +21,7 @@ interface ShareRoomPanelProps {
 export function ShareRoomPanel({ url, onClose }: ShareRoomPanelProps) {
   const qr = useQrCode(url);
   const copy = useCopyAction();
+  const share = useShareAction();
   const pretty = readableUrl(url);
   return (
     <Lightbox title="Share this room" onClose={onClose}>
@@ -54,6 +57,19 @@ export function ShareRoomPanel({ url, onClose }: ShareRoomPanelProps) {
             <IonIcon icon={copyOutline} /> Copy
           </button>
         </div>
+        {/* On a device with the native share sheet (mobile / the installed app),
+            offer it — the frictionless way to send a link. Falls back to copy on
+            error; hidden where the Web Share API isn't available (most desktops),
+            so the QR + Copy remain the path there. Shares the raw canonical URL. */}
+        {canShare() && (
+          <button
+            className="share-room__native"
+            data-testid="share-native"
+            onClick={() => share(url)}
+          >
+            <IonIcon icon={shareOutline} /> Share…
+          </button>
+        )}
       </div>
     </Lightbox>
   );

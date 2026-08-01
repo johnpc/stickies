@@ -5,6 +5,9 @@ const { useQrCode } = vi.hoisted(() => ({ useQrCode: vi.fn() }));
 vi.mock('./useQrCode', () => ({ useQrCode }));
 const { copy } = vi.hoisted(() => ({ copy: vi.fn() }));
 vi.mock('./useCopyAction', () => ({ useCopyAction: () => copy }));
+const { canShare, share } = vi.hoisted(() => ({ canShare: vi.fn(() => false), share: vi.fn() }));
+vi.mock('./shareUrl', () => ({ canShare }));
+vi.mock('./useShareAction', () => ({ useShareAction: () => share }));
 
 import { ShareRoomPanel } from './ShareRoomPanel';
 
@@ -53,5 +56,23 @@ describe('ShareRoomPanel', () => {
     // Copy sends the readable form.
     fireEvent.click(screen.getByTestId('share-copy'));
     expect(copy).toHaveBeenCalledWith('https://stickies.jpc.io/café');
+  });
+
+  it('hides the native Share button where the Web Share API is unavailable', () => {
+    canShare.mockReturnValue(false);
+    useQrCode.mockReturnValue({ status: 'ready', dataUrl: 'data:image/png;base64,QR' });
+    render(<ShareRoomPanel url={url} onClose={vi.fn()} />);
+    expect(screen.queryByTestId('share-native')).not.toBeInTheDocument();
+  });
+
+  it('shows the native Share button when supported and shares the RAW url', () => {
+    share.mockClear();
+    canShare.mockReturnValue(true);
+    useQrCode.mockReturnValue({ status: 'ready', dataUrl: 'data:image/png;base64,QR' });
+    const encoded = 'https://stickies.jpc.io/' + encodeURIComponent('café');
+    render(<ShareRoomPanel url={encoded} onClose={vi.fn()} />);
+    fireEvent.click(screen.getByTestId('share-native'));
+    // The native sheet gets the canonical raw URL (the OS/target apps expect it).
+    expect(share).toHaveBeenCalledWith(encoded);
   });
 });
