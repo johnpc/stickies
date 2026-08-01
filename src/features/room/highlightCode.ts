@@ -22,20 +22,26 @@ const AUTODETECT_MAX_CHARS = 4000;
  * so the component stays a pure renderer and this is the one place touching hljs.
  */
 export function highlightCode(code: string, language?: string | null): Highlighted {
+  // Normalize the SAME single trailing newline codeLines strips, so the rendered
+  // <code> (white-space: pre) has exactly as many lines as the gutter numbers it.
+  // A trailing \n (nearly every file/paste has one) otherwise renders an extra
+  // empty line with no gutter number, shifting every number below out of line.
+  const src = code.replace(/\n$/, '');
   if (language && hljs.getLanguage(language)) {
-    const { value } = hljs.highlight(code, { language });
+    const { value } = hljs.highlight(src, { language });
     return { html: value, language };
   }
-  if (code.length > AUTODETECT_MAX_CHARS) {
-    const { value } = hljs.highlight(code, { language: 'plaintext' });
+  if (src.length > AUTODETECT_MAX_CHARS) {
+    const { value } = hljs.highlight(src, { language: 'plaintext' });
     return { html: value, language: null };
   }
-  const { value, language: detected } = hljs.highlightAuto(code);
+  const { value, language: detected } = hljs.highlightAuto(src);
   return { html: value, language: detected ?? null };
 }
 
 /** Split code into its lines for a line-number gutter (keeps trailing empties
- * out so a single-line snippet shows one number, not two). */
+ * out so a single-line snippet shows one number, not two). Trailing-newline
+ * normalization matches highlightCode so gutter count == rendered line count. */
 export function codeLines(code: string): string[] {
   return code.replace(/\n$/, '').split('\n');
 }
