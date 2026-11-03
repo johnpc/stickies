@@ -30,7 +30,7 @@ jobs:
     # SDK (Xcode 26), which only ships on macos-26. (macos-latest is still on
     # Xcode/iOS 18.5 → "SDK version issue" rejection.) We use the STANDARD
     # macos-26, not the -xlarge paid large runner that stopped allocating.
-    runs-on: macos-26
+    runs-on: [self-hosted, mac-mini]
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v7
