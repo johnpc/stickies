@@ -69,7 +69,8 @@ jobs:
         if: steps.changes.outputs.native == 'true'
         with:
           node-version: 22
-          cache: 'npm'
+          # No setup-node cache on the self-hosted Mac mini: ~/.npm persists there, and saving it was a ~1.8 GB upload per run.
+          package-manager-cache: false
 
       - run: npm ci
         if: steps.changes.outputs.native == 'true'
