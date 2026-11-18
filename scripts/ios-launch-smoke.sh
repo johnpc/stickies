@@ -60,7 +60,7 @@ cleanup() {
   if [ -n "$UDID" ]; then
     xcrun simctl io "$UDID" screenshot "$OUT/launch.png" >/dev/null 2>&1 && say "screenshot → $OUT/launch.png" || true
   fi
-  [ -n "$SIMCTL_PID" ] && kill "$SIMCTL_PID" 2>/dev/null
+  [ -n "$SIMCTL_PID" ] && kill "$SIMCTL_PID" 2>/dev/null || true
   if [ -n "$UDID" ]; then
     if [ "${SMOKE_KEEP_SIM:-0}" != "1" ]; then
       xcrun simctl shutdown "$UDID" >/dev/null 2>&1 || true
@@ -94,8 +94,15 @@ xcodebuild "${PROJ[@]}" -scheme App -configuration Debug \
   -destination "platform=iOS Simulator,id=$UDID" -derivedDataPath "$OUT/DerivedData" \
   CODE_SIGNING_ALLOWED=NO ENABLE_DEBUG_DYLIB=NO build >"$OUT/xcodebuild.log" 2>&1 \
   || { grep -E "error:|BUILD FAILED" "$OUT/xcodebuild.log" | head -30 >&2; fail "xcodebuild failed (log: $OUT/xcodebuild.log)"; }
-APP="$OUT/DerivedData/Build/Products/Debug-iphonesimulator/App.app"
-[ -d "$APP" ] || fail "no app bundle at $APP"
+# The scheme is "App" everywhere, but the product can be named after the target
+# (e.g. "Small Crosswords.app"), so take whichever single .app the build produced.
+APP=$(find "$OUT/DerivedData/Build/Products/Debug-iphonesimulator" -maxdepth 1 -name "*.app" | head -1)
+[ -n "$APP" ] && [ -d "$APP" ] || fail "no app bundle under $OUT/DerivedData/Build/Products/Debug-iphonesimulator"
+# Launch what was BUILT: a Debug configuration may carry its own bundle id.
+BUILT_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist" 2>/dev/null || true)
+if [ -z "${SMOKE_BUNDLE_ID:-}" ] && [ -n "$BUILT_ID" ] && [ "$BUILT_ID" != "$BUNDLE_ID" ]; then
+  say "built bundle id is $BUILT_ID (Capacitor appId $BUNDLE_ID) — launching the built one"; BUNDLE_ID="$BUILT_ID"
+fi
 /usr/libexec/PlistBuddy -c "Print :UIApplicationSceneManifest:UISceneConfigurations" "$APP/Info.plist" >/dev/null 2>&1 \
   || fail "the built Info.plist has no UIApplicationSceneManifest — iOS 27 will kill this app on launch"
 
@@ -113,7 +120,7 @@ for _ in $(seq 1 10); do
     kill -0 "$SIMCTL_PID" 2>/dev/null || break
   done
   [ -n "$APP_PID" ] && break
-  kill "$SIMCTL_PID" 2>/dev/null; wait "$SIMCTL_PID" 2>/dev/null || true
+  kill "$SIMCTL_PID" 2>/dev/null || true; wait "$SIMCTL_PID" 2>/dev/null || true
 done
 [ -n "$APP_PID" ] || { tail -5 "$OUT/app.stdout" >&2; fail "simctl launch never produced a running process within 30s"; }
 LAUNCHED_AT=$(date +%s)
