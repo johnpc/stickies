@@ -22,6 +22,12 @@ export default defineConfig({
   },
   plugins: [react(), legacy({ modernTargets: 'chrome>=67, safari>=14, firefox>=68, edge>=79' })],
   test: {
+    // The npm test scripts run Vitest with NODE_OPTIONS=--no-experimental-webstorage.
+    // Node 26 defines globalThis.localStorage as an own property whose value is
+    // undefined (Web Storage without --localstorage-file), and the jsdom
+    // environment never overwrites an existing global, so tests saw
+    // localStorage === undefined. The flag removes Node's property and jsdom's
+    // storage comes through.
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
