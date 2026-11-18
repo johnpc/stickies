@@ -9,6 +9,11 @@
 
 # Stickies
 
+> **Platform status: web only (for now).** The web app at [stickies.jpc.io](https://stickies.jpc.io) is
+> the supported platform. The iOS and Android projects stay in the repo but are not published or
+> deployed, and the iOS Deploy / Android Deploy workflows are meant to stay disabled
+> (`gh workflow enable "<name>"` turns them back on).
+
 **A shared sticky-note pad at any URL.** Visit `stickies.jpc.io/<room>` and you land on a pad that
 anyone with that link can read and edit — post text, paste links, share quick notes. **No account, no
 setup.** Play instantly as a guest.
