@@ -37,3 +37,6 @@ amplify_outputs*
 .features-gen
 /playwright-report
 /test-results
+
+# iOS launch smoke output (scripts/ios-launch-smoke.sh)
+ios-smoke-output/
