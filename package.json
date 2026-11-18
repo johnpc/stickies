@@ -101,5 +101,12 @@
     "vite": "^5.0.0",
     "vitest": "^0.34.6"
   },
-  "description": "Stickies — visit any room URL to share an editable pad of sticky notes with anyone. No account, no setup."
+  "description": "Stickies — visit any room URL to share an editable pad of sticky notes with anyone. No account, no setup.",
+  "allowScripts": {
+    "esbuild": true,
+    "fsevents": true,
+    "sharp": true,
+    "@parcel/watcher": true,
+    "core-js": false
+  }
 }
